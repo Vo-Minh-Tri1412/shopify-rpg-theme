@@ -1,0 +1,47 @@
+{% comment %}
+  LOOTBOX THANK YOU PAGE HANDLER
+  Đặt snippet này trong checkout additional scripts hoặc thank you page
+  Khi khách hàng thanh toán xong lootbox, tự động thêm vào túi đồ
+{% endcomment %}
+
+{% if checkout %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Kiểm tra các line items trong đơn hàng
+    {% for line_item in checkout.line_items %}
+      {% if line_item.properties['_is_lootbox'] == 'true' %}
+        // Đây là lootbox - thêm vào inventory
+        (function() {
+          const lootboxData = {
+            name: "{{ line_item.title | escape }}",
+            image: "{{ line_item.properties['_product_image'] | default: line_item.image | image_url: width: 500 }}",
+            variantId: {{ line_item.variant_id }},
+            lootTable: {{ line_item.properties['_loot_table'] | default: '[]' }}
+          };
+          
+          // Lấy inventory hiện tại
+          let inventory = JSON.parse(localStorage.getItem('rpg_inventory') || '[]');
+          
+          // Thêm lootbox mới (số lượng theo quantity)
+          for (let i = 0; i < {{ line_item.quantity }}; i++) {
+            inventory.push({
+              id: Date.now() + i,
+              name: lootboxData.name,
+              image: lootboxData.image,
+              variantId: lootboxData.variantId,
+              lootTable: lootboxData.lootTable,
+              addedAt: new Date().toISOString(),
+              orderId: "{{ checkout.order_id }}"
+            });
+          }
+          
+          // Lưu lại
+          localStorage.setItem('rpg_inventory', JSON.stringify(inventory));
+          
+          console.log('✅ Lootbox added to inventory:', lootboxData.name);
+        })();
+      {% endif %}
+    {% endfor %}
+  });
+</script>
+{% endif %}

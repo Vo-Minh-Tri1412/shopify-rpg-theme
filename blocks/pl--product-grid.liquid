@@ -1,0 +1,336 @@
+{% comment %}
+  Block: Product Grid
+  Version: 1.0.0
+  
+  ===================================================
+  IMPORTANT - PLEASE READ BEFORE MODIFYING THIS FILE
+  ===================================================
+  
+  This is a Pent Library Product Grid.
+  - Please report bugs to support@pentlibrary.com. Include the block ID and version in the email.
+  - Modifying the file may break the block, edit at own risk
+  - Visit our docs: https://www.pentlibrary.com/docs
+
+{% endcomment %}
+
+{% liquid
+  assign block_class = '--pl--product-grid-' | append: block.id
+
+  assign products = block.settings.collection.products
+  if products == none
+    assign products = (1..block.settings.product_count)
+  endif
+  assign product_count = block.settings.product_count
+  
+  # Extract common settings
+  assign columns = block.settings.columns
+  assign row_gap = block.settings.row_gap | abs | append: 'px'
+  assign column_gap = block.settings.column_gap | abs | append: 'px'
+  assign align_items = block.settings.align_items
+  assign justify_content = block.settings.justify_content
+
+  assign padding_top = block.settings.padding_top | abs | append: 'px'
+  assign padding_bottom = block.settings.padding_bottom | abs | append: 'px'
+  assign padding_left = block.settings.padding_left | abs | append: 'px'
+  assign padding_right = block.settings.padding_right | abs | append: 'px'
+  
+  # Handle mobile settings
+  assign columns_mob = block.settings.columns_mob
+  assign row_gap_mob = block.settings.row_gap_mob | abs | append: 'px'
+  assign column_gap_mob = block.settings.column_gap_mob | abs | append: 'px'
+  assign align_items_mob = block.settings.align_items_mob
+  assign justify_content_mob = block.settings.justify_content_mob
+  
+  assign padding_top_mob = block.settings.padding_top_mob | abs | append: 'px'
+  assign padding_bottom_mob = block.settings.padding_bottom_mob | abs | append: 'px'
+  assign padding_left_mob = block.settings.padding_left_mob | abs | append: 'px'
+  assign padding_right_mob = block.settings.padding_right_mob | abs | append: 'px'
+%}
+
+
+{% style %}
+  .{{ block_class }} {
+    /* Base styles */
+    display: grid;
+    grid-template-columns: repeat({{ columns }}, minmax(0px, 1fr));
+    gap: {{ row_gap }} {{ column_gap }};
+    align-items: {{ align_items }};
+    justify-content: {{ justify_content }};
+
+    list-style: none;
+    margin: 0;
+    padding: {{ padding_top }} {{ padding_right }} {{ padding_bottom }} {{ padding_left }};
+  }
+
+  .{{ block_class }} > li {
+    /* Reset list item styles */
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  
+  @media screen and (max-width: 768px) {
+    .{{ block_class }} {
+      grid-template-columns: repeat({{ columns_mob }}, minmax(0px, 1fr));
+      gap: {{ row_gap_mob }} {{ column_gap_mob }};
+      align-items: {{ align_items_mob }};
+      justify-content: {{ justify_content_mob }};
+      padding: {{ padding_top_mob }} {{ padding_right_mob }} {{ padding_bottom_mob }} {{ padding_left_mob }};
+    }
+  }
+{% endstyle %}
+
+<ul class="{{ block_class }} {{ block.settings.custom_class }}" {{ block.shopify_attributes }}>
+  {% if products != blank %}
+    {% for product in products limit: product_count %}
+      <li>
+        {% content_for "blocks", closest.product: product %}
+      </li>
+    {% endfor %}
+  {% else %}
+    <p>No products found.</p>
+  {% endif %}
+</ul>
+
+{% schema %}
+{
+  "name": "Product Grid",
+  "tag": null,
+  "blocks": [{ "type": "@theme" }, { "type": "@app" }],
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Customize this block to your liking. Need help? Check our [documentation](https://www.pentlibrary.com/docs)."
+    },
+    {
+      "type": "collection",
+      "id": "collection",
+      "label": "Collection"
+    },
+    {
+      "type": "header",
+      "content": "Grid"
+    },
+    {
+      "type": "range",
+      "id": "columns",
+      "label": "Columns",
+      "min": 1,
+      "max": 10,
+      "step": 1,
+      "default": 5
+    },
+    {
+      "type": "range",
+      "id": "product_count",
+      "label": "Max Products to Display",
+      "min": 0,
+      "max": 50,
+      "step": 1,
+      "default": 5
+    },
+    {
+      "type": "header",
+      "content": "Style"
+    },
+    {
+      "type": "number",
+      "id": "column_gap",
+      "label": "Column Gap ↔",
+      "placeholder": "Enter a value in pixels",
+      "default": 0
+    },
+    {
+      "type": "number",
+      "id": "row_gap",
+      "label": "Row Gap ↕",
+      "placeholder": "Enter a value in pixels",
+      "default": 0
+    },
+    {
+      "type": "header",
+      "content": "Layout"
+    },
+    {
+      "type": "select",
+      "id": "align_items",
+      "label": "Align Items",
+      "options": [
+        { "value": "flex-start", "label": "Start" },
+        { "value": "center", "label": "Center" },
+        { "value": "flex-end", "label": "End" },
+        { "value": "stretch", "label": "Stretch" }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "justify_content",
+      "label": "Justify Content",
+      "options": [
+        { "value": "flex-start", "label": "Start" },
+        { "value": "center", "label": "Center" },
+        { "value": "flex-end", "label": "End" },
+        { "value": "space-between", "label": "Space Between" },
+        { "value": "space-around", "label": "Space Around" },
+        { "value": "space-evenly", "label": "Space Evenly" }
+      ]
+    },
+    {
+      "type": "header",
+      "content": "Padding",
+      "info": "All values in pixels"
+    },
+    {
+      "type": "number",
+      "id": "padding_top",
+      "label": "Top",
+      "placeholder": "Enter a value in pixels",
+      "default": 0
+    },
+    {
+      "type": "number",
+      "id": "padding_bottom",
+      "label": "Bottom",
+      "placeholder": "Enter a value in pixels",
+      "default": 0
+    },
+    {
+      "type": "number",
+      "id": "padding_left",
+      "label": "Left",
+      "placeholder": "Enter a value in pixels",
+      "default": 0
+    },
+    {
+      "type": "number",
+      "id": "padding_right",
+      "label": "Right",
+      "placeholder": "Enter a value in pixels",
+      "default": 0
+    },
+    {
+      "type": "header",
+      "content": "📱 Mobile",
+      "info": "These settings only apply to mobile devices."
+    },
+    {
+      "type": "header",
+      "content": "📱 Grid"
+    },
+    {
+      "type": "range",
+      "id": "columns_mob",
+      "label": "Columns",
+      "min": 1,
+      "max": 4,
+      "step": 1,
+      "default": 2
+    },
+    {
+      "type": "header",
+      "content": "📱 Style"
+    },
+    {
+      "type": "number",
+      "id": "column_gap_mob",
+      "label": "Column Gap ↔",
+      "placeholder": "Enter a value in pixels",
+      "default": 0
+    },
+    {
+      "type": "number",
+      "id": "row_gap_mob",
+      "label": "Row Gap ↕",
+      "placeholder": "Enter a value in pixels",
+      "default": 0
+    },
+    {
+      "type": "header",
+      "content": "📱 Layout"
+    },
+    {
+      "type": "select",
+      "id": "align_items_mob",
+      "label": "Align Items",
+      "options": [
+        { "value": "flex-start", "label": "Start" },
+        { "value": "center", "label": "Center" },
+        { "value": "flex-end", "label": "End" },
+        { "value": "stretch", "label": "Stretch" }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "justify_content_mob",
+      "label": "Justify Content",
+      "options": [
+        { "value": "flex-start", "label": "Start" },
+        { "value": "center", "label": "Center" },
+        { "value": "flex-end", "label": "End" },
+        { "value": "space-between", "label": "Space Between" },
+        { "value": "space-around", "label": "Space Around" },
+        { "value": "space-evenly", "label": "Space Evenly" }
+      ]
+    },
+    {
+      "type": "header",
+      "content": "📱 Padding",
+      "info": "All values in pixels"
+    },
+    {
+      "type": "number",
+      "id": "padding_top_mob",
+      "label": "Top",
+      "placeholder": "Enter a value in pixels",
+      "default": 0
+    },
+    {
+      "type": "number",
+      "id": "padding_bottom_mob",
+      "label": "Bottom",
+      "placeholder": "Enter a value in pixels",
+      "default": 0
+    },
+    {
+      "type": "number",
+      "id": "padding_left_mob",
+      "label": "Left",
+      "placeholder": "Enter a value in pixels",
+      "default": 0
+    },
+    {
+      "type": "number",
+      "id": "padding_right_mob",
+      "label": "Right",
+      "placeholder": "Enter a value in pixels",
+      "default": 0
+    },
+    {
+      "type": "header",
+      "content": "⚙️ Advanced"
+    },
+    {
+      "type": "text",
+      "id": "custom_class",
+      "label": "Class",
+      "info": "For developers: Add space-separated CSS classes. See our [docs](https://www.pentlibrary.com/docs) for available classes."
+    },
+    {
+      "type": "paragraph",
+      "content": "product-grid block (v.1.0.0)"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Product Grid (PL)",
+      "settings": {},
+      "blocks": [
+        {
+          "type": "pl--product-card",
+          "settings": {}
+        }
+      ]
+    }
+  ]
+}
+{% endschema %} 

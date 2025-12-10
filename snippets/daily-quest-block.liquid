@@ -1,0 +1,157 @@
+<div class="daily-quest-wrapper">
+  <div class="quest-container" style="background-image: url('');">
+    
+    <div class="quest-content">
+      <h2 class="quest-title">⚔️ ĐIỂM DANH HÀNG NGÀY ⚔️</h2>
+      <p class="quest-subtitle">Đăng nhập để nhận tài nguyên Guild</p>
+
+      <div class="quest-grid">
+        <div class="day-card claimed">
+          <span class="day-label">Day 1</span>
+          <div class="icon">💰</div>
+          <span class="status">Đã nhận</span>
+        </div>
+
+        <div class="day-card active">
+          <span class="day-label">Day 2</span>
+          <div class="icon">🗡️</div>
+          <span class="status">Hôm nay</span>
+        </div>
+
+        <div class="day-card locked"><span class="day-label">Day 3</span><div class="icon">🛡️</div></div>
+        <div class="day-card locked"><span class="day-label">Day 4</span><div class="icon">📜</div></div>
+        <div class="day-card locked"><span class="day-label">Day 5</span><div class="icon">⚔️</div></div>
+        <div class="day-card locked"><span class="day-label">Day 6</span><div class="icon">💎</div></div>
+        <div class="day-card locked"><span class="day-label">Day 7</span><div class="icon">👑</div></div>
+      </div>
+
+      <button class="quest-btn" onclick="claimReward()">TRIỆU HỒI QUÀ</button>
+    </div>
+  </div>
+</div>
+
+<style>
+    /* 1. CẤU TRÚC BAO NGOÀI CHO TO BẰNG SLIDE */
+  .daily-quest-wrapper {
+    width: 100%;
+    display: block;
+    padding: 0;
+    margin: 0;
+    background-color: #000; /* Màu nền đen lót dưới */
+  }
+
+  .quest-container {
+    width: 100%;
+    min-height: 500px; /* Độ cao tối thiểu để to bằng Slide */
+    background-size: cover; /* Ảnh nền phủ kín */
+    background-position: center;
+    background-repeat: no-repeat;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    /* Hiệu ứng tối dần để làm nổi bật nội dung */
+    box-shadow: inset 0 0 100px rgba(0,0,0,0.8); 
+  }
+
+  .quest-content {
+    text-align: center;
+    color: #fff;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.6); /* Nền mờ đen sau chữ để dễ đọc */
+    border: 1px solid #d4af37; /* Viền vàng kim */
+    border-radius: 10px;
+    max-width: 900px;
+    width: 90%;
+    box-shadow: 0 0 20px rgba(212, 175, 55, 0.2);
+  }
+
+  /* 2. CHỮ & TIÊU ĐỀ */
+  .quest-title {
+    font-family: "Courier New", monospace; /* Font kiểu game cổ điển */
+    color: #d4af37; /* Màu vàng Gold */
+    font-size: 2.5em;
+    margin-bottom: 5px;
+    text-transform: uppercase;
+    text-shadow: 2px 2px 0 #000;
+  }
+  .quest-subtitle {
+    color: #ccc;
+    font-size: 1.1em;
+    margin-bottom: 30px;
+    font-style: italic;
+  }
+
+  /* 3. LƯỚI 7 NGÀY */
+  .quest-grid {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 30px;
+    flex-wrap: wrap; /* Tự xuống dòng trên điện thoại */
+  }
+
+  .day-card {
+    background: #1a1a1a;
+    border: 1px solid #444;
+    border-radius: 5px;
+    width: 90px;
+    height: 110px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s;
+    cursor: pointer;
+  }
+  
+  .day-card:hover { transform: scale(1.05); border-color: #d4af37; }
+
+  .icon { font-size: 28px; margin: 10px 0; }
+  .day-label { font-size: 12px; color: #888; text-transform: uppercase; }
+  
+  /* Trạng thái các ngày */
+  .day-card.active {
+    border: 2px solid #00ff00; /* Viền xanh lá sáng cho hôm nay */
+    background: #2a2a2a;
+    box-shadow: 0 0 10px #00ff00;
+  }
+  .day-card.claimed {
+    opacity: 0.5;
+    border-color: #d4af37;
+  }
+  .day-card.locked { opacity: 0.6; }
+
+  /* 4. NÚT BẤM */
+  .quest-btn {
+    background: linear-gradient(180deg, #d4af37 0%, #a67c00 100%);
+    color: #000;
+    border: none;
+    padding: 15px 40px;
+    font-size: 18px;
+    font-weight: bold;
+    text-transform: uppercase;
+    cursor: pointer;
+    clip-path: polygon(10% 0, 100% 0, 100% 70%, 90% 100%, 0 100%, 0 30%); /* Cắt góc nút kiểu game */
+    transition: all 0.3s;
+  }
+  .quest-btn:hover {
+    filter: brightness(1.2);
+    transform: translateY(-2px);
+    box-shadow: 0 0 15px #d4af37;
+  }
+
+  /* Mobile Responsive */
+  @media (max-width: 768px) {
+    .quest-container { min-height: 400px; }
+    .quest-title { font-size: 1.5em; }
+    .day-card { width: 70px; height: 90px; }
+    .icon { font-size: 20px; }
+  }
+</style>
+
+<script>
+  function claimReward() {
+    alert("⚔️ CHÚC MỪNG! \nBạn đã nhận được [Rương Huyền Bí] x1");
+  }
+</script>

@@ -1,0 +1,379 @@
+<!-- ========================================== -->
+<!-- DAILY QUEST SYSTEM - RPG STYLE -->
+<!-- Code updated for: Cheap Product Discount -->
+<!-- ========================================== -->
+
+<div class="daily-quest-wrapper">
+  <!-- Ảnh nền lấy từ cài đặt hoặc dùng ảnh placeholder -->
+  <div class="quest-container" style="background-image: url('{{ section.settings.background_image | image_url }}');">
+    
+    <div class="quest-content">
+      <h2 class="quest-title">⚔️ ĐIỂM DANH HÀNG NGÀY ⚔️</h2>
+      <p class="quest-subtitle">Đăng nhập liên tục 7 ngày để nhận Điểm AP đổi quà</p>
+
+      <!-- Lưới hiển thị 7 ngày (JS sẽ vẽ vào đây) -->
+      <div class="quest-grid" id="quest-grid"></div>
+
+      <!-- Nút bấm và Bộ đếm ngược -->
+      <div class="quest-actions">
+        <button id="quest-claim-btn" class="quest-btn" onclick="claimDailyReward()">ĐANG TẢI DỮ LIỆU...</button>
+        <p id="next-claim-timer">Kiểm tra trạng thái...</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- POPUP NHẬN THƯỞNG (MODAL) -->
+<div id="reward-modal" class="rpg-modal">
+  <div class="rpg-modal-content">
+    <h2 class="modal-title">🎉 CHÚC MỪNG!</h2>
+    <div id="reward-icon" class="modal-icon">🎁</div>
+    <p id="reward-msg" class="modal-msg">Bạn nhận được quà</p>
+    
+    <!-- Hộp hiển thị Giftcode -->
+    <div id="reward-code-box" class="code-box" onclick="copyGiftCode()">
+      <span id="giftcode-text">CODE</span> <span style="font-size:12px; margin-left:5px;">(Bấm để copy)</span>
+    </div>
+    
+    <button class="modal-btn" onclick="closeRewardModal()">NHẬN NGAY</button>
+  </div>
+</div>
+
+<!-- ========================================== -->
+<!-- PHẦN 2: CSS (GIAO DIỆN) -->
+<!-- ========================================== -->
+<style>
+  /* Wrapper chung */
+  .daily-quest-wrapper {
+    padding: 40px 20px;
+    background: #0a0a0c; /* Nền đen tệp với theme */
+    font-family: 'Cinzel', serif;
+    color: #fff;
+  }
+
+  /* Khung chứa nội dung chính */
+  .quest-container { 
+    max-width: 900px; 
+    margin: 0 auto; 
+    background-color: #111;
+    background-size: cover; 
+    background-position: center; 
+    border: 2px solid #333; 
+    border-radius: 12px; 
+    overflow: hidden; 
+    position: relative;
+    box-shadow: 0 0 20px rgba(0,0,0,0.5);
+  }
+
+  /* Lớp phủ tối để chữ dễ đọc */
+  .quest-container::before { 
+    content:''; position:absolute; top:0; left:0; width:100%; height:100%; 
+    background: linear-gradient(to bottom, rgba(0,0,0,0.6), rgba(0,0,0,0.9)); 
+  }
+
+  .quest-content { position: relative; z-index: 2; padding: 40px; text-align: center; }
+  
+  .quest-title { 
+    color: #ffd700; text-shadow: 0 0 15px #ffd700; 
+    font-size: 2em; margin: 0 0 10px 0; font-weight: bold; 
+  }
+  .quest-subtitle { color: #ccc; margin-bottom: 30px; font-family: 'Roboto', sans-serif; font-size: 14px; }
+
+  /* Lưới 7 ngày */
+  .quest-grid { 
+    display: grid; 
+    grid-template-columns: repeat(7, 1fr); 
+    gap: 10px; 
+    margin-bottom: 30px; 
+  }
+  
+  /* Responsive Mobile: Chia làm 2 dòng */
+  @media(max-width: 768px) { 
+    .quest-grid { grid-template-columns: repeat(4, 1fr); }
+    .quest-grid .day-card:nth-child(n+5) { grid-column: span 1; }
+    /* Căn giữa dòng 2 nếu cần */
+  }
+
+  /* Thẻ ngày (Card) */
+  .day-card { 
+    background: rgba(255,255,255,0.05); 
+    border: 1px solid #444; 
+    padding: 15px 5px; 
+    border-radius: 8px; 
+    position: relative; 
+    transition: 0.3s;
+  }
+
+  /* Trạng thái thẻ */
+  .day-card.active { 
+    border-color: #ffd700; 
+    background: rgba(255, 215, 0, 0.1);
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.2); 
+    transform: scale(1.05); 
+    z-index: 2;
+  }
+  .day-card.claimed { 
+    border-color: #2ecc71; 
+    opacity: 0.6; 
+  }
+  
+  .day-label { display: block; font-size: 12px; margin-bottom: 8px; color: #888; font-family: sans-serif; }
+  .day-icon { font-size: 28px; margin-bottom: 5px; display: block; }
+  .day-reward { font-size: 11px; color: #ffd700; font-weight: bold; }
+
+  /* Dấu tích xanh khi đã nhận */
+  .claimed-overlay {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.6); border-radius: 6px;
+    display: flex; justify-content: center; align-items: center;
+    color: #2ecc71; font-size: 24px; font-weight: bold;
+  }
+
+  /* Nút bấm */
+  .quest-btn {
+    background: linear-gradient(45deg, #b8860b, #ffd700); 
+    border: none; color: #000;
+    padding: 15px 50px; font-size: 16px; font-weight: bold; cursor: pointer;
+    text-transform: uppercase; 
+    clip-path: polygon(10% 0, 100% 0, 100% 70%, 90% 100%, 0 100%, 0 30%);
+    transition: 0.3s; margin-bottom: 5px;
+    font-family: 'Cinzel', serif;
+  }
+  .quest-btn:hover { transform: scale(1.05); filter: brightness(1.2); }
+  .quest-btn:disabled { 
+    background: #333; color: #777; cursor: not-allowed; transform: none; box-shadow: none;
+  }
+
+  #next-claim-timer { font-size: 12px; color: #aaa; font-family: monospace; }
+
+  /* Modal Popup */
+  .rpg-modal {
+    display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.95); z-index: 99999;
+    justify-content: center; align-items: center;
+  }
+  .rpg-modal-content {
+    background: #151515; border: 2px solid #ffd700; 
+    padding: 40px; text-align: center; border-radius: 12px; 
+    max-width: 400px; width: 90%;
+    box-shadow: 0 0 50px rgba(255, 215, 0, 0.2);
+    animation: popIn 0.3s ease-out;
+  }
+  @keyframes popIn { from {transform: scale(0.5); opacity:0;} to {transform: scale(1); opacity:1;} }
+
+  .modal-title { color: #ffd700; margin-top: 0; font-size: 1.8rem; }
+  .modal-icon { font-size: 80px; margin: 20px 0; animation: float 3s infinite ease-in-out; }
+  @keyframes float { 0%, 100% {transform: translateY(0);} 50% {transform: translateY(-10px);} }
+  
+  .modal-msg { font-size: 1.1rem; line-height: 1.5; color: #eee; }
+  
+  .code-box {
+    display: none; margin-top: 20px; 
+    background: #222; padding: 15px; 
+    color: #2ecc71; font-weight: bold; font-size: 1.2rem; letter-spacing: 2px; 
+    border: 1px dashed #555; cursor: pointer;
+  }
+  .code-box:hover { background: #333; border-color: #fff; }
+
+  .modal-btn {
+    margin-top: 25px; background: #ffd700; color: #000; border: none; 
+    padding: 12px 30px; font-weight: bold; cursor: pointer; font-size: 1rem;
+  }
+</style>
+
+<!-- ========================================== -->
+<!-- PHẦN 3: JAVASCRIPT (LOGIC) -->
+<!-- ========================================== -->
+<script>
+  /* --- CẤU HÌNH PHẦN THƯỞng --- */
+  const REWARD_CONFIG = [
+    { day: 1, icon: '💰', label: '+50 AP', type: 'ap', value: 50 },
+    { day: 2, icon: '💰', label: '+100 AP', type: 'ap', value: 100 },
+    { day: 3, icon: '🧪', label: '+150 AP', type: 'ap', value: 150 },
+    { day: 4, icon: '💰', label: '+200 AP', type: 'ap', value: 200 },
+    { day: 5, icon: '🛡️', label: '+300 AP', type: 'ap', value: 300 },
+    { day: 6, icon: '💎', label: '+400 AP', type: 'ap', value: 400 },
+    // NGÀY 7: PHẦN THƯỞng LỚN
+    { day: 7, icon: '👑', label: '+1000 AP', type: 'ap', value: 1000 } 
+  ];
+
+  const STORAGE_KEY_DAY = 'rpg_current_day';
+  const STORAGE_KEY_TIME = 'rpg_last_claim_time';
+  const STORAGE_KEY_GOLD = 'rpg_local_gold';
+
+  document.addEventListener("DOMContentLoaded", function() {
+    renderGrid();
+    checkStatus();
+    
+    // Cập nhật bộ đếm thời gian mỗi giây
+    setInterval(checkStatus, 1000);
+  });
+
+  // 1. Vẽ giao diện lưới
+  function renderGrid() {
+    const grid = document.getElementById('quest-grid');
+    // Lấy ngày hiện tại, mặc định là 1
+    const currentDay = parseInt(localStorage.getItem(STORAGE_KEY_DAY) || 1);
+    
+    grid.innerHTML = '';
+    
+    REWARD_CONFIG.forEach(r => {
+      let statusClass = 'locked';
+      let checkMark = '';
+
+      if (r.day < currentDay) {
+        statusClass = 'claimed';
+        checkMark = '<div class="claimed-overlay">✓</div>';
+      } else if (r.day === currentDay) {
+        statusClass = 'active';
+      }
+      
+      grid.innerHTML += `
+        <div class="day-card ${statusClass}">
+          <span class="day-label">Day ${r.day}</span>
+          <div class="day-icon">${r.icon}</div>
+          <span class="day-reward">${r.label}</span>
+          ${checkMark}
+        </div>
+      `;
+    });
+  }
+
+  // 2. Kiểm tra trạng thái nút bấm (Cooldown)
+  function checkStatus() {
+    const btn = document.getElementById('quest-claim-btn');
+    const timerTxt = document.getElementById('next-claim-timer');
+    const lastTime = parseInt(localStorage.getItem(STORAGE_KEY_TIME) || 0);
+    const now = new Date().getTime();
+    
+    // --- CHẾ ĐỘ TEST: 10 GIÂY ---
+    // (Khi chạy thật sửa 10000 thành 86400000)
+    const COOLDOWN = 10000; 
+
+    const diff = now - lastTime;
+
+    if (diff < COOLDOWN) {
+      // Đang chờ
+      btn.innerText = "HÃY QUAY LẠI SAU";
+      btn.disabled = true;
+      btn.style.opacity = "0.5";
+      
+      // Tính toán thời gian còn lại
+      const remaining = COOLDOWN - diff;
+      const hours = Math.floor((remaining % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((remaining % (1000 * 60)) / 1000);
+      
+      timerTxt.innerText = `Chờ: ${hours}h ${minutes}p ${seconds}s để nhận quà tiếp theo`;
+    } else {
+      // Được nhận
+      btn.innerText = "TRIỆU HỒI QUÀ";
+      btn.disabled = false;
+      btn.style.opacity = "1";
+      timerTxt.innerText = "Phần thưởng đã sẵn sàng!";
+    }
+  }
+
+  // 3. Xử lý khi bấm nút nhận quà
+  function claimDailyReward() {
+    let currentDay = parseInt(localStorage.getItem(STORAGE_KEY_DAY) || 1);
+    
+    // An toàn: Reset về 1 nếu dữ liệu lỗi > 7
+    if (currentDay > 7) currentDay = 1;
+
+    const reward = REWARD_CONFIG[currentDay - 1];
+    const now = new Date().getTime();
+
+    // -- HIỆN POPUP --
+    const modal = document.getElementById('reward-modal');
+    const icon = document.getElementById('reward-icon');
+    const msg = document.getElementById('reward-msg');
+    const codeBox = document.getElementById('reward-code-box');
+    const codeText = document.getElementById('giftcode-text');
+
+    modal.style.display = 'flex';
+    icon.innerText = reward.icon;
+    codeBox.style.display = 'none';
+
+    if (reward.type === 'ap') {
+      // Logic cộng điểm AP
+      let currentAP = parseInt(localStorage.getItem('rpg_activity_points') || 0);
+      let newAP = currentAP + reward.value;
+      localStorage.setItem('rpg_activity_points', newAP);
+      
+      msg.innerHTML = `Bạn nhận được <b style="color:#a335ee; font-size:1.5em;">+${reward.value} AP</b>`;
+      
+      // Update HUD nếu có
+      const hudAP = document.getElementById('hud-ap-display');
+      if (hudAP) {
+        hudAP.innerText = newAP + ' AP 🛒';
+        hudAP.style.display = 'block';
+      }
+      
+    } else if (reward.type === 'gold') {
+      // Logic cộng vàng ảo (giữ lại nếu cần)
+      let currentGold = parseInt(localStorage.getItem(STORAGE_KEY_GOLD) || 0);
+      let newGold = currentGold + reward.value;
+      localStorage.setItem(STORAGE_KEY_GOLD, newGold);
+      
+      msg.innerHTML = `Bạn nhận được <b style="color:#ffd700; font-size:1.5em;">${reward.value} GOLD</b>`;
+      
+    } else if (reward.type === 'code') {
+      // Logic hiện Giftcode (giữ lại nếu cần)
+      msg.innerText = "Tuyệt vời! Bạn nhận được Mã Giảm Giá Đặc Biệt:";
+      codeBox.style.display = 'block';
+      codeText.innerText = reward.value;
+    } else {
+      // Vật phẩm thường
+      msg.innerText = `Bạn nhận được vật phẩm: ${reward.value}`;
+    }
+
+    // -- LƯU DỮ LIỆU --
+    localStorage.setItem(STORAGE_KEY_TIME, now);
+    
+    // Tăng ngày cho lần sau
+    if (currentDay < 7) {
+      localStorage.setItem(STORAGE_KEY_DAY, currentDay + 1);
+    } else {
+      // Hết vòng lặp 7 ngày -> Reset về ngày 1
+      localStorage.setItem(STORAGE_KEY_DAY, 1); 
+    }
+
+    // Cập nhật giao diện
+    renderGrid();
+    checkStatus();
+  }
+
+  // 4. Các hàm tiện ích
+  function closeRewardModal() {
+    document.getElementById('reward-modal').style.display = 'none';
+  }
+
+  function copyGiftCode() {
+    const text = document.getElementById('giftcode-text').innerText;
+    navigator.clipboard.writeText(text);
+    alert("Đã copy mã: " + text + "\nHãy dùng nó khi thanh toán!");
+  }
+</script>
+
+<!-- ========================================== -->
+<!-- PHẦN 4: SCHEMA SHOPIFY -->
+<!-- ========================================== -->
+{% schema %}
+{
+  "name": "BSA Daily Quest V3",
+  "settings": [
+    {
+      "type": "image_picker",
+      "id": "background_image",
+      "label": "Ảnh nền Khung Quest"
+    }
+  ],
+  "presets": [
+    {
+      "name": "BSA Daily Quest V3",
+      "category": "Gamification"
+    }
+  ]
+}
+{% endschema %}

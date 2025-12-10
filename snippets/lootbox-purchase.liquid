@@ -1,0 +1,34 @@
+{% comment %}
+  LOOTBOX PURCHASE HANDLER
+  Include này ở trang thanh toán thành công hoặc dùng Shopify Flow/Webhook
+  Khi khách hàng mua lootbox xong, lootbox sẽ được thêm vào túi đồ
+{% endcomment %}
+
+<script>
+  // Hàm này được gọi khi mua lootbox thành công
+  // Cần được trigger từ Shopify webhook hoặc thank you page
+  
+  function processLootboxPurchase(orderData) {
+    // orderData chứa thông tin đơn hàng
+    // Kiểm tra xem có lootbox trong đơn không
+    
+    if (!orderData || !orderData.line_items) return;
+    
+    orderData.line_items.forEach(item => {
+      // Kiểm tra nếu sản phẩm là lootbox (dựa vào tag hoặc product_type)
+      if (item.product_type === 'lootbox' || (item.tags && item.tags.includes('lootbox'))) {
+        // Thêm vào inventory
+        const lootboxData = {
+          name: item.title,
+          image: item.image || '',
+          variantId: item.variant_id,
+          lootTable: item.lootTable || [] // Cần lấy từ metafield
+        };
+        
+        if (typeof addLootboxToInventory === 'function') {
+          addLootboxToInventory(lootboxData);
+        }
+      }
+    });
+  }
+</script>

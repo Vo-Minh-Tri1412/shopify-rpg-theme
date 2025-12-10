@@ -1,0 +1,273 @@
+{% comment %}
+  =========================================
+  PHẦN 1: TÍNH TOÁN CHỈ SỐ (CALCULATION)
+  =========================================
+{% endcomment %}
+
+{% comment %} 1. Tính tổng số item đã mua (Do Shopify không có sẵn biến này) {% endcomment %}
+{% assign total_items_count = 0 %}
+{% for order in customer.orders %}
+  {% for line_item in order.line_items %}
+    {% assign total_items_count = total_items_count | plus: line_item.quantity %}
+  {% endfor %}
+{% endfor %}
+
+{% comment %} 2. Tính toán Rank Chi Tiêu (Adventurer Rank) {% endcomment %}
+{% assign spend_rank_name = "Chưa xếp hạng" %}
+{% assign spend_rank_class = "rank-none" %}
+{% assign next_spend_target = 200000 %}
+{% assign current_spent = customer.total_spent %} 
+
+{% if current_spent >= 30000000 %}
+  {% assign spend_rank_name = "Godslayer" %} {% assign spend_rank_class = "rank-god" %} {% assign next_spend_target = "Max" %}
+{% elsif current_spent >= 18000000 %}
+  {% assign spend_rank_name = "Mythic" %} {% assign spend_rank_class = "rank-mythic" %} {% assign next_spend_target = 30000000 %}
+{% elsif current_spent >= 12000000 %}
+  {% assign spend_rank_name = "Dragonbane" %} {% assign spend_rank_class = "rank-legendary" %} {% assign next_spend_target = 18000000 %}
+{% elsif current_spent >= 8000000 %}
+  {% assign spend_rank_name = "Vanguard" %} {% assign spend_rank_class = "rank-epic" %} {% assign next_spend_target = 12000000 %}
+{% elsif current_spent >= 5000000 %}
+  {% assign spend_rank_name = "Shadow Stalker" %} {% assign spend_rank_class = "rank-epic" %} {% assign next_spend_target = 8000000 %}
+{% elsif current_spent >= 3500000 %}
+  {% assign spend_rank_name = "Beast Slayer" %} {% assign spend_rank_class = "rank-rare" %} {% assign next_spend_target = 5000000 %}
+{% elsif current_spent >= 2000000 %}
+  {% assign spend_rank_name = "Relic Hunter" %} {% assign spend_rank_class = "rank-rare" %} {% assign next_spend_target = 3500000 %}
+{% elsif current_spent >= 1000000 %}
+  {% assign spend_rank_name = "Seeker" %} {% assign spend_rank_class = "rank-common" %} {% assign next_spend_target = 2000000 %}
+{% elsif current_spent >= 500000 %}
+  {% assign spend_rank_name = "Wanderer" %} {% assign spend_rank_class = "rank-common" %} {% assign next_spend_target = 1000000 %}
+{% elsif current_spent >= 200000 %}
+  {% assign spend_rank_name = "Newblood" %} {% assign spend_rank_class = "rank-noob" %} {% assign next_spend_target = 500000 %}
+{% endif %}
+
+{% comment %} 3. Tính toán Rank Số Món (Item Rank) {% endcomment %}
+{% assign item_rank_name = "Dân thường" %}
+{% assign item_rank_class = "rank-none" %}
+{% assign next_item_target = 1 %}
+
+{% if total_items_count >= 80 %}
+  {% assign item_rank_name = "Godborn" %} {% assign item_rank_class = "rank-god" %} {% assign next_item_target = "Max" %}
+{% elsif total_items_count >= 50 %}
+  {% assign item_rank_name = "Mythic Veteran" %} {% assign item_rank_class = "rank-mythic" %} {% assign next_item_target = 80 %}
+{% elsif total_items_count >= 35 %}
+  {% assign item_rank_name = "Dragon Hunter" %} {% assign item_rank_class = "rank-legendary" %} {% assign next_item_target = 50 %}
+{% elsif total_items_count >= 25 %}
+  {% assign item_rank_name = "Beast Conqueror" %} {% assign item_rank_class = "rank-epic" %} {% assign next_item_target = 35 %}
+{% elsif total_items_count >= 18 %}
+  {% assign item_rank_name = "Shadow Vanguard" %} {% assign item_rank_class = "rank-epic" %} {% assign next_item_target = 25 %}
+{% elsif total_items_count >= 12 %}
+  {% assign item_rank_name = "Elite Slayer" %} {% assign item_rank_class = "rank-rare" %} {% assign next_item_target = 18 %}
+{% elsif total_items_count >= 8 %}
+  {% assign item_rank_name = "Dungeon Raider" %} {% assign item_rank_class = "rank-rare" %} {% assign next_item_target = 12 %}
+{% elsif total_items_count >= 5 %}
+  {% assign item_rank_name = "Monster Hunter" %} {% assign item_rank_class = "rank-common" %} {% assign next_item_target = 8 %}
+{% elsif total_items_count >= 3 %}
+  {% assign item_rank_name = "Explorer" %} {% assign item_rank_class = "rank-common" %} {% assign next_item_target = 5 %}
+{% elsif total_items_count >= 1 %}
+  {% assign item_rank_name = "Novice Adventurer" %} {% assign item_rank_class = "rank-noob" %} {% assign next_item_target = 3 %}
+{% endif %}
+
+{% comment %}
+  =========================================
+  PHẦN 2: GIAO DIỆN HIỂN THỊ (HTML & CSS)
+  =========================================
+{% endcomment %}
+
+<div class="rpg-dashboard">
+  <div class="rpg-header">
+    <h2>⚔️ PLAYER STATUS</h2>
+    <p>Xin chào, <strong>{{ customer.name }}</strong></p>
+  </div>
+
+  <div class="rpg-grid">
+    <!-- CARD 1: ADVENTURER RANK (SPEND) -->
+    <div class="rpg-card {{ spend_rank_class }}">
+      <div class="card-label">CLASS (Chi tiêu)</div>
+      <div class="rank-title">{{ spend_rank_name }}</div>
+      
+      <div class="stats-row">
+        <span>Đã chi:</span>
+        <span class="value">{{ current_spent | money }}</span>
+      </div>
+
+      {% if next_spend_target != "Max" %}
+        <div class="progress-bar-container">
+          {% assign percent_spent = current_spent | times: 100 | divided_by: next_spend_target %}
+          {% if percent_spent > 100 %}{% assign percent_spent = 100 %}{% endif %}
+          <div class="progress-bar" style="width: {{ percent_spent }}%;"></div>
+        </div>
+        <p class="next-level">Next Rank: {{ next_spend_target | money }}</p>
+      {% else %}
+        <p class="max-level">MAX LEVEL REACHED 👑</p>
+      {% endif %}
+    </div>
+
+    <!-- CARD 2: ITEM RANK (QUANTITY) -->
+    <div class="rpg-card {{ item_rank_class }}">
+      <div class="card-label">MASTERY (Số món)</div>
+      <div class="rank-title">{{ item_rank_name }}</div>
+      
+      <div class="stats-row">
+        <span>Inventory:</span>
+        <span class="value">{{ total_items_count }} items</span>
+      </div>
+
+      {% if next_item_target != "Max" %}
+        <div class="progress-bar-container">
+           {% assign percent_item = total_items_count | times: 100 | divided_by: next_item_target %}
+           {% if percent_item > 100 %}{% assign percent_item = 100 %}{% endif %}
+          <div class="progress-bar" style="width: {{ percent_item }}%;"></div>
+        </div>
+        <p class="next-level">Next Rank: {{ next_item_target }} items</p>
+      {% else %}
+        <p class="max-level">GODLIKE STATUS 💀</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<style>
+  /* FONT & GENERAL */
+  @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Roboto:wght@400;700&display=swap');
+
+  .rpg-dashboard {
+    background: #1a1a1d; /* Dark Background */
+    color: #e0e0e0;
+    padding: 30px;
+    border-radius: 12px;
+    margin: 30px 0;
+    font-family: 'Roboto', sans-serif;
+    border: 1px solid #333;
+    box-shadow: 0 0 20px rgba(0,0,0,0.5);
+  }
+
+  .rpg-header h2 {
+    font-family: 'Cinzel', serif; /* Font kiểu Game */
+    color: #ffd700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+    margin-bottom: 5px;
+  }
+
+  .rpg-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-top: 20px;
+  }
+  
+  @media(max-width: 768px) {
+    .rpg-grid { grid-template-columns: 1fr; }
+  }
+
+  /* CARD STYLES */
+  .rpg-card {
+    background: #252529;
+    padding: 20px;
+    border-radius: 8px;
+    border: 2px solid #444;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s;
+  }
+  .rpg-card:hover {
+    transform: translateY(-3px);
+  }
+
+  .card-label {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    color: #888;
+    letter-spacing: 1px;
+  }
+
+  .rank-title {
+    font-family: 'Cinzel', serif;
+    font-size: 1.8rem;
+    font-weight: bold;
+    margin: 10px 0;
+    text-transform: uppercase;
+  }
+
+  .stats-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+    font-size: 0.9rem;
+  }
+  .stats-row .value {
+    font-weight: bold;
+    color: #fff;
+  }
+
+  /* PROGRESS BAR */
+  .progress-bar-container {
+    width: 100%;
+    height: 8px;
+    background: #111;
+    border-radius: 4px;
+    margin-bottom: 8px;
+    border: 1px solid #444;
+  }
+  .progress-bar {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.5s ease-in-out;
+  }
+
+  .next-level, .max-level {
+    font-size: 0.75rem;
+    text-align: right;
+    color: #aaa;
+  }
+  .max-level { color: #ffd700; font-weight: bold; }
+
+  /* --- RANK COLORS & EFFECTS --- */
+
+  /* NOOB / BRONZE */
+  .rank-noob { border-color: #8d6e63; }
+  .rank-noob .rank-title { color: #8d6e63; }
+  .rank-noob .progress-bar { background: #8d6e63; }
+
+  /* COMMON / SILVER */
+  .rank-common { border-color: #b0bec5; }
+  .rank-common .rank-title { color: #cfd8dc; text-shadow: 0 0 5px #b0bec5; }
+  .rank-common .progress-bar { background: #b0bec5; }
+
+  /* RARE / BLUE */
+  .rank-rare { border-color: #039be5; box-shadow: 0 0 10px rgba(3,155,229,0.2); }
+  .rank-rare .rank-title { color: #29b6f6; text-shadow: 0 0 8px #039be5; }
+  .rank-rare .progress-bar { background: linear-gradient(90deg, #0288d1, #29b6f6); }
+
+  /* EPIC / PURPLE */
+  .rank-epic { border-color: #8e24aa; box-shadow: 0 0 15px rgba(142,36,170,0.3); }
+  .rank-epic .rank-title { color: #e1bee7; text-shadow: 0 0 10px #ab47bc; }
+  .rank-epic .progress-bar { background: linear-gradient(90deg, #7b1fa2, #e1bee7); }
+
+  /* LEGENDARY / RED-ORANGE */
+  .rank-legendary { border-color: #ff3d00; box-shadow: 0 0 15px rgba(255,61,0,0.4); }
+  .rank-legendary .rank-title { color: #ff5722; text-shadow: 0 0 12px #ff3d00; }
+  .rank-legendary .progress-bar { background: linear-gradient(90deg, #d84315, #ff5722); }
+
+  /* MYTHIC / CYAN GLOW */
+  .rank-mythic { border-color: #00e5ff; box-shadow: 0 0 20px rgba(0,229,255,0.4); }
+  .rank-mythic .rank-title { color: #84ffff; text-shadow: 0 0 15px #00e5ff; }
+  .rank-mythic .progress-bar { background: linear-gradient(90deg, #0097a7, #18ffff); }
+
+  /* GOD / GOLD */
+  .rank-god { 
+    border-color: #ffd700; 
+    box-shadow: 0 0 25px rgba(255,215,0,0.5); 
+    background: linear-gradient(135deg, #252529, #2c2505);
+  }
+  .rank-god .rank-title { 
+    color: #ffd700; 
+    text-shadow: 0 0 20px #ffea00; 
+    background: -webkit-linear-gradient(#fff, #ffd700);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .rank-god .progress-bar { background: linear-gradient(90deg, #fbc02d, #ffff00); box-shadow: 0 0 10px #ffd700; }
+
+</style>

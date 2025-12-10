@@ -1,0 +1,206 @@
+{% comment %}
+  RPG SYSTEM LOGIC (ENGLISH + DARK MODE)
+{% endcomment %}
+
+<style>
+  /* FLOATING WIDGET */
+  #rpg-quest-container {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    z-index: 9999;
+    font-family: 'Courier New', Courier, monospace;
+  }
+
+  /* TREASURE ICON */
+  #rpg-treasure-chest {
+    display: none;
+    position: fixed;
+    width: 60px;
+    height: 60px;
+    cursor: pointer;
+    z-index: 9998;
+    animation: float 3s ease-in-out infinite;
+    background-image: url('https://cdn-icons-png.flaticon.com/512/2903/2903558.png'); 
+    background-size: cover;
+    filter: drop-shadow(0 0 10px #ffd700);
+  }
+
+  /* STREAK WIDGET (DARK) */
+  .rpg-status-board {
+    background: #111;
+    color: #ffd700;
+    padding: 12px 18px;
+    border: 1px solid #b8860b;
+    border-radius: 4px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.8);
+    font-size: 13px;
+    cursor: pointer;
+    transition: transform 0.2s;
+  }
+  .rpg-status-board:hover { transform: scale(1.05); }
+
+  .rpg-progress-bar { display: flex; gap: 6px; margin-top: 6px; }
+  .day-dot { width: 12px; height: 12px; background: #333; border-radius: 50%; border: 1px solid #555; }
+  .day-dot.active { background: #00e676; box-shadow: 0 0 5px #00e676; border-color: #00e676; }
+
+  /* POPUP MODAL (DARK MODE) */
+  #rpg-modal {
+    display: none;
+    position: fixed;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    background: #0d0d0d;
+    padding: 25px;
+    border: 2px solid #ffd700;
+    z-index: 10000;
+    text-align: center;
+    width: 320px;
+    box-shadow: 0 0 50px rgba(0,0,0,0.9);
+    color: #eee;
+    font-family: 'Courier New', Courier, monospace;
+  }
+
+  #rpg-modal h3 { margin-top: 0; color: #ffd700; text-transform: uppercase; border-bottom: 1px solid #333; padding-bottom: 10px; }
+  #rpg-modal p { color: #bbb; line-height: 1.5; }
+  
+  #modal-code-area {
+    background: #222;
+    padding: 10px;
+    font-weight: bold;
+    border: 1px dashed #555;
+    margin: 15px 0;
+    color: #00e676;
+    letter-spacing: 1px;
+    font-size: 16px;
+  }
+
+  .rpg-btn {
+    background: #8b0000;
+    color: white;
+    border: 1px solid #ff4444;
+    padding: 10px 25px;
+    margin-top: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    text-transform: uppercase;
+    font-family: 'Courier New', Courier, monospace;
+  }
+  .rpg-btn:hover { background: #b71c1c; }
+
+  @keyframes float {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+    100% { transform: translateY(0px); }
+  }
+</style>
+
+<!-- UI WIDGET -->
+<div id="rpg-quest-container">
+  <div class="rpg-status-board" onclick="window.location.href='/pages/quest-board'">
+    <div>🛡️ GUILD CHECK-IN</div>
+    <div class="rpg-progress-bar" id="streak-bar">
+      <div class="day-dot" id="day-1"></div>
+      <div class="day-dot" id="day-2"></div>
+      <div class="day-dot" id="day-3"></div>
+    </div>
+  </div>
+</div>
+
+<!-- TREASURE CHEST -->
+<div id="rpg-treasure-chest" onclick="claimTreasure()"></div>
+
+<!-- POPUP MODAL -->
+<div id="rpg-modal">
+  <h3 id="modal-title">QUEST COMPLETE!</h3>
+  <p id="modal-msg">You have received an item.</p>
+  <div id="modal-code-area">CODE123</div>
+  <button class="rpg-btn" onclick="closeRpgModal()">COLLECT</button>
+</div>
+
+<script>
+  // --- CONFIG ---
+  const CONFIG = {
+    streakRewardCode: 'HIEPSICHAMCHI10', 
+    treasureCode: 'KHOBAUBIMAT20',       
+    treasureChance: 0.3                  
+  };
+
+  // --- LOGIC: CHECK-IN ---
+  function checkDailyLogin() {
+    const today = new Date().toDateString();
+    let lastLogin = localStorage.getItem('rpg_last_login');
+    let streak = parseInt(localStorage.getItem('rpg_streak') || 0);
+    let rewardClaimed = localStorage.getItem('rpg_streak_claimed');
+
+    if (lastLogin !== today) {
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      
+      if (lastLogin === yesterday.toDateString()) {
+        streak++; 
+      } else {
+        streak = 1; 
+        localStorage.removeItem('rpg_streak_claimed'); 
+      }
+      
+      localStorage.setItem('rpg_last_login', today);
+      localStorage.setItem('rpg_streak', streak);
+    }
+
+    updateStreakUI(streak);
+
+    if (streak >= 3 && !rewardClaimed) {
+      showModal("STREAK MASTER", "You visited the Guild for 3 consecutive days!", CONFIG.streakRewardCode);
+      localStorage.setItem('rpg_streak_claimed', 'true');
+    }
+  }
+
+  function updateStreakUI(streak) {
+    let displayStreak = streak > 3 ? 3 : streak;
+    for(let i = 1; i <= 3; i++) {
+      let dot = document.getElementById('day-' + i);
+      if (i <= displayStreak) dot.classList.add('active');
+      else dot.classList.remove('active');
+    }
+  }
+
+  // --- LOGIC: TREASURE ---
+  function initTreasureHunt() {
+    if (localStorage.getItem('rpg_treasure_found')) return;
+
+    if (Math.random() < CONFIG.treasureChance) {
+      const chest = document.getElementById('rpg-treasure-chest');
+      const randTop = Math.floor(Math.random() * (80 - 20) + 20); 
+      const randLeft = Math.floor(Math.random() * (90 - 10) + 10); 
+      
+      chest.style.top = randTop + '%';
+      chest.style.left = randLeft + '%';
+      chest.style.display = 'block';
+    }
+  }
+
+  function claimTreasure() {
+    showModal("ANCIENT CHEST", "You found a hidden treasure chest!", CONFIG.treasureCode);
+    document.getElementById('rpg-treasure-chest').style.display = 'none';
+    localStorage.setItem('rpg_treasure_found', 'true');
+  }
+
+  // --- UI HELPERS ---
+  function showModal(title, msg, code) {
+    document.getElementById('modal-title').innerText = title;
+    document.getElementById('modal-msg').innerText = msg;
+    document.getElementById('modal-code-area').innerText = code;
+    document.getElementById('rpg-modal').style.display = 'block';
+  }
+
+  function closeRpgModal() {
+    document.getElementById('rpg-modal').style.display = 'none';
+  }
+  
+  // RUN
+  document.addEventListener("DOMContentLoaded", function() {
+    checkDailyLogin();
+    initTreasureHunt();
+  });
+</script>

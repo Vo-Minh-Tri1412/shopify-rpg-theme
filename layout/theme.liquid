@@ -1,0 +1,852 @@
+<!doctype html>
+{% comment %} --- LOGIC TÍNH RANK & MÀU SẮC --- {% endcomment %}
+{% assign current_spent = customer.total_spent | default: 0 %}
+{% assign rpg_rank_title = "Tan Thu" %}
+{% assign rpg_rank_color = "#999" %} 
+
+{% if current_spent >= 30000000 %}
+  {% assign rpg_rank_title = "GODSLAYER" %}
+  {% assign rpg_rank_color = "#ffd700" %} <!-- Vàng kim -->
+{% elsif current_spent >= 18000000 %}
+  {% assign rpg_rank_title = "MYTHIC" %}
+  {% assign rpg_rank_color = "#00e5ff" %} <!-- Xanh Cyan -->
+{% elsif current_spent >= 12000000 %}
+  {% assign rpg_rank_title = "DRAGONBANE" %}
+  {% assign rpg_rank_color = "#ff3d00" %} <!-- Đỏ cam -->
+{% elsif current_spent >= 8000000 %}
+  {% assign rpg_rank_title = "VANGUARD" %}
+  {% assign rpg_rank_color = "#d500f9" %} <!-- Tím -->
+{% elsif current_spent >= 5000000 %}
+  {% assign rpg_rank_title = "SHADOW" %}
+  {% assign rpg_rank_color = "#aa00ff" %} <!-- Tím đậm -->
+{% elsif current_spent >= 2000000 %}
+  {% assign rpg_rank_title = "HUNTER" %}
+  {% assign rpg_rank_color = "#2979ff" %} <!-- Xanh dương -->
+{% elsif current_spent >= 500000 %}
+  {% assign rpg_rank_title = "WANDERER" %}
+  {% assign rpg_rank_color = "#00e676" %} <!-- Xanh lá -->
+{% endif %}
+<html class="no-js" lang="{{ request.locale.iso_code }}">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="theme-color" content="">
+    <link rel="canonical" href="{{ canonical_url }}">
+
+    <!-- 1. FONT CHỮ GAME RPG -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+
+    {%- if settings.favicon != blank -%}
+      <link rel="icon" type="image/png" href="{{ settings.favicon | image_url: width: 32, height: 32 }}">
+    {%- endif -%}
+
+    <title>{{ page_title }}</title>
+
+    {%- render 'meta-tags' -%}
+    {%- render 'stylesheets' -%}
+    {%- render 'scripts' -%}
+    {%- render 'theme-styles-variables' -%}
+    {%- render 'color-schemes' -%}
+
+    {{ content_for_header }}
+
+    <!-- 2. CSS RPG - FULL WIDTH & NEW MODALS -->
+    <style>
+      /* CSS CHO TAG RANK */
+.rpg-rank-badge {
+  font-size: 9px;            /* Chữ nhỏ hơn tên Class */
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 1px 5px;          /* Khoảng cách trong viền */
+  border: 1px solid;         /* Viền mỏng */
+  border-radius: 2px;        /* Bo góc nhẹ */
+  background: rgba(0, 0, 0, 0.4); /* Nền đen mờ để nổi bật chữ */
+  letter-spacing: 0.5px;
+  backdrop-filter: blur(2px);
+  animation: glowPulse 3s infinite alternate; /* Hiệu ứng nhấp nháy nhẹ */
+}
+
+/* Hiệu ứng sáng nhẹ */
+@keyframes glowPulse {
+  0% { opacity: 0.8; }
+  100% { opacity: 1; text-shadow: 0 0 5px currentColor; }
+}
+      :root {
+        --rpg-gold: #ffd700;
+        --rpg-dark: #0a0a0c;
+        --class-color: #ffd700; /* Mặc định */
+      }
+
+      /* FIX FULL WIDTH & BACKGROUND */
+      body {
+        background-color: var(--rpg-dark) !important;
+        color: #e0e0e0 !important;
+        font-family: 'Roboto', sans-serif;
+        padding-top: 60px !important;
+        overflow-x: hidden;
+      }
+
+      .page-width, .page-width-desktop {
+        max-width: 100% !important;
+        padding-left: 2rem !important;
+        padding-right: 2rem !important;
+        margin: 0 !important;
+      }
+
+      .gradient { background: transparent !important; }
+
+      h1, h2, h3, h4, h5, h6, .h1, .h2 {
+        font-family: 'Cinzel', serif !important;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: #fff !important;
+      }
+
+      /* --- RPG HUD --- */
+      #rpg-hud {
+        position: fixed; top: 0; left: 0; width: 100%; height: 60px;
+        background: rgba(10, 10, 12, 0.95);
+        border-bottom: 2px solid var(--class-color);
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 0 30px; z-index: 10000;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.8);
+        backdrop-filter: blur(5px); font-family: 'Cinzel', serif;
+      }
+      
+      .hud-left { display: flex; align-items: center; gap: 15px; }
+      .hud-avatar { width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--class-color); object-fit: cover; }
+      
+      .hud-right { 
+  display: flex; 
+  align-items: center; 
+  gap: 20px; 
+  padding-right: 50px; /* <--- THÊM DÒNG NÀY (Tăng số này lên nếu muốn dời vào sâu hơn) */
+}
+      
+      /* Thanh Tiến Độ VIP */
+      .vip-wrapper { text-align: right; }
+      .vip-label { font-size: 14px; font-weight: bold; color: var(--class-color); }
+      .xp-container { width: 150px; height: 6px; background: #333; border-radius: 3px; overflow: hidden; margin-top: 2px; }
+      .xp-fill { height: 100%; background: linear-gradient(90deg, var(--class-color), #fff); width: 0%; transition: width 1s ease-out; }
+      
+      /* Điểm tích lũy Daily */
+      .hud-ap { font-size: 12px; color: #a335ee; font-weight: bold; border: 1px solid #a335ee; padding: 2px 6px; border-radius: 4px; }
+      .hud-ap:hover {
+  background-color: #a335ee;
+  color: #fff !important;
+  box-shadow: 0 0 10px #a335ee;
+  transition: 0.3s;
+}
+      /* --- HUD NAV LINKS --- */
+      .hud-nav-link {
+        display: flex; align-items: center; gap: 5px;
+        color: #ffd700; font-size: 12px; font-weight: bold;
+        text-decoration: none; padding: 5px 10px;
+        border: 1px solid #ffd700; border-radius: 4px;
+        transition: all 0.3s;
+      }
+      .hud-nav-link:hover {
+        background: #ffd700; color: #000 !important;
+        box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+      }
+      /* --- ICON TÚI ĐỒ (INVENTORY) --- */
+      .hud-inventory-btn {
+        font-size: 22px; cursor: pointer; position: relative;
+        transition: transform 0.2s; padding: 5px;
+      }
+      .hud-inventory-btn:hover { transform: scale(1.15); }
+      .inventory-count {
+        position: absolute; top: -5px; right: -8px;
+        background: #ff4d4d; color: #fff; font-size: 10px; font-weight: bold;
+        min-width: 18px; height: 18px; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        border: 2px solid #0a0a0c;
+      }
+      .inventory-count:empty, .inventory-count[data-count="0"] { display: none; }
+      
+      /* --- INVENTORY ITEMS --- */
+      .inv-item {
+        display: flex; align-items: center; gap: 15px;
+        background: rgba(255,255,255,0.05); border: 1px solid #333;
+        padding: 12px; border-radius: 8px; margin-bottom: 10px;
+        transition: all 0.3s;
+      }
+      .inv-item:hover { border-color: #ffd700; background: rgba(255,215,0,0.1); }
+      .inv-item-img { width: 50px; height: 50px; object-fit: contain; border-radius: 5px; }
+      .inv-item-info { flex: 1; text-align: left; }
+      .inv-item-name { font-weight: bold; color: #fff; font-size: 14px; }
+      .inv-item-date { font-size: 11px; color: #888; }
+      .inv-item-btn {
+        background: linear-gradient(135deg, #ff0055, #ff4400);
+        border: none; color: #fff; padding: 8px 15px; border-radius: 5px;
+        cursor: pointer; font-weight: bold; font-size: 12px;
+        transition: transform 0.2s;
+      }
+      .inv-item-btn:hover { transform: scale(1.05); }
+      
+      /* --- LOOTBOX OPEN MODAL --- */
+      .lootbox-open-container {
+        position: relative; z-index: 10; text-align: center;
+        width: 100%; max-width: 500px; padding: 30px;
+      }
+      .lb-phase { display: flex; flex-direction: column; align-items: center; justify-content: center; }
+      .lb-box-shake { width: 250px; height: 250px; object-fit: contain; }
+      .lb-box-shake.shaking { animation: lbShake 0.4s infinite; }
+      @keyframes lbShake { 0%,100%{transform:rotate(0)} 25%{transform:rotate(8deg)} 75%{transform:rotate(-8deg)} }
+      .lb-status { color: #fff; font-size: 24px; margin-top: 20px; letter-spacing: 2px; }
+      
+      .lb-halo {
+        position: absolute; width: 400px; height: 400px;
+        background: radial-gradient(circle, rgba(255,215,0,0.3) 0%, transparent 70%);
+        animation: lbBreathe 2s infinite alternate;
+      }
+      @keyframes lbBreathe { from{transform:scale(1);opacity:0.5} to{transform:scale(1.1);opacity:0.8} }
+      
+      #lb-prize-img {
+        width: 280px; height: 280px; object-fit: contain;
+        filter: drop-shadow(0 0 20px gold);
+        animation: lbZoomIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      }
+      @keyframes lbZoomIn { from{transform:scale(0);opacity:0} to{transform:scale(1);opacity:1} }
+      
+      .lb-prize-info { margin-top: 15px; }
+      .lb-label { color: #aaa; font-size: 12px; letter-spacing: 2px; }
+      #lb-prize-name { color: #ffd700; font-size: 28px; margin: 5px 0; font-weight: bold; }
+      .lb-badge { background: #222; border: 1px solid #444; color: #fff; padding: 4px 12px; border-radius: 15px; font-size: 12px; display: inline-block; }
+      
+      /* --- ICON QUÀ TẶNG --- */
+      .hud-gift-btn {
+        font-size: 24px; cursor: pointer; position: relative;
+        transition: transform 0.2s;
+      }
+      .hud-gift-btn:hover { transform: scale(1.2) rotate(-10deg); }
+      .noti-dot {
+        position: absolute; top: -2px; right: -2px; width: 10px; height: 10px;
+        background: #ff4d4d; border-radius: 50%; border: 1px solid #fff;
+        display: none; animation: pulse 1s infinite;
+      }
+      @keyframes pulse { 0% {box-shadow: 0 0 0 0 rgba(255, 77, 77, 0.7);} 70% {box-shadow: 0 0 0 5px rgba(255, 77, 77, 0);} 100% {box-shadow: 0 0 0 0 rgba(255, 77, 77, 0);} }
+
+      /* --- GENERIC POPUP (THAY THẾ ALERT) --- */
+      .rpg-modal-overlay {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.85); z-index: 200000;
+        display: none; justify-content: center; align-items: center;
+        backdrop-filter: blur(5px);
+      }
+      .rpg-modal-box {
+        background: #151515; border: 2px solid var(--class-color);
+        padding: 30px; width: 350px; text-align: center; border-radius: 12px;
+        color: #fff; box-shadow: 0 0 40px rgba(0,0,0,0.5);
+        animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      }
+      @keyframes popIn { from {transform: scale(0.5); opacity: 0;} to {transform: scale(1); opacity: 1;} }
+
+      .modal-icon-lg { font-size: 50px; margin-bottom: 15px; display: block; }
+      .modal-title { color: var(--class-color); font-size: 20px; margin-bottom: 10px; font-weight: bold; }
+      .modal-msg { font-size: 14px; color: #ccc; line-height: 1.5; margin-bottom: 20px; }
+      
+      .rpg-btn-primary {
+        background: var(--class-color); color: #000; border: none;
+        padding: 10px 25px; font-weight: bold; font-family: 'Cinzel', serif;
+        cursor: pointer; width: 100%; text-transform: uppercase;
+      }
+      .rpg-btn-primary:hover { filter: brightness(1.2); }
+
+      .code-display {
+        background: #222; border: 1px dashed #fff; padding: 10px;
+        font-size: 18px; color: #2ecc71; font-weight: bold; letter-spacing: 2px;
+        margin-bottom: 15px; cursor: pointer; user-select: all;
+      }
+      /* --- POPUP CHỌN CLASS (RIÊNG) --- */
+      #class-selection-modal {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: #000; z-index: 200005; display: none;
+        flex-direction: column; justify-content: center; align-items: center;
+      }
+      .class-grid { display: flex; gap: 20px; margin-top: 30px; flex-wrap: wrap; justify-content: center;}
+      .class-card {
+        width: 240px; background: #151515; border: 1px solid #444; padding: 20px;
+        text-align: center; cursor: pointer; transition: 0.3s; border-radius: 8px;
+      }
+      .class-card:hover { transform: scale(1.05); border-color: var(--hover-color); box-shadow: 0 0 20px var(--hover-color); }
+      .class-img { font-size: 50px; margin-bottom: 15px; display: block; }
+      .class-title { font-size: 20px; font-weight: bold; margin-bottom: 5px; color: var(--hover-color); }
+      .class-desc { font-size: 12px; color: #aaa; }
+
+      /* Fix nút bấm Shopify */
+      .button, .shopify-payment-button__button {
+        border-radius: 4px !important; font-family: 'Cinzel', serif !important;
+      }
+    </style>
+  </head>
+
+  <body class="gradient">
+    <!-- 3. RPG HUD (CẬP NHẬT VIP) -->
+    <div id="rpg-hud">
+<div class="hud-left">
+  <!-- Avatar (Giữ nguyên) -->
+  <img id="hud-avatar-img" src="https://cdn-icons-png.flaticon.com/512/149/149071.png" width="40" height="40" alt="Avatar" class="hud-avatar">
+  
+  <div style="display: flex; flex-direction: column; justify-content: center; margin-left: 12px;">
+    
+    <!-- DÒNG 1: TÊN CLASS + TAG RANK -->
+    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+      <!-- Tên Class -->
+      <div style="font-weight:bold; color:var(--class-color); font-size: 1.2em; line-height: 1;" id="hud-class-name">NOVICE</div>
+      
+      <!-- Tag Rank (MỚI) -->
+      <div class="rpg-rank-badge" style="
+          color: {{ rpg_rank_color }}; 
+          border-color: {{ rpg_rank_color }};
+          box-shadow: 0 0 4px {{ rpg_rank_color }};
+      ">
+        {{ rpg_rank_title }}
+      </div>
+    </div>
+
+    <!-- DÒNG 2: CODE BOX (Giữ nguyên như ảnh của bạn) -->
+    <div id="hud-class-code" style="
+        font-size: 10px; 
+        color: #ddd; 
+        background: rgba(255,255,255,0.15); 
+        padding: 2px 6px; 
+        border-radius: 3px; 
+        display: none; 
+        cursor: pointer;
+        width: fit-content;
+    " onclick="copyToClipboard(this.innerText)">
+      CODE: <span id="class-code-text">NONE</span>
+    </div>
+
+  </div>
+</div>
+      <div class="hud-right">
+        <!-- NAV LINKS: LEADERBOARD -->
+        <a href="/pages/leaderboard" class="hud-nav-link" title="Bảng xếp hạng">
+          🏆 <span class="mobile-hide">Rank</span>
+        </a>
+        
+        <!-- ICON TÚI ĐỒ (INVENTORY) -->
+        <div class="hud-inventory-btn" onclick="openInventory()" title="Túi đồ">
+          🎒
+          <span class="inventory-count" id="inventory-count">0</span>
+        </div>
+        
+        <!-- ICON NHẬN QUÀ -->
+        <div class="hud-gift-btn" onclick="openDailyPopup()" title="Điểm danh">
+          🎁
+          <div id="gift-noti" class="noti-dot"></div>
+        </div>
+
+        <div class="vip-wrapper">
+          <div class="vip-label"><span id="hud-vip-rank">VIP 0</span></div>
+          <div class="xp-container"><div class="xp-fill" id="hud-vip-bar"></div></div>
+        </div>
+
+        <div style="text-align: right;">
+          <div style="color:var(--rpg-gold); font-weight: bold;">
+            💰 <span id="hud-money">{{ customer.total_spent | money_without_currency | default: '0' }}</span> G
+          </div>
+          <!-- ĐIỂM AP (DAILY REWARD) -->
+          <!-- NÚT AP (LINK ĐẾN SHOP) -->
+<a href="/pages/ap-shop" id="hud-ap-display" class="hud-ap" style="display:none; text-decoration:none; cursor:pointer;" title="Bấm để vào Shop đổi quà">
+  0 AP 🛒
+</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAIN CONTENT SHOPIFY -->
+    {% sections 'header-group' %}
+    <main id="MainContent" class="content-for-layout" role="main" tabindex="-1">
+      {{ content_for_layout }}
+    </main>
+    {% sections 'footer-group' %}
+
+    <!-- 4. MODAL CHỌN CLASS -->
+    <div id="class-selection-modal">
+      <h1 style="color: #fff; font-size: 2.5rem; letter-spacing: 3px;">CHỌN HỆ NHÂN VẬT</h1>
+      <p style="color: #888;">Hành trình của bạn bắt đầu từ đây</p>
+      <div class="class-grid">
+        <div class="class-card" style="--hover-color: #ff4d4d;" onclick="selectRPGClass('Warrior', '#ff4d4d')">
+          <span class="class-img">⚔️</span><div class="class-title">WARRIOR</div><p class="class-desc">Sức mạnh & Cận chiến</p>
+        </div>
+        <div class="class-card" style="--hover-color: #a335ee;" onclick="selectRPGClass('Mage', '#a335ee')">
+          <span class="class-img">🔮</span><div class="class-title">MAGE</div><p class="class-desc">Phép thuật & Trí tuệ</p>
+        </div>
+        <div class="class-card" style="--hover-color: #2ecc71;" onclick="selectRPGClass('Archer', '#2ecc71')">
+          <span class="class-img">🏹</span><div class="class-title">ARCHER</div><p class="class-desc">Tốc độ & Chính xác</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5. MODAL NHẬN QUÀ DAILY -->
+    <div id="daily-reward-modal" class="rpg-modal-overlay">
+      <div class="rpg-modal-box">
+        <span onclick="closeModal('daily-reward-modal')" style="position:absolute; top:10px; right:15px; cursor:pointer; font-size:20px; color:#888;">✕</span>
+        <h3 style="color:#ffd700; margin-top:0;">ĐIỂM DANH HÀNG NGÀY</h3>
+        <p style="font-size:12px; color:#aaa;">Chuỗi ngày: <span id="streak-day" style="color:#fff; font-weight:bold;">1</span></p>
+        
+        <div style="margin: 20px 0; font-size: 60px;">🎁</div>
+        <div id="reward-info" style="margin-bottom:20px; font-weight:bold; font-size:1.1em;">
+          Phần thưởng đang chờ...
+        </div>
+
+        <button id="btn-claim-reward" class="rpg-btn-primary" onclick="claimReward()">NHẬN THƯỞNG</button>
+        <p id="reward-timer" style="font-size:10px; color:#666; margin-top:10px;"></p>
+      </div>
+    </div>
+
+    <!-- 6. MODAL TÚI ĐỒ (INVENTORY) -->
+    <div id="inventory-modal" class="rpg-modal-overlay">
+      <div class="rpg-modal-box" style="width: 450px; max-width: 95vw;">
+        <span onclick="closeModal('inventory-modal')" style="position:absolute; top:10px; right:15px; cursor:pointer; font-size:20px; color:#888;">✕</span>
+        <h3 style="color:#ffd700; margin-top:0;">🎒 TÚI ĐỒ</h3>
+        <p style="font-size:12px; color:#aaa; margin-bottom:20px;">Các lootbox chưa mở sẽ hiển thị ở đây</p>
+        
+        <div id="inventory-items" style="max-height: 300px; overflow-y: auto;">
+          <p style="color:#666; font-style:italic;">Túi đồ trống...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 7. MODAL MỞ LOOTBOX -->
+    <div id="lootbox-open-modal" class="rpg-modal-overlay" style="z-index:200001;">
+      <div class="lootbox-open-container">
+        <!-- Phase 1: Lắc hộp -->
+        <div id="lb-phase-shake" class="lb-phase">
+          <img id="lb-box-img" src="" class="lb-box-shake" alt="Lootbox">
+          <h2 class="lb-status">ĐANG MỞ...</h2>
+        </div>
+        
+        <!-- Phase 2: Kết quả -->
+        <div id="lb-phase-result" class="lb-phase" style="display:none;">
+          <div class="lb-halo"></div>
+          <img id="lb-prize-img" src="" alt="Prize">
+          <div class="lb-prize-info">
+            <div class="lb-label">BẠN NHẬN ĐƯỢC</div>
+            <h2 id="lb-prize-name">VẬT PHẨM</h2>
+            <div class="lb-badge" id="lb-prize-chance">Tỉ lệ: 1%</div>
+          </div>
+          <button class="rpg-btn-primary" onclick="confirmLootboxResult()" style="margin-top:20px;">
+            NHẬN VÀ THANH TOÁN
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 8. MODAL THÔNG BÁO CHUNG (THAY THẾ ALERT) -->
+    <div id="custom-alert-modal" class="rpg-modal-overlay">
+      <div class="rpg-modal-box">
+        <span class="modal-icon-lg" id="alert-icon">🎉</span>
+        <div class="modal-title" id="alert-title">THÔNG BÁO</div>
+        <div class="modal-msg" id="alert-msg">Nội dung thông báo</div>
+        <button class="rpg-btn-primary" onclick="closeModal('custom-alert-modal')">ĐÓNG</button>
+      </div>
+    </div>
+
+    <!-- 9. MODAL NHẬN GIFTCODE (THAY THẾ PROMPT) -->
+    <div id="giftcode-modal" class="rpg-modal-overlay">
+      <div class="rpg-modal-box">
+        <span class="modal-icon-lg">👑</span>
+        <div class="modal-title" style="color:#2ecc71">JACKPOT!</div>
+        <div class="modal-msg">Chúc mừng bạn nhận được Mã Giảm Giá Đặc Biệt:</div>
+        
+        <div class="code-display" id="giftcode-display" onclick="copyToClipboard(this.innerText)">CODE_HERE</div>
+        <p style="font-size:10px; color:#888; margin-bottom:15px;">(Bấm vào mã để copy)</p>
+        
+        <button class="rpg-btn-primary" onclick="closeModal('giftcode-modal')">TUYỆT VỜI</button>
+      </div>
+    </div>
+
+    <!-- 8. KỊCH BẢN JS (LOGIC MỚI) -->
+    <script>
+      // FIX LỖI NGÔN NGỮ
+      window.shopUrl = '{{ request.origin }}';
+      window.routes = { cart_add_url: '{{ routes.cart_add_url }}', cart_change_url: '{{ routes.cart_change_url }}', cart_update_url: '{{ routes.cart_update_url }}', cart_url: '{{ routes.cart_url }}', predictive_search_url: '{{ routes.predictive_search_url }}' };
+      window.cartStrings = { error: `Lỗi giỏ hàng`, quantityError: `Số lượng không hợp lệ` };
+      window.variantStrings = { addToCart: `Thêm vào giỏ`, soldOut: `Hết hàng`, unavailable: `Tạm hết` };
+      window.accessibilityStrings = { imageAvailable: `Ảnh sẵn sàng`, shareSuccess: `Đã copy link`, pauseSlideshow: `Dừng`, playSlideshow: `Chạy` };
+
+      // --- CẤU HÌNH HỆ THỐNG RPG ---
+      const REAL_MONEY = {{ customer.total_spent | default: 0 }} / 100; // Tiền nạp thật (VNĐ)
+      
+      // CẤU HÌNH CẤP VIP (THEO YÊU CẦU)
+      const VIP_TIERS = [
+        { name: 'VIP 0', min: 0 },
+        { name: 'VIP 1', min: 500000 },
+        { name: 'VIP 2', min: 5000000 },
+        { name: 'VIP 3', min: 12000000 },
+        { name: 'VIP 4', min: 20000000 },
+        { name: 'VIP 5', min: 30000000 }
+      ];
+
+      // Config Quà Tặng Daily (Nhận điểm AP riêng)
+      const DAILY_REWARDS = [
+        {d:1, val: 50, type:'ap', label:'50 AP'},
+        {d:2, val: 100, type:'ap', label:'100 AP'},
+        {d:3, val: 150, type:'ap', label:'150 AP'},
+        {d:4, val: 200, type:'ap', label:'200 AP'},
+        {d:5, val: 300, type:'ap', label:'300 AP'},
+        {d:6, val: 500, type:'ap', label:'500 AP'},
+        {d:7, val: 'Cheap Product', type:'code', label:'GIFTCODE'}
+      ];
+      
+      // Key lưu trữ
+      const KEY_DAY = 'rpg_daily_day';
+      const KEY_TIME = 'rpg_daily_time';
+      const KEY_AP = 'rpg_activity_points'; // Lưu điểm AP riêng
+      const KEY_INVENTORY = 'rpg_inventory'; // Lưu túi đồ (lootbox chưa mở)
+
+      // Biến tạm để lưu lootbox đang mở
+      let currentOpeningLootbox = null;
+
+      document.addEventListener("DOMContentLoaded", function() {
+        initRPGSystem();
+        checkRewardStatus();
+        setInterval(checkRewardStatus, 1000);
+        updateInventoryCount(); // Cập nhật số lượng túi đồ
+      });
+
+      function initRPGSystem() {
+        const savedClass = localStorage.getItem('rpg_class_name');
+        const savedColor = localStorage.getItem('rpg_class_color');
+
+        if (!savedClass) {
+          document.getElementById('class-selection-modal').style.display = 'flex';
+          document.body.style.overflow = 'hidden'; 
+        } else {
+          applyTheme(savedClass, savedColor);
+        }
+        
+        // TÍNH VIP RANK VÀ HIỂN THỊ AP
+        calculateVipRank();
+        updateAPDisplay();
+      }
+
+      function selectRPGClass(className, colorHex) {
+        localStorage.setItem('rpg_class_name', className);
+        localStorage.setItem('rpg_class_color', colorHex);
+        document.getElementById('class-selection-modal').style.display = 'none';
+        document.body.style.overflow = 'auto';
+        
+        // HIỆN MODAL CHÀO MỪNG THAY VÌ ALERT
+        showCustomAlert('👋', 'CHÀO MỪNG!', `Bạn đã gia nhập hội ${className}. Giao diện đã được đồng bộ.`);
+        
+        setTimeout(() => location.reload(), 2000); // Reload sau 2s
+      }
+
+      function applyTheme(className, color) {
+        document.documentElement.style.setProperty('--class-color', color);
+        document.getElementById('hud-class-name').innerText = className.toUpperCase();
+        
+        const avatarMap = { 'Warrior': 'https://cdn-icons-png.flaticon.com/512/3408/3408593.png', 'Mage': 'https://cdn-icons-png.flaticon.com/512/3408/3408545.png', 'Archer': 'https://cdn-icons-png.flaticon.com/512/3408/3408605.png' };
+        if(avatarMap[className]) document.getElementById('hud-avatar-img').src = avatarMap[className];
+
+        const codeBox = document.getElementById('hud-class-code');
+        const codeText = document.getElementById('class-code-text');
+        if (className === 'Warrior') codeText.innerText = 'WARRIOR_VIP';
+        else if (className === 'Mage') codeText.innerText = 'MAGE_VIP';
+        else if (className === 'Archer') codeText.innerText = 'ARCHER_VIP';
+        codeBox.style.display = 'inline-block';
+      }
+
+      // --- LOGIC TÍNH VIP THEO TIỀN (VIP 1 - 5) ---
+      function calculateVipRank() {
+        let currentRank = 0;
+        let nextRankMin = 500000;
+        let rankName = 'NOVICE';
+
+        // Xác định Rank
+        for(let i = 0; i < VIP_TIERS.length; i++) {
+          if(REAL_MONEY >= VIP_TIERS[i].min) {
+            currentRank = i;
+            rankName = VIP_TIERS[i].name;
+            if (i < VIP_TIERS.length - 1) {
+              nextRankMin = VIP_TIERS[i+1].min;
+            } else {
+              nextRankMin = REAL_MONEY; // Max level
+            }
+          }
+        }
+
+        // Tính % thanh hiển thị (Tiền hiện tại / Tiền cần để lên cấp tiếp theo)
+        // Logic thanh: (Hiện tại - Mốc hiện tại) / (Mốc tiếp theo - Mốc hiện tại)
+        let currentTierMin = VIP_TIERS[currentRank].min;
+        let percent = 0;
+        if (currentRank < 5) {
+           percent = ((REAL_MONEY - currentTierMin) / (nextRankMin - currentTierMin)) * 100;
+        } else {
+           percent = 100; // Max VIP
+        }
+
+        document.getElementById('hud-vip-rank').innerText = rankName;
+        document.getElementById('hud-vip-bar').style.width = percent + '%';
+      }
+
+      function updateAPDisplay() {
+        const ap = parseInt(localStorage.getItem(KEY_AP) || 0);
+        const apBox = document.getElementById('hud-ap-display');
+        apBox.innerText = `⚡ ${ap} AP`;
+        apBox.style.display = 'inline-block';
+      }
+
+      // --- LOGIC NHẬN QUÀ ---
+      function openDailyPopup() {
+        document.getElementById('daily-reward-modal').style.display = 'flex';
+        updatePopupUI();
+      }
+
+      function closeModal(id) {
+        document.getElementById(id).style.display = 'none';
+      }
+
+      function showCustomAlert(icon, title, msg) {
+        document.getElementById('alert-icon').innerText = icon;
+        document.getElementById('alert-title').innerText = title;
+        document.getElementById('alert-msg').innerText = msg;
+        document.getElementById('custom-alert-modal').style.display = 'flex';
+      }
+
+      function checkRewardStatus() {
+        const last = parseInt(localStorage.getItem(KEY_TIME) || 0);
+        const now = new Date().getTime();
+        const COOLDOWN = 8640000; // 10s Test (Sửa thành 86400000 chạy thật)
+        
+        const dot = document.getElementById('gift-noti');
+        if(now - last > COOLDOWN) dot.style.display = 'block';
+        else dot.style.display = 'none';
+      }
+
+      function updatePopupUI() {
+        const day = parseInt(localStorage.getItem(KEY_DAY) || 1);
+        const last = parseInt(localStorage.getItem(KEY_TIME) || 0);
+        const now = new Date().getTime();
+        const COOLDOWN = 10000;
+
+        const reward = DAILY_REWARDS[day-1];
+        document.getElementById('streak-day').innerText = day;
+        
+        let rewardText = reward.label;
+        document.getElementById('reward-info').innerText = `Phần thưởng hôm nay: ${rewardText}`;
+
+        const btn = document.getElementById('btn-claim-reward');
+        const timer = document.getElementById('reward-timer');
+
+        if(now - last < COOLDOWN) {
+          btn.disabled = true;
+          btn.innerText = "HÃY QUAY LẠI SAU";
+          const diff = COOLDOWN - (now - last);
+          timer.innerText = `Chờ: ${Math.floor(diff/1000)} giây`;
+        } else {
+          btn.disabled = false;
+          btn.innerText = "NHẬN THƯỞNG";
+          timer.innerText = "Sẵn sàng!";
+        }
+      }
+
+      function claimReward() {
+        let day = parseInt(localStorage.getItem(KEY_DAY) || 1);
+        if(day > 7) day = 1;
+        
+        const reward = DAILY_REWARDS[day-1];
+        const now = new Date().getTime();
+
+        closeModal('daily-reward-modal'); // Tắt popup daily
+
+        if(reward.type === 'ap') {
+          // Cộng điểm AP
+          let currentAP = parseInt(localStorage.getItem(KEY_AP) || 0);
+          let newAP = currentAP + reward.val;
+          localStorage.setItem(KEY_AP, newAP);
+          
+          // HIỆN MODAL CHÚC MỪNG (KHÔNG DÙNG ALERT)
+          showCustomAlert('⚡', 'NHẬN THÀNH CÔNG', `Bạn đã nhận được ${reward.val} điểm hoạt động (AP).`);
+          updateAPDisplay();
+          
+        } else if (reward.type === 'code') {
+          // HIỆN MODAL GIFTCODE (KHÔNG DÙNG PROMPT)
+          document.getElementById('giftcode-display').innerText = reward.val;
+          document.getElementById('giftcode-modal').style.display = 'flex';
+        }
+
+        // Lưu
+        localStorage.setItem(KEY_TIME, now);
+        if(day < 7) localStorage.setItem(KEY_DAY, day + 1);
+        else localStorage.setItem(KEY_DAY, 1);
+      }
+
+      function copyToClipboard(text) {
+        navigator.clipboard.writeText(text);
+        // Hiện thông báo nhỏ kiểu Toast thay vì alert
+        showCustomAlert('📋', 'ĐÃ SAO CHÉP', `Mã "${text}" đã lưu vào bộ nhớ tạm.`);
+      }
+
+      // ==========================================
+      // INVENTORY (TÚI ĐỒ) - LOOTBOX SYSTEM
+      // ==========================================
+      
+      function getInventory() {
+        return JSON.parse(localStorage.getItem(KEY_INVENTORY) || '[]');
+      }
+      
+      function saveInventory(items) {
+        localStorage.setItem(KEY_INVENTORY, JSON.stringify(items));
+        updateInventoryCount();
+      }
+      
+      function updateInventoryCount() {
+        const items = getInventory();
+        const countEl = document.getElementById('inventory-count');
+        if (countEl) {
+          countEl.innerText = items.length;
+          countEl.setAttribute('data-count', items.length);
+        }
+      }
+      
+      // Thêm lootbox vào túi đồ (gọi từ trang product.lootbox)
+      function addLootboxToInventory(lootboxData) {
+        const items = getInventory();
+        const newItem = {
+          id: Date.now(),
+          name: lootboxData.name || 'Mystery Lootbox',
+          image: lootboxData.image || '',
+          variantId: lootboxData.variantId,
+          lootTable: lootboxData.lootTable || [],
+          addedAt: new Date().toISOString()
+        };
+        items.push(newItem);
+        saveInventory(items);
+        showCustomAlert('🎒', 'ĐÃ THÊM VÀO TÚI', `${newItem.name} đã được thêm vào túi đồ. Vào túi đồ để mở!`);
+      }
+      
+      // Mở modal túi đồ
+      function openInventory() {
+        const items = getInventory();
+        const container = document.getElementById('inventory-items');
+        
+        if (items.length === 0) {
+          container.innerHTML = '<p style="color:#666; font-style:italic; text-align:center; padding:30px 0;">Túi đồ trống...<br><small>Mua lootbox để nhận vào đây!</small></p>';
+        } else {
+          let html = '';
+          items.forEach((item, index) => {
+            const date = new Date(item.addedAt).toLocaleDateString('vi-VN');
+            html += `
+              <div class="inv-item">
+                <img src="${item.image}" class="inv-item-img" alt="${item.name}">
+                <div class="inv-item-info">
+                  <div class="inv-item-name">${item.name}</div>
+                  <div class="inv-item-date">Nhận: ${date}</div>
+                </div>
+                <button class="inv-item-btn" onclick="openLootboxFromInventory(${index})">
+                  🎰 MỞ
+                </button>
+              </div>
+            `;
+          });
+          container.innerHTML = html;
+        }
+        
+        document.getElementById('inventory-modal').style.display = 'flex';
+      }
+      
+      // Mở lootbox từ túi đồ
+      function openLootboxFromInventory(index) {
+        const items = getInventory();
+        if (index >= items.length) return;
+        
+        currentOpeningLootbox = items[index];
+        closeModal('inventory-modal');
+        
+        // Hiển thị modal mở lootbox
+        const modal = document.getElementById('lootbox-open-modal');
+        const phaseShake = document.getElementById('lb-phase-shake');
+        const phaseResult = document.getElementById('lb-phase-result');
+        const boxImg = document.getElementById('lb-box-img');
+        
+        // Reset UI
+        modal.style.display = 'flex';
+        phaseShake.style.display = 'flex';
+        phaseResult.style.display = 'none';
+        boxImg.src = currentOpeningLootbox.image;
+        boxImg.classList.add('shaking');
+        
+        // Animation 2.5 giây rồi hiện kết quả
+        setTimeout(() => {
+          boxImg.classList.remove('shaking');
+          phaseShake.style.display = 'none';
+          phaseResult.style.display = 'flex';
+          
+          // Random vật phẩm
+          const lootTable = currentOpeningLootbox.lootTable;
+          if (lootTable && lootTable.length > 0) {
+            const reward = getWeightedRandomLoot(lootTable);
+            currentOpeningLootbox.reward = reward;
+            
+            document.getElementById('lb-prize-img').src = reward.image;
+            document.getElementById('lb-prize-name').innerText = reward.name;
+            document.getElementById('lb-prize-chance').innerText = 'Tỉ lệ: ' + reward.chance + '%';
+          }
+        }, 2500);
+      }
+      
+      function getWeightedRandomLoot(items) {
+        let total = items.reduce((sum, item) => sum + (item.chance || 0), 0);
+        let random = Math.random() * total;
+        let sum = 0;
+        for (let i = 0; i < items.length; i++) {
+          sum += items[i].chance || 0;
+          if (random <= sum) return items[i];
+        }
+        return items[0];
+      }
+      
+      // Xác nhận kết quả và thanh toán
+      function confirmLootboxResult() {
+        if (!currentOpeningLootbox || !currentOpeningLootbox.reward) return;
+        
+        // Xóa lootbox khỏi inventory
+        const items = getInventory();
+        const index = items.findIndex(i => i.id === currentOpeningLootbox.id);
+        if (index > -1) {
+          items.splice(index, 1);
+          saveInventory(items);
+        }
+        
+        // Thêm vào cart với thông tin vật phẩm đã trúng
+        const reward = currentOpeningLootbox.reward;
+        fetch(window.Shopify.routes.root + 'cart/add.js', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            'items': [{
+              'id': currentOpeningLootbox.variantId,
+              'quantity': 1,
+              'properties': {
+                '🏆 Reward': reward.name,
+                '🎲 Rate': reward.chance + '%',
+                '_image': reward.image
+              }
+            }]
+          })
+        })
+        .then(response => {
+          if (response.ok) {
+            window.location.href = '/checkout';
+          } else {
+            showCustomAlert('❌', 'LỖI', 'Không thể thêm vào giỏ hàng. Vui lòng thử lại.');
+          }
+        })
+        .catch(e => {
+          console.error(e);
+          showCustomAlert('❌', 'LỖI KẾT NỐI', 'Vui lòng kiểm tra mạng và thử lại.');
+        });
+      }
+    </script>
+  {% render 'rpg-quests' %}
+  </body>
+</html>

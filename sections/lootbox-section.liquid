@@ -1,0 +1,296 @@
+{% comment %}
+  LOOTBOX SECTION - NEW LOGIC
+  Flow: Mua lootbox → Thanh toán → Nhận vào túi đồ → Mở từ túi đồ
+{% endcomment %}
+
+<!-- 1. DATA CONFIGURATION -->
+<script>
+  var currentProductHandle = "{{ product.handle }}";
+  var currentVariantId = {{ product.selected_or_first_available_variant.id }};
+  var currentProductTitle = "{{ product.title | escape }}";
+  var currentProductImage = "{{ product.featured_image | image_url: width: 500 }}";
+  
+  // Pull loot table từ Metafields
+  var lootTableData = [
+    {% if product.metafields.custom.lootbox.value %}
+      {% for item in product.metafields.custom.lootbox.value %}
+      {
+        name: "{{ item.name | escape }}",
+        image: "{{ item.image | image_url: width: 600 }}",
+        chance: {{ item.chance | default: 0 }}
+      }{% unless forloop.last %},{% endunless %}
+      {% endfor %}
+    {% endif %}
+  ];
+</script>
+
+<!-- 2. LOOTBOX PURCHASE BUTTON -->
+<div class="lootbox-section">
+  <div class="lootbox-preview">
+    <img src="{{ product.featured_image | image_url: width: 400 }}" alt="{{ product.title }}" class="lootbox-img">
+    <div class="lootbox-glow"></div>
+  </div>
+  
+  <div class="lootbox-info">
+    <h2 class="lootbox-title">🎁 {{ product.title }}</h2>
+    <p class="lootbox-price">{{ product.price | money }}</p>
+    
+    <div class="lootbox-rewards-preview">
+      <h4>Phần thưởng có thể nhận:</h4>
+      <div class="rewards-grid">
+        {% for item in product.metafields.custom.lootbox.value %}
+          <div class="reward-item">
+            <img src="{{ item.image | image_url: width: 100 }}" alt="{{ item.name }}">
+            <span class="reward-name">{{ item.name }}</span>
+            <span class="reward-chance">{{ item.chance }}%</span>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+    
+    <button id="btn-buy-lootbox" class="lootbox-buy-btn" onclick="buyLootbox()">
+      <span class="btn-icon">🛒</span>
+      <span class="btn-text">MUA LOOTBOX</span>
+    </button>
+    
+    <p class="lootbox-note">
+      ✨ Sau khi thanh toán thành công, lootbox sẽ xuất hiện trong <strong>Túi đồ</strong> 🎒
+      <br>
+      Vào túi đồ để mở và nhận vật phẩm!
+    </p>
+  </div>
+</div>
+
+<!-- 3. CSS STYLING -->
+<style>
+  .lootbox-section {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 30px;
+    padding: 40px 20px;
+    max-width: 1000px;
+    margin: 0 auto;
+    align-items: flex-start;
+  }
+  
+  .lootbox-preview {
+    flex: 1;
+    min-width: 280px;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .lootbox-img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 12px;
+    position: relative;
+    z-index: 2;
+    animation: float 3s ease-in-out infinite;
+  }
+  
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+  
+  .lootbox-glow {
+    position: absolute;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(255,215,0,0.3) 0%, transparent 70%);
+    z-index: 1;
+    animation: pulse-glow 2s infinite;
+  }
+  
+  @keyframes pulse-glow {
+    0%, 100% { transform: scale(1); opacity: 0.5; }
+    50% { transform: scale(1.1); opacity: 0.8; }
+  }
+  
+  .lootbox-info {
+    flex: 1;
+    min-width: 300px;
+  }
+  
+  .lootbox-title {
+    font-size: 28px;
+    color: #ffd700;
+    margin: 0 0 10px 0;
+    text-shadow: 0 0 10px rgba(255,215,0,0.3);
+  }
+  
+  .lootbox-price {
+    font-size: 24px;
+    color: #ff4d4d;
+    font-weight: bold;
+    margin-bottom: 20px;
+  }
+  
+  .lootbox-rewards-preview {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid #333;
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 20px;
+  }
+  
+  .lootbox-rewards-preview h4 {
+    color: #aaa;
+    font-size: 14px;
+    margin: 0 0 15px 0;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  
+  .rewards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    gap: 10px;
+  }
+  
+  .reward-item {
+    text-align: center;
+    padding: 10px 5px;
+    background: rgba(0,0,0,0.3);
+    border-radius: 8px;
+    border: 1px solid #444;
+    transition: all 0.3s;
+  }
+  
+  .reward-item:hover {
+    border-color: #ffd700;
+    transform: scale(1.05);
+  }
+  
+  .reward-item img {
+    width: 50px;
+    height: 50px;
+    object-fit: contain;
+    margin-bottom: 5px;
+  }
+  
+  .reward-name {
+    display: block;
+    font-size: 11px;
+    color: #fff;
+    margin-bottom: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  .reward-chance {
+    font-size: 10px;
+    color: #ffd700;
+    font-weight: bold;
+  }
+  
+  .lootbox-buy-btn {
+    width: 100%;
+    background: linear-gradient(135deg, #ff0055 0%, #ff4400 100%);
+    border: none;
+    padding: 18px 30px;
+    border-radius: 10px;
+    color: white;
+    cursor: pointer;
+    font-size: 18px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: all 0.3s;
+    box-shadow: 0 5px 20px rgba(255, 0, 85, 0.4);
+  }
+  
+  .lootbox-buy-btn:hover {
+    transform: scale(1.02);
+    box-shadow: 0 8px 30px rgba(255, 0, 85, 0.6);
+  }
+  
+  .lootbox-buy-btn:disabled {
+    background: #333;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+  
+  .lootbox-note {
+    margin-top: 15px;
+    font-size: 13px;
+    color: #888;
+    text-align: center;
+    line-height: 1.6;
+  }
+  
+  .lootbox-note strong {
+    color: #ffd700;
+  }
+  
+  /* Mobile */
+  @media (max-width: 768px) {
+    .lootbox-section {
+      flex-direction: column;
+    }
+    .lootbox-preview, .lootbox-info {
+      min-width: 100%;
+    }
+  }
+</style>
+
+<!-- 4. JAVASCRIPT LOGIC -->
+<script>
+  function buyLootbox() {
+    const btn = document.getElementById('btn-buy-lootbox');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="btn-icon">⏳</span><span class="btn-text">ĐANG XỬ LÝ...</span>';
+    
+    // Thêm vào cart với property đặc biệt để nhận diện là lootbox
+    fetch(window.Shopify.routes.root + 'cart/add.js', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        'items': [{
+          'id': currentVariantId,
+          'quantity': 1,
+          'properties': {
+            '_is_lootbox': 'true',
+            '_loot_table': JSON.stringify(lootTableData),
+            '_product_image': currentProductImage
+          }
+        }]
+      })
+    })
+    .then(response => {
+      if (response.ok) {
+        // Chuyển đến trang checkout
+        window.location.href = '/checkout';
+      } else {
+        throw new Error('Failed to add to cart');
+      }
+    })
+    .catch(e => {
+      console.error(e);
+      btn.disabled = false;
+      btn.innerHTML = '<span class="btn-icon">🛒</span><span class="btn-text">MUA LOOTBOX</span>';
+      alert('Có lỗi xảy ra, vui lòng thử lại!');
+    });
+  }
+</script>
+
+{% schema %}
+{
+  "name": "Lootbox Section",
+  "tag": "section",
+  "class": "section",
+  "settings": [],
+  "presets": [
+    {
+      "name": "Lootbox Section"
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,68 @@
+<div class="countdown-rpg-container">
+  <h3 class="countdown-rpg-title">🔥 SỰ KIỆN CÒN: 🔥</h3>
+  <div id="rpg-countdown-timer" class="countdown-rpg-timer">
+    </div>
+</div>
+
+<style>
+  /* CSS phong cách RPG cho đồng hồ đếm ngược */
+  .countdown-rpg-container {
+    background: #1a1a1a; /* Nền tối */
+    border: 1px solid #d4af37; /* Viền vàng kim */
+    padding: 15px 10px;
+    margin: 20px 0;
+    text-align: center;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(212, 175, 55, 0.4);
+    font-family: monospace;
+    text-transform: uppercase;
+  }
+  .countdown-rpg-title {
+    color: #ff0000; /* Màu đỏ cho sự khẩn cấp */
+    font-size: 1.1em;
+    margin-bottom: 10px;
+    text-shadow: 0 0 5px #ff0000;
+  }
+  .countdown-rpg-timer {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    font-size: 1.8em;
+    font-weight: bold;
+    color: #00ff00; /* Màu xanh lá nổi bật (có thể đổi sang #d4af37 nếu muốn vàng kim) */
+  }
+  .countdown-rpg-timer span {
+    background: #000;
+    padding: 5px 8px;
+    border-radius: 3px;
+    border: 1px solid #333;
+  }
+</style>
+
+<script>
+// --- CÀI ĐẶT THỜI GIAN KẾT THÚC TẠI ĐÂY ---
+// Định dạng: "Tháng ngày, năm giờ:phút:giây" (Ví dụ: Dec 31, 2025 23:59:59)
+var countDownDate = new Date("Dec 10, 2025 10:00:00").getTime(); 
+
+var x = setInterval(function() {
+  var now = new Date().getTime();
+  var distance = countDownDate - now;
+
+  var days = Math.floor(distance / (1000 * 60 * 60 * 24));
+  var hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+  var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+  var seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+  // Hiển thị kết quả với các thẻ span
+  document.getElementById("rpg-countdown-timer").innerHTML = 
+    "<span>" + days + "d</span>" + 
+    "<span>" + hours + "h</span>" + 
+    "<span>" + minutes + "m</span>" + 
+    "<span>" + seconds + "s</span>";
+
+  if (distance < 0) {
+    clearInterval(x);
+    document.getElementById("rpg-countdown-timer").innerHTML = "<h3 style='color:#fff;'>SỰ KIỆN ĐÃ KẾT THÚC</h3>";
+  }
+}, 1000);
+</script>
