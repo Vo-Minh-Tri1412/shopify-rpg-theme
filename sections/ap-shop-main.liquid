@@ -51,13 +51,13 @@
     { id: 3, name: "Iron Sword (10% Off)", price: 600, icon: "⚔️", code: "SWORD_10" },
     { id: 4, name: "King's Crown (20% Off)", price: 1500, icon: "👑", code: "KING_20" }
   ];
-  const KEY_AP = 'rpg_activity_points';
+  const SHOP_KEY_AP = 'rpg_activity_points';
   let userAP = 0, selectedItem = null;
 
   document.addEventListener("DOMContentLoaded", function() { loadShopData(); });
 
   function loadShopData() {
-    userAP = parseInt(localStorage.getItem(KEY_AP) || 0);
+    userAP = parseInt(localStorage.getItem(SHOP_KEY_AP) || 0);
     document.getElementById('shop-current-ap').innerText = userAP;
     const grid = document.getElementById('ap-grid-render');
     grid.innerHTML = '';
@@ -85,7 +85,7 @@
 
   function processTransaction() {
     userAP -= selectedItem.price;
-    localStorage.setItem(KEY_AP, userAP);
+    localStorage.setItem(SHOP_KEY_AP, userAP);
     loadShopData();
     try { document.getElementById('hud-ap-display').innerText = `⚡ ${userAP} AP`; } catch(e) {}
     
