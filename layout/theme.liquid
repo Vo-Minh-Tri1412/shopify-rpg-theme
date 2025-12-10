@@ -526,10 +526,15 @@
       let currentOpeningLootbox = null;
 
       document.addEventListener("DOMContentLoaded", function() {
-        initRPGSystem();
-        checkRewardStatus();
-        setInterval(checkRewardStatus, 1000);
-        updateInventoryCount(); // Update inventory count
+        console.log('[RPG Debug] DOMContentLoaded fired');
+        try {
+          initRPGSystem();
+          checkRewardStatus();
+          setInterval(checkRewardStatus, 1000);
+          updateInventoryCount(); // Update inventory count
+        } catch(e) {
+          console.error('[RPG Debug] Error in init:', e);
+        }
       });
 
       function initRPGSystem() {
