@@ -276,12 +276,12 @@
     alert("Copied to clipboard: " + text);
   }
   
-  // Hàm nhận điểm AP từ quest
+  // AP reward claim function
   function claimAPReward(questId, apAmount, btnElement) {
-    // Kiểm tra đã nhận chưa
+    // Check if already claimed
     const claimedKey = 'rpg_quest_claimed_' + questId;
     if (localStorage.getItem(claimedKey)) {
-      alert('Bạn đã nhận phần thưởng này rồi!');
+      alert('You have already claimed this reward!');
       return;
     }
     
@@ -290,7 +290,7 @@
     let newAP = currentAP + apAmount;
     localStorage.setItem('rpg_activity_points', newAP);
     
-    // Đánh dấu đã nhận
+    // Mark as claimed
     localStorage.setItem(claimedKey, 'true');
     
     // Cập nhật HUD nếu có
@@ -313,6 +313,6 @@
     addToWallet('Quest: ' + questId, '+' + apAmount + ' AP');
     renderWallet();
     
-    alert('🎉 Chúc mừng! Bạn nhận được +' + apAmount + ' AP!');
+    alert('🎉 Congratulations! You received +' + apAmount + ' AP!');
   }
 </script>

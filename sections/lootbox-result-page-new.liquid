@@ -1,7 +1,10 @@
-<!-- TRANG KẾT QUẢ LOOTBOX - Nền RPG đẹp -->
+<!-- LOOTBOX RESULT PAGE - Beautiful RPG Theme -->
 
-{% comment %} Lấy product handle từ URL param {% endcomment %}
+{% comment %} Get product handle from URL param {% endcomment %}
 {% assign product_handle = '' %}
+
+<!-- Debug info - remove in production -->
+<div id="debug-info" style="display:none; position:fixed; bottom:10px; right:10px; background:#333; color:#0f0; padding:10px; font-family:monospace; font-size:11px; z-index:9999; border-radius:5px; max-width:300px;"></div>
 
 <div class="lootbox-page-wrapper">
   <!-- PARTICLES BACKGROUND -->
@@ -9,60 +12,60 @@
   
   <!-- MAIN CONTENT -->
   <div class="lootbox-main-content">
-    <!-- TRẠNG THÁI: Chờ mở -->
+    <!-- STATE: Ready to open -->
     <div id="state-ready" class="lootbox-state" style="display:none;">
       <div class="lootbox-card">
         <div class="card-glow"></div>
-        <img id="lootbox-product-img" src="" alt="Lootbox" class="lootbox-img">
+        <img id="lootbox-product-img" src="https://cdn.shopify.com/s/files/1/0000/0000/files/lootbox-default.png?v=1" alt="Lootbox" class="lootbox-img" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 200 200%22><rect fill=%22%231a1a2e%22 width=%22200%22 height=%22200%22/><text x=%2250%%22 y=%2250%%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22gold%22 font-size=%2280%22>🎁</text></svg>'">
         <h1 id="lootbox-product-name" class="lootbox-title">LOOTBOX</h1>
-        <p class="lootbox-desc">Nhấn để mở hộp và nhận vật phẩm ngẫu nhiên!</p>
+        <p class="lootbox-desc">Click to open the box and receive a random item!</p>
         <button id="btn-open" class="btn-open-lootbox" onclick="openLootbox()">
           <span class="btn-icon">🎰</span>
-          <span class="btn-text">MỞ HỘP NGAY!</span>
+          <span class="btn-text">OPEN NOW!</span>
         </button>
       </div>
     </div>
     
-    <!-- TRẠNG THÁI: Đang mở -->
+    <!-- STATE: Opening -->
     <div id="state-opening" class="lootbox-state" style="display:none;">
       <img id="opening-box-img" src="" alt="Opening..." class="opening-box-img">
-      <h2 class="opening-text">ĐANG MỞ HỘP<span class="dots">...</span></h2>
+      <h2 class="opening-text">OPENING<span class="dots">...</span></h2>
     </div>
     
-    <!-- TRẠNG THÁI: Kết quả -->
+    <!-- STATE: Result -->
     <div id="state-result" class="lootbox-state" style="display:none;">
       <div class="result-halo"></div>
       <div class="result-rays"></div>
       <img id="result-item-img" src="" alt="Prize" class="result-item-img">
       <div class="result-info">
-        <p class="result-label">🎊 CHÚC MỪNG! BẠN NHẬN ĐƯỢC</p>
-        <h1 id="result-item-name" class="result-item-name">VẬT PHẨM</h1>
-        <div class="result-chance" id="result-item-chance">Tỉ lệ: ?%</div>
+        <p class="result-label">🎊 CONGRATULATIONS! YOU RECEIVED</p>
+        <h1 id="result-item-name" class="result-item-name">ITEM</h1>
+        <div class="result-chance" id="result-item-chance">Drop Rate: ?%</div>
         
         <div class="result-code-box">
-          <p class="code-label">MÃ XÁC NHẬN:</p>
+          <p class="code-label">REWARD CODE:</p>
           <div class="code-value" id="result-code">XXXX-XXXX-XXXX</div>
-          <p class="code-note">📋 Chụp màn hình để đổi quà!</p>
+          <p class="code-note">📋 Screenshot this to redeem your reward!</p>
         </div>
         
-        <button class="btn-done" onclick="closeLootbox()">🎉 TUYỆT VỜI!</button>
+        <button class="btn-done" onclick="closeLootbox()">🎉 AWESOME!</button>
       </div>
     </div>
     
-    <!-- TRẠNG THÁI: Đã mở rồi -->
+    <!-- STATE: Already opened -->
     <div id="state-used" class="lootbox-state" style="display:none;">
       <div class="used-icon">✅</div>
-      <h2 class="used-title">ĐÃ MỞ LOOTBOX</h2>
-      <p class="used-desc">Link này đã được sử dụng rồi.</p>
-      <a href="/collections/all" class="btn-shop">🛒 MUA THÊM LOOTBOX</a>
+      <h2 class="used-title">LOOTBOX OPENED</h2>
+      <p class="used-desc">This link has already been used.</p>
+      <a href="/collections/all" class="btn-shop">🛒 BUY MORE LOOTBOX</a>
     </div>
     
-    <!-- TRẠNG THÁI: Lỗi -->
+    <!-- STATE: Error -->
     <div id="state-error" class="lootbox-state" style="display:none;">
       <div class="error-icon">❌</div>
-      <h2 class="error-title">KHÔNG THỂ MỞ</h2>
-      <p class="error-desc">Link không hợp lệ hoặc đã hết hạn.</p>
-      <a href="/collections/all" class="btn-shop">🛒 MUA LOOTBOX</a>
+      <h2 class="error-title">CANNOT OPEN</h2>
+      <p class="error-desc">Invalid or expired link.</p>
+      <a href="/collections/all" class="btn-shop">🛒 BUY LOOTBOX</a>
     </div>
   </div>
 </div>
@@ -397,7 +400,7 @@ document.addEventListener('DOMContentLoaded', function() {
   initLootboxPage();
 });
 
-// Lấy params từ URL
+// Get params from URL
 function getUrlParams() {
   const params = new URLSearchParams(window.location.search);
   return {
@@ -407,65 +410,96 @@ function getUrlParams() {
   };
 }
 
-// Khởi tạo trang
+// Debug function
+function debugLog(msg) {
+  console.log('[Lootbox Debug]', msg);
+  const debugEl = document.getElementById('debug-info');
+  if (debugEl) {
+    debugEl.style.display = 'block';
+    debugEl.innerHTML += msg + '<br>';
+  }
+}
+
+// Initialize page
 async function initLootboxPage() {
   const params = getUrlParams();
   
-  // Kiểm tra token
+  debugLog('URL: ' + window.location.href);
+  debugLog('Token: ' + (params.token || 'MISSING'));
+  debugLog('Order: ' + (params.order || 'MISSING'));
+  debugLog('Product: ' + (params.product || 'MISSING'));
+  
+  // Check token - IMPORTANT: Token is required
   if (!params.token) {
+    debugLog('ERROR: No token found!');
     showState('error');
     return;
   }
   
-  // Kiểm tra đã dùng chưa
+  // Check if already used
   const usedTokens = JSON.parse(localStorage.getItem('used_lootbox_tokens') || '[]');
+  debugLog('Used tokens count: ' + usedTokens.length);
+  
   if (usedTokens.includes(params.token)) {
+    debugLog('Token already used!');
     showState('used');
     return;
   }
   
-  // Nếu có product handle, fetch thông tin product
+  // If product handle exists, fetch product info
   if (params.product) {
     try {
+      debugLog('Fetching product: ' + params.product);
       const response = await fetch('/products/' + params.product + '.js');
+      
+      if (!response.ok) {
+        throw new Error('Product not found: ' + response.status);
+      }
+      
       const product = await response.json();
+      debugLog('Product found: ' + product.title);
       
       document.getElementById('lootbox-product-img').src = product.featured_image;
       document.getElementById('lootbox-product-name').textContent = product.title;
       document.getElementById('opening-box-img').src = product.featured_image;
       
-      // Lưu product handle để fetch metafield sau
+      // Save product handle for metafield fetch later
       window.currentProduct = params.product;
     } catch(e) {
+      debugLog('Error fetching product: ' + e.message);
       console.error('Error fetching product:', e);
+      // Continue anyway - will use default loot table
     }
+  } else {
+    debugLog('No product handle - using defaults');
   }
   
-  // Lưu token
+  // Save token
   window.currentToken = params.token;
   
-  // Hiện trạng thái sẵn sàng
+  debugLog('Ready to open!');
+  // Show ready state
   showState('ready');
 }
 
 function showState(state) {
-  // Ẩn tất cả states
+  // Hide all states
   document.querySelectorAll('.lootbox-state').forEach(el => el.style.display = 'none');
-  // Hiện state được chọn
+  // Show selected state
   const stateEl = document.getElementById('state-' + state);
   if (stateEl) stateEl.style.display = 'block';
 }
 
 async function openLootbox() {
-  // Chuyển sang trạng thái đang mở
+  // Switch to opening state
   showState('opening');
   
-  // Fetch loot table từ product metafield
+  // Fetch loot table from product metafield
   let lootTable = [];
   
   if (window.currentProduct) {
     try {
-      // Fetch section để lấy metafield
+      // Fetch section to get metafield
       const response = await fetch('/products/' + window.currentProduct + '?section_id=lootbox-data');
       const html = await response.text();
       
@@ -482,26 +516,26 @@ async function openLootbox() {
     }
   }
   
-  // Nếu không có loot table, dùng default
+  // If no loot table, use default
   if (!lootTable || lootTable.length === 0) {
     lootTable = [
-      { name: 'Vật phẩm bí ẩn', image: '', chance: 100 }
+      { name: 'Mystery Item', image: '', chance: 100 }
     ];
   }
   
-  // Đợi animation
+  // Wait for animation
   setTimeout(() => {
     // Random vật phẩm
     const reward = getWeightedRandom(lootTable);
     const code = generateRewardCode();
     
-    // Hiển thị kết quả
+    // Display result
     document.getElementById('result-item-img').src = reward.image || document.getElementById('lootbox-product-img').src;
     document.getElementById('result-item-name').textContent = reward.name;
-    document.getElementById('result-item-chance').textContent = 'Tỉ lệ: ' + reward.chance + '%';
+    document.getElementById('result-item-chance').textContent = 'Drop Rate: ' + reward.chance + '%';
     document.getElementById('result-code').textContent = code;
     
-    // Đánh dấu token đã dùng
+    // Mark token as used
     if (window.currentToken) {
       const usedTokens = JSON.parse(localStorage.getItem('used_lootbox_tokens') || '[]');
       usedTokens.push(window.currentToken);

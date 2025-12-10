@@ -380,8 +380,8 @@
    ================================================================ */
 
 /* Background colors */
-.--pl--background-color-primary { background-color: rgb(255, 255, 255); }
-.--pl--background-color-secondary { background-color: rgb(243, 243, 243); }
+.--pl--background-color-primary { background-color: rgb(0, 0, 0); }
+.--pl--background-color-secondary { background-color: rgb(20, 20, 20); }
 .--pl--background-color-alternate { background-color: rgb(0, 0, 0); }
 
 /* Heading colors */
@@ -461,8 +461,8 @@
   justify-content: flex-start;
   position: relative;
   padding: 16px;
-  background-color: #ffffff;
-  border: 1px solid #ccc;
+  background-color: #1a1a1a;
+  border: 1px solid #333;
   border-radius: 8px;
   overflow: hidden;
   transition: all 0.2s ease-in-out;

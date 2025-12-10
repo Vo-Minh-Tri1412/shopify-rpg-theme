@@ -536,8 +536,8 @@ ${useLayer ? '@layer popover-polyfill {' : ''}
 
   @supports not (background-color: canvas) {
     :where([popover]) {
-      background-color: white;
-      color: black;
+      background-color: #1a1a1a;
+      color: white;
     }
   }
 
