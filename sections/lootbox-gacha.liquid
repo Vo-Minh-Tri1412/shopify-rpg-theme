@@ -1,5 +1,5 @@
-<!-- LOOTBOX GACHA SECTION - RANDOM SAU KHI THANH TOÁN -->
-<!-- HIDDEN LOOT TABLE DATA (parse sau checkout) -->
+<!-- LOOTBOX GACHA SECTION - RANDOM AFTER CHECKOUT -->
+<!-- HIDDEN LOOT TABLE DATA (parse after checkout) -->
 <div id="loot-table-json" style="display:none;">
 [{% if product.metafields.custom.lootbox.value %}{% for item in product.metafields.custom.lootbox.value %}{"name":"{{ item.name | escape }}","image":"{{ item.image | image_url: width: 600 }}","chance":{{ item.chance | default: 0 }}}{% unless forloop.last %},{% endunless %}{% endfor %}{% endif %}]
 </div>
@@ -17,16 +17,16 @@
   <button id="btn-start-gacha" onclick="startLootboxPurchase()">
     <div class="btn-content">
       <span class="icon">🎰</span>
-      <span class="text">MUA & MỞ HỘP</span>
+      <span class="text">BUY & OPEN BOX</span>
     </div>
-    <span class="sub-text">{{ product.price | money }} / Lần mở</span>
+    <span class="sub-text">{{ product.price | money }} / Per open</span>
   </button>
-  <p class="note">⚠️ Kết quả sẽ được bốc thăm ngẫu nhiên SAU khi thanh toán thành công!</p>
+  <p class="note">⚠️ Result will be randomly drawn AFTER successful payment!</p>
 </div>
 
-<!-- 3. LOOT TABLE PREVIEW (Chỉ hiện tỉ lệ, không cho biết sẽ trúng gì) -->
+<!-- 3. LOOT TABLE PREVIEW -->
 <div class="loot-table-preview">
-  <h4>📦 Vật phẩm có thể nhận được:</h4>
+  <h4>📦 Possible rewards:</h4>
   <div class="loot-items">
     {% if product.metafields.custom.lootbox.value %}
       {% for item in product.metafields.custom.lootbox.value %}
@@ -45,22 +45,22 @@
   <div class="lb-modal-box">
     <img src="{{ product.featured_image | image_url: width: 300 }}" alt="{{ product.title }}" class="lb-product-img">
     <h2>🎁 {{ product.title }}</h2>
-    <p style="color:#ff9800; margin: 15px 0;">⚠️ Bạn sẽ được bốc thăm ngẫu nhiên 1 vật phẩm SAU KHI thanh toán thành công.</p>
-    <p style="color:#aaa; font-size:14px;">Kết quả hoàn toàn ngẫu nhiên và không thể biết trước!</p>
+    <p style="color:#ff9800; margin: 15px 0;">⚠️ You will randomly receive 1 item AFTER successful checkout.</p>
+    <p style="color:#aaa; font-size:14px;">The result is completely random and cannot be predicted!</p>
     <div class="lb-modal-buttons">
-      <button class="lb-btn-cancel" onclick="closeLootboxConfirm()">❌ HỦY</button>
-      <button class="lb-btn-confirm" onclick="proceedToCheckout()">💳 THANH TOÁN NGAY</button>
+      <button class="lb-btn-cancel" onclick="closeLootboxConfirm()">❌ CANCEL</button>
+      <button class="lb-btn-confirm" onclick="proceedToCheckout()">💳 CHECKOUT NOW</button>
     </div>
   </div>
 </div>
 
-<!-- 5. RESULT MODAL (Hiện sau khi checkout xong) -->
+<!-- 5. RESULT MODAL (Show after checkout) -->
 <div id="lootbox-result-modal" class="lb-modal-overlay" style="display:none;">
   <div class="lb-result-container">
     <!-- Phase 1: Opening Animation -->
     <div id="lb-opening-phase">
       <img src="{{ product.featured_image | image_url: width: 300 }}" class="lb-box-shaking" alt="Opening...">
-      <h2 class="lb-opening-text">ĐANG MỞ HỘP...</h2>
+      <h2 class="lb-opening-text">OPENING BOX...</h2>
     </div>
     
     <!-- Phase 2: Result -->
@@ -68,11 +68,11 @@
       <div class="lb-halo"></div>
       <img id="lb-result-img" src="" alt="Prize" class="lb-prize-img">
       <div class="lb-result-info">
-        <div class="lb-label">BẠN NHẬN ĐƯỢC</div>
-        <h2 id="lb-result-name">VẬT PHẨM</h2>
-        <div class="lb-badge" id="lb-result-chance">Tỉ lệ: ?%</div>
+        <div class="lb-label">YOU RECEIVED</div>
+        <h2 id="lb-result-name">ITEM</h2>
+        <div class="lb-badge" id="lb-result-chance">Drop Rate: ?%</div>
       </div>
-      <button class="lb-btn-close" onclick="closeResultModal()">🎉 TUYỆT VỜI!</button>
+      <button class="lb-btn-close" onclick="closeResultModal()">🎉 AWESOME!</button>
     </div>
   </div>
 </div>
@@ -164,14 +164,14 @@
 <!-- 7. JAVASCRIPT -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  // Kiểm tra URL param để biết vừa checkout xong
+  // Check URL param to know just finished checkout
   const urlParams = new URLSearchParams(window.location.search);
   const openResult = urlParams.get('open_result');
   
   if (openResult === 'true') {
-    // Xóa param khỏi URL (để refresh không mở lại)
+    // Remove param from URL (so refresh won't reopen)
     window.history.replaceState({}, '', window.location.pathname);
-    // Random và hiện kết quả
+    // Random and show result
     showLootboxResult();
   }
 });
@@ -185,13 +185,13 @@ function closeLootboxConfirm() {
 }
 
 function proceedToCheckout() {
-  // Lưu product handle vào localStorage để Custom Pixel biết redirect về đâu
+  // Save product handle to localStorage for Custom Pixel redirect
   localStorage.setItem('pending_lootbox', JSON.stringify({
     handle: currentProductHandle,
     timestamp: Date.now()
   }));
   
-  // Add to cart và redirect checkout
+  // Add to cart and redirect to checkout
   fetch(window.Shopify.routes.root + 'cart/add.js', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -209,22 +209,22 @@ function proceedToCheckout() {
     if (res.ok) {
       window.location.href = '/checkout';
     } else {
-      alert('Lỗi! Vui lòng thử lại.');
+      alert('Error! Please try again.');
       localStorage.removeItem('pending_lootbox');
     }
   })
   .catch(e => {
     console.error(e);
-    alert('Lỗi kết nối!');
+    alert('Connection error!');
     localStorage.removeItem('pending_lootbox');
   });
 }
 
 function showLootboxResult() {
-  // Lấy loot table từ hidden div
+  // Get loot table from hidden div
   const lootTableEl = document.getElementById('loot-table-json');
   if (!lootTableEl) {
-    console.error('Không tìm thấy loot table!');
+    console.error('Loot table not found!');
     return;
   }
   
@@ -237,11 +237,11 @@ function showLootboxResult() {
   }
   
   if (!lootTable || lootTable.length === 0) {
-    alert('Không có dữ liệu loot table!');
+    alert('No loot table data!');
     return;
   }
   
-  // Hiện modal với animation
+  // Show modal with animation
   const modal = document.getElementById('lootbox-result-modal');
   const openingPhase = document.getElementById('lb-opening-phase');
   const resultPhase = document.getElementById('lb-result-phase');
@@ -250,7 +250,7 @@ function showLootboxResult() {
   openingPhase.style.display = 'block';
   resultPhase.style.display = 'none';
   
-  // Random sau 2.5s
+  // Random after 2.5s
   setTimeout(() => {
     const reward = getWeightedRandom(lootTable);
     
@@ -259,9 +259,9 @@ function showLootboxResult() {
     
     document.getElementById('lb-result-img').src = reward.image;
     document.getElementById('lb-result-name').textContent = reward.name;
-    document.getElementById('lb-result-chance').textContent = 'Tỉ lệ: ' + reward.chance + '%';
+    document.getElementById('lb-result-chance').textContent = 'Drop Rate: ' + reward.chance + '%';
     
-    // Xóa pending
+    // Clear pending
     localStorage.removeItem('pending_lootbox');
   }, 2500);
 }

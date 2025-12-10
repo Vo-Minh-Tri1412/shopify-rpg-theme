@@ -132,7 +132,7 @@
       .xp-container { width: 150px; height: 6px; background: #333; border-radius: 3px; overflow: hidden; margin-top: 2px; }
       .xp-fill { height: 100%; background: linear-gradient(90deg, var(--class-color), #fff); width: 0%; transition: width 1s ease-out; }
       
-      /* Điểm tích lũy Daily */
+      /* Daily Activity Points */
       .hud-ap { font-size: 12px; color: #a335ee; font-weight: bold; border: 1px solid #a335ee; padding: 2px 6px; border-radius: 4px; }
       .hud-ap:hover {
   background-color: #a335ee;
@@ -152,7 +152,7 @@
         background: #ffd700; color: #000 !important;
         box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
       }
-      /* --- ICON TÚI ĐỒ (INVENTORY) --- */
+      /* --- INVENTORY ICON --- */
       .hud-inventory-btn {
         font-size: 22px; cursor: pointer; position: relative;
         transition: transform 0.2s; padding: 5px;
@@ -217,7 +217,7 @@
       #lb-prize-name { color: #ffd700; font-size: 28px; margin: 5px 0; font-weight: bold; }
       .lb-badge { background: #222; border: 1px solid #444; color: #fff; padding: 4px 12px; border-radius: 15px; font-size: 12px; display: inline-block; }
       
-      /* --- ICON QUÀ TẶNG --- */
+      /* --- GIFT ICON --- */
       .hud-gift-btn {
         font-size: 24px; cursor: pointer; position: relative;
         transition: transform 0.2s;
@@ -261,7 +261,7 @@
         font-size: 18px; color: #2ecc71; font-weight: bold; letter-spacing: 2px;
         margin-bottom: 15px; cursor: pointer; user-select: all;
       }
-      /* --- POPUP CHỌN CLASS (RIÊNG) --- */
+      /* --- CLASS SELECTION POPUP --- */
       #class-selection-modal {
         position: fixed; top: 0; left: 0; width: 100%; height: 100%;
         background: #000; z-index: 200005; display: none;
@@ -326,18 +326,28 @@
 </div>
       <div class="hud-right">
         <!-- NAV LINKS: LEADERBOARD -->
-        <a href="/pages/leaderboard" class="hud-nav-link" title="Bảng xếp hạng">
+        <a href="/pages/leaderboard" class="hud-nav-link" title="Leaderboard">
           🏆 <span class="mobile-hide">Rank</span>
         </a>
         
-        <!-- ICON TÚI ĐỒ (INVENTORY) -->
-        <div class="hud-inventory-btn" onclick="openInventory()" title="Túi đồ">
+        <!-- NAV LINKS: QUESTS -->
+        <a href="/pages/quests" class="hud-nav-link" title="Quests">
+          📜 <span class="mobile-hide">Quests</span>
+        </a>
+        
+        <!-- NAV LINKS: AP SHOP -->
+        <a href="/pages/ap-shop" class="hud-nav-link" title="AP Shop">
+          🛍️ <span class="mobile-hide">Shop</span>
+        </a>
+        
+        <!-- ICON INVENTORY -->
+        <div class="hud-inventory-btn" onclick="openInventory()" title="Inventory">
           🎒
           <span class="inventory-count" id="inventory-count">0</span>
         </div>
         
-        <!-- ICON NHẬN QUÀ -->
-        <div class="hud-gift-btn" onclick="openDailyPopup()" title="Điểm danh">
+        <!-- ICON DAILY REWARD -->
+        <div class="hud-gift-btn" onclick="openDailyPopup()" title="Daily Reward">
           🎁
           <div id="gift-noti" class="noti-dot"></div>
         </div>
@@ -351,9 +361,9 @@
           <div style="color:var(--rpg-gold); font-weight: bold;">
             💰 <span id="hud-money">{{ customer.total_spent | money_without_currency | default: '0' }}</span> G
           </div>
-          <!-- ĐIỂM AP (DAILY REWARD) -->
-          <!-- NÚT AP (LINK ĐẾN SHOP) -->
-<a href="/pages/ap-shop" id="hud-ap-display" class="hud-ap" style="display:none; text-decoration:none; cursor:pointer;" title="Bấm để vào Shop đổi quà">
+          <!-- AP POINTS (DAILY REWARD) -->
+          <!-- AP BUTTON (LINK TO SHOP) -->
+<a href="/pages/ap-shop" id="hud-ap-display" class="hud-ap" style="display:none; text-decoration:none; cursor:pointer;" title="Click to visit Reward Shop">
   0 AP 🛒
 </a>
         </div>
@@ -367,125 +377,125 @@
     </main>
     {% sections 'footer-group' %}
 
-    <!-- 4. MODAL CHỌN CLASS -->
+    <!-- 4. CLASS SELECTION MODAL -->
     <div id="class-selection-modal">
-      <h1 style="color: #fff; font-size: 2.5rem; letter-spacing: 3px;">CHỌN HỆ NHÂN VẬT</h1>
-      <p style="color: #888;">Hành trình của bạn bắt đầu từ đây</p>
+      <h1 style="color: #fff; font-size: 2.5rem; letter-spacing: 3px;">CHOOSE YOUR CLASS</h1>
+      <p style="color: #888;">Your journey begins here</p>
       <div class="class-grid">
         <div class="class-card" style="--hover-color: #ff4d4d;" onclick="selectRPGClass('Warrior', '#ff4d4d')">
-          <span class="class-img">⚔️</span><div class="class-title">WARRIOR</div><p class="class-desc">Sức mạnh & Cận chiến</p>
+          <span class="class-img">⚔️</span><div class="class-title">WARRIOR</div><p class="class-desc">Strength & Melee</p>
         </div>
         <div class="class-card" style="--hover-color: #a335ee;" onclick="selectRPGClass('Mage', '#a335ee')">
-          <span class="class-img">🔮</span><div class="class-title">MAGE</div><p class="class-desc">Phép thuật & Trí tuệ</p>
+          <span class="class-img">🔮</span><div class="class-title">MAGE</div><p class="class-desc">Magic & Intelligence</p>
         </div>
         <div class="class-card" style="--hover-color: #2ecc71;" onclick="selectRPGClass('Archer', '#2ecc71')">
-          <span class="class-img">🏹</span><div class="class-title">ARCHER</div><p class="class-desc">Tốc độ & Chính xác</p>
+          <span class="class-img">🏹</span><div class="class-title">ARCHER</div><p class="class-desc">Speed & Precision</p>
         </div>
       </div>
     </div>
 
-    <!-- 5. MODAL NHẬN QUÀ DAILY -->
+    <!-- 5. DAILY REWARD MODAL -->
     <div id="daily-reward-modal" class="rpg-modal-overlay">
       <div class="rpg-modal-box">
         <span onclick="closeModal('daily-reward-modal')" style="position:absolute; top:10px; right:15px; cursor:pointer; font-size:20px; color:#888;">✕</span>
-        <h3 style="color:#ffd700; margin-top:0;">ĐIỂM DANH HÀNG NGÀY</h3>
-        <p style="font-size:12px; color:#aaa;">Chuỗi ngày: <span id="streak-day" style="color:#fff; font-weight:bold;">1</span></p>
+        <h3 style="color:#ffd700; margin-top:0;">DAILY CHECK-IN</h3>
+        <p style="font-size:12px; color:#aaa;">Streak: <span id="streak-day" style="color:#fff; font-weight:bold;">1</span></p>
         
         <div style="margin: 20px 0; font-size: 60px;">🎁</div>
         <div id="reward-info" style="margin-bottom:20px; font-weight:bold; font-size:1.1em;">
-          Phần thưởng đang chờ...
+          Reward waiting...
         </div>
 
-        <button id="btn-claim-reward" class="rpg-btn-primary" onclick="claimReward()">NHẬN THƯỞNG</button>
+        <button id="btn-claim-reward" class="rpg-btn-primary" onclick="claimReward()">CLAIM REWARD</button>
         <p id="reward-timer" style="font-size:10px; color:#666; margin-top:10px;"></p>
       </div>
     </div>
 
-    <!-- 6. MODAL TÚI ĐỒ (INVENTORY) -->
+    <!-- 6. INVENTORY MODAL -->
     <div id="inventory-modal" class="rpg-modal-overlay">
       <div class="rpg-modal-box" style="width: 450px; max-width: 95vw;">
         <span onclick="closeModal('inventory-modal')" style="position:absolute; top:10px; right:15px; cursor:pointer; font-size:20px; color:#888;">✕</span>
-        <h3 style="color:#ffd700; margin-top:0;">🎒 TÚI ĐỒ</h3>
-        <p style="font-size:12px; color:#aaa; margin-bottom:20px;">Các lootbox chưa mở sẽ hiển thị ở đây</p>
+        <h3 style="color:#ffd700; margin-top:0;">🎒 INVENTORY</h3>
+        <p style="font-size:12px; color:#aaa; margin-bottom:20px;">Unopened lootboxes will appear here</p>
         
         <div id="inventory-items" style="max-height: 300px; overflow-y: auto;">
-          <p style="color:#666; font-style:italic;">Túi đồ trống...</p>
+          <p style="color:#666; font-style:italic;">Inventory empty...</p>
         </div>
       </div>
     </div>
 
-    <!-- 7. MODAL MỞ LOOTBOX -->
+    <!-- 7. LOOTBOX OPEN MODAL -->
     <div id="lootbox-open-modal" class="rpg-modal-overlay" style="z-index:200001;">
       <div class="lootbox-open-container">
-        <!-- Phase 1: Xác nhận mở -->
+        <!-- Phase 1: Open Confirmation -->
         <div id="lb-phase-shake" class="lb-phase">
           <img id="lb-box-img" src="" class="lb-box-shake" alt="Lootbox">
           <div id="lb-confirm-text" style="text-align:center; margin-top:20px;">
-            <p style="color:#aaa;">Bạn có chắc muốn mở hộp này?</p>
+            <p style="color:#aaa;">Are you sure you want to open this box?</p>
           </div>
           <div style="display:flex; gap:10px; margin-top:20px; justify-content:center;">
             <button class="rpg-btn-secondary" onclick="closeModal('lootbox-open-modal')" style="padding:10px 20px;">
-              ❌ HỦY
+              ❌ CANCEL
             </button>
             <button id="lb-confirm-btn" class="rpg-btn-primary" onclick="confirmLootboxResult()" style="padding:10px 20px;">
-              ✅ MỞ & THANH TOÁN
+              ✅ OPEN & PAY
             </button>
           </div>
         </div>
         
-        <!-- Phase 2: Kết quả (hiện SAU khi thanh toán xong) -->
+        <!-- Phase 2: Result (shows AFTER payment) -->
         <div id="lb-phase-result" class="lb-phase" style="display:none;">
           <div class="lb-halo"></div>
           <img id="lb-prize-img" src="" alt="Prize">
           <div class="lb-prize-info">
-            <div class="lb-label">BẠN NHẬN ĐƯỢC</div>
-            <h2 id="lb-prize-name">VẬT PHẨM</h2>
-            <div class="lb-badge" id="lb-prize-chance">Tỉ lệ: 1%</div>
+            <div class="lb-label">YOU RECEIVED</div>
+            <h2 id="lb-prize-name">ITEM</h2>
+            <div class="lb-badge" id="lb-prize-chance">Drop Rate: 1%</div>
           </div>
           <button id="lb-close-btn" class="rpg-btn-primary" onclick="closeModal('lootbox-open-modal')" style="margin-top:20px;">
-            🎉 TUYỆT VỜI!
+            🎉 AWESOME!
           </button>
         </div>
       </div>
     </div>
 
-    <!-- 8. MODAL THÔNG BÁO CHUNG (THAY THẾ ALERT) -->
+    <!-- 8. CUSTOM ALERT MODAL (REPLACES ALERT) -->
     <div id="custom-alert-modal" class="rpg-modal-overlay">
       <div class="rpg-modal-box">
         <span class="modal-icon-lg" id="alert-icon">🎉</span>
-        <div class="modal-title" id="alert-title">THÔNG BÁO</div>
-        <div class="modal-msg" id="alert-msg">Nội dung thông báo</div>
-        <button class="rpg-btn-primary" onclick="closeModal('custom-alert-modal')">ĐÓNG</button>
+        <div class="modal-title" id="alert-title">NOTIFICATION</div>
+        <div class="modal-msg" id="alert-msg">Message content</div>
+        <button class="rpg-btn-primary" onclick="closeModal('custom-alert-modal')">CLOSE</button>
       </div>
     </div>
 
-    <!-- 9. MODAL NHẬN GIFTCODE (THAY THẾ PROMPT) -->
+    <!-- 9. GIFTCODE MODAL (REPLACES PROMPT) -->
     <div id="giftcode-modal" class="rpg-modal-overlay">
       <div class="rpg-modal-box">
         <span class="modal-icon-lg">👑</span>
         <div class="modal-title" style="color:#2ecc71">JACKPOT!</div>
-        <div class="modal-msg">Chúc mừng bạn nhận được Mã Giảm Giá Đặc Biệt:</div>
+        <div class="modal-msg">Congratulations! You received a Special Discount Code:</div>
         
         <div class="code-display" id="giftcode-display" onclick="copyToClipboard(this.innerText)">CODE_HERE</div>
-        <p style="font-size:10px; color:#888; margin-bottom:15px;">(Bấm vào mã để copy)</p>
+        <p style="font-size:10px; color:#888; margin-bottom:15px;">(Click to copy)</p>
         
-        <button class="rpg-btn-primary" onclick="closeModal('giftcode-modal')">TUYỆT VỜI</button>
+        <button class="rpg-btn-primary" onclick="closeModal('giftcode-modal')">AWESOME</button>
       </div>
     </div>
 
-    <!-- 8. KỊCH BẢN JS (LOGIC MỚI) -->
+    <!-- 8. JS LOGIC -->
     <script>
-      // FIX LỖI NGÔN NGỮ
+      // FIX LANGUAGE ERROR
       window.shopUrl = '{{ request.origin }}';
       window.routes = { cart_add_url: '{{ routes.cart_add_url }}', cart_change_url: '{{ routes.cart_change_url }}', cart_update_url: '{{ routes.cart_update_url }}', cart_url: '{{ routes.cart_url }}', predictive_search_url: '{{ routes.predictive_search_url }}' };
-      window.cartStrings = { error: `Lỗi giỏ hàng`, quantityError: `Số lượng không hợp lệ` };
-      window.variantStrings = { addToCart: `Thêm vào giỏ`, soldOut: `Hết hàng`, unavailable: `Tạm hết` };
-      window.accessibilityStrings = { imageAvailable: `Ảnh sẵn sàng`, shareSuccess: `Đã copy link`, pauseSlideshow: `Dừng`, playSlideshow: `Chạy` };
+      window.cartStrings = { error: `Cart error`, quantityError: `Invalid quantity` };
+      window.variantStrings = { addToCart: `Add to cart`, soldOut: `Sold out`, unavailable: `Unavailable` };
+      window.accessibilityStrings = { imageAvailable: `Image available`, shareSuccess: `Link copied`, pauseSlideshow: `Pause`, playSlideshow: `Play` };
 
-      // --- CẤU HÌNH HỆ THỐNG RPG ---
-      const REAL_MONEY = {{ customer.total_spent | default: 0 }} / 100; // Tiền nạp thật (VNĐ)
+      // --- RPG SYSTEM CONFIG ---
+      const REAL_MONEY = {{ customer.total_spent | default: 0 }} / 100; // Real money spent
       
-      // CẤU HÌNH CẤP VIP (THEO YÊU CẦU)
+      // VIP TIERS CONFIG
       const VIP_TIERS = [
         { name: 'VIP 0', min: 0 },
         { name: 'VIP 1', min: 500000 },
@@ -495,7 +505,7 @@
         { name: 'VIP 5', min: 30000000 }
       ];
 
-      // Config Quà Tặng Daily (Nhận điểm AP riêng)
+      // Daily Rewards Config (AP points)
       const DAILY_REWARDS = [
         {d:1, val: 50, type:'ap', label:'50 AP'},
         {d:2, val: 100, type:'ap', label:'100 AP'},
@@ -506,20 +516,20 @@
         {d:7, val: 'Cheap Product', type:'code', label:'GIFTCODE'}
       ];
       
-      // Key lưu trữ
+      // Storage keys
       const KEY_DAY = 'rpg_daily_day';
       const KEY_TIME = 'rpg_daily_time';
-      const KEY_AP = 'rpg_activity_points'; // Lưu điểm AP riêng
-      const KEY_INVENTORY = 'rpg_inventory'; // Lưu túi đồ (lootbox chưa mở)
+      const KEY_AP = 'rpg_activity_points'; // Store AP points
+      const KEY_INVENTORY = 'rpg_inventory'; // Store inventory (unopened lootbox)
 
-      // Biến tạm để lưu lootbox đang mở
+      // Temp variable for current opening lootbox
       let currentOpeningLootbox = null;
 
       document.addEventListener("DOMContentLoaded", function() {
         initRPGSystem();
         checkRewardStatus();
         setInterval(checkRewardStatus, 1000);
-        updateInventoryCount(); // Cập nhật số lượng túi đồ
+        updateInventoryCount(); // Update inventory count
       });
 
       function initRPGSystem() {
@@ -544,10 +554,10 @@
         document.getElementById('class-selection-modal').style.display = 'none';
         document.body.style.overflow = 'auto';
         
-        // HIỆN MODAL CHÀO MỪNG THAY VÌ ALERT
-        showCustomAlert('👋', 'CHÀO MỪNG!', `Bạn đã gia nhập hội ${className}. Giao diện đã được đồng bộ.`);
+        // SHOW WELCOME MODAL INSTEAD OF ALERT
+        showCustomAlert('👋', 'WELCOME!', `You have joined the ${className} class. Theme has been synced.`);
         
-        setTimeout(() => location.reload(), 2000); // Reload sau 2s
+        setTimeout(() => location.reload(), 2000); // Reload after 2s
       }
 
       function applyTheme(className, color) {
@@ -565,13 +575,13 @@
         codeBox.style.display = 'inline-block';
       }
 
-      // --- LOGIC TÍNH VIP THEO TIỀN (VIP 1 - 5) ---
+      // --- VIP RANK CALCULATION LOGIC (VIP 1 - 5) ---
       function calculateVipRank() {
         let currentRank = 0;
         let nextRankMin = 500000;
         let rankName = 'NOVICE';
 
-        // Xác định Rank
+        // Determine Rank
         for(let i = 0; i < VIP_TIERS.length; i++) {
           if(REAL_MONEY >= VIP_TIERS[i].min) {
             currentRank = i;
@@ -584,8 +594,8 @@
           }
         }
 
-        // Tính % thanh hiển thị (Tiền hiện tại / Tiền cần để lên cấp tiếp theo)
-        // Logic thanh: (Hiện tại - Mốc hiện tại) / (Mốc tiếp theo - Mốc hiện tại)
+        // Calculate progress bar %
+        // Logic: (Current - Current tier) / (Next tier - Current tier)
         let currentTierMin = VIP_TIERS[currentRank].min;
         let percent = 0;
         if (currentRank < 5) {
@@ -649,13 +659,13 @@
 
         if(now - last < COOLDOWN) {
           btn.disabled = true;
-          btn.innerText = "HÃY QUAY LẠI SAU";
+          btn.innerText = "COME BACK LATER";
           const diff = COOLDOWN - (now - last);
-          timer.innerText = `Chờ: ${Math.floor(diff/1000)} giây`;
+          timer.innerText = `Wait: ${Math.floor(diff/1000)} seconds`;
         } else {
           btn.disabled = false;
-          btn.innerText = "NHẬN THƯỞNG";
-          timer.innerText = "Sẵn sàng!";
+          btn.innerText = "CLAIM REWARD";
+          timer.innerText = "Ready!";
         }
       }
 
@@ -666,25 +676,25 @@
         const reward = DAILY_REWARDS[day-1];
         const now = new Date().getTime();
 
-        closeModal('daily-reward-modal'); // Tắt popup daily
+        closeModal('daily-reward-modal'); // Close daily popup
 
         if(reward.type === 'ap') {
-          // Cộng điểm AP
+          // Add AP points
           let currentAP = parseInt(localStorage.getItem(KEY_AP) || 0);
           let newAP = currentAP + reward.val;
           localStorage.setItem(KEY_AP, newAP);
           
-          // HIỆN MODAL CHÚC MỪNG (KHÔNG DÙNG ALERT)
-          showCustomAlert('⚡', 'NHẬN THÀNH CÔNG', `Bạn đã nhận được ${reward.val} điểm hoạt động (AP).`);
+          // SHOW CONGRATULATIONS MODAL
+          showCustomAlert('⚡', 'CLAIM SUCCESSFUL', `You received ${reward.val} Activity Points (AP).`);
           updateAPDisplay();
           
         } else if (reward.type === 'code') {
-          // HIỆN MODAL GIFTCODE (KHÔNG DÙNG PROMPT)
+          // SHOW GIFTCODE MODAL
           document.getElementById('giftcode-display').innerText = reward.val;
           document.getElementById('giftcode-modal').style.display = 'flex';
         }
 
-        // Lưu
+        // Save
         localStorage.setItem(KEY_TIME, now);
         if(day < 7) localStorage.setItem(KEY_DAY, day + 1);
         else localStorage.setItem(KEY_DAY, 1);
@@ -692,8 +702,8 @@
 
       function copyToClipboard(text) {
         navigator.clipboard.writeText(text);
-        // Hiện thông báo nhỏ kiểu Toast thay vì alert
-        showCustomAlert('📋', 'ĐÃ SAO CHÉP', `Mã "${text}" đã lưu vào bộ nhớ tạm.`);
+        // Show toast notification instead of alert
+        showCustomAlert('📋', 'COPIED', `Code "${text}" has been copied to clipboard.`);
       }
 
       // ==========================================
@@ -718,7 +728,7 @@
         }
       }
       
-      // Thêm lootbox vào túi đồ (gọi từ trang product.lootbox)
+      // Add lootbox to inventory (called from product.lootbox page)
       function addLootboxToInventory(lootboxData) {
         const items = getInventory();
         const newItem = {
@@ -731,29 +741,29 @@
         };
         items.push(newItem);
         saveInventory(items);
-        showCustomAlert('🎒', 'ĐÃ THÊM VÀO TÚI', `${newItem.name} đã được thêm vào túi đồ. Vào túi đồ để mở!`);
+        showCustomAlert('🎒', 'ADDED TO INVENTORY', `${newItem.name} has been added to your inventory. Open your inventory to unbox!`);
       }
       
-      // Mở modal túi đồ
+      // Open inventory modal
       function openInventory() {
         const items = getInventory();
         const container = document.getElementById('inventory-items');
         
         if (items.length === 0) {
-          container.innerHTML = '<p style="color:#666; font-style:italic; text-align:center; padding:30px 0;">Túi đồ trống...<br><small>Mua lootbox để nhận vào đây!</small></p>';
+          container.innerHTML = '<p style="color:#666; font-style:italic; text-align:center; padding:30px 0;">Inventory empty...<br><small>Buy lootbox to receive here!</small></p>';
         } else {
           let html = '';
           items.forEach((item, index) => {
-            const date = new Date(item.addedAt).toLocaleDateString('vi-VN');
+            const date = new Date(item.addedAt).toLocaleDateString('en-US');
             html += `
               <div class="inv-item">
                 <img src="${item.image}" class="inv-item-img" alt="${item.name}">
                 <div class="inv-item-info">
                   <div class="inv-item-name">${item.name}</div>
-                  <div class="inv-item-date">Nhận: ${date}</div>
+                  <div class="inv-item-date">Received: ${date}</div>
                 </div>
                 <button class="inv-item-btn" onclick="openLootboxFromInventory(${index})">
-                  🎰 MỞ
+                  🎰 OPEN
                 </button>
               </div>
             `;
@@ -764,7 +774,7 @@
         document.getElementById('inventory-modal').style.display = 'flex';
       }
       
-      // Mở lootbox từ túi đồ - CHỈ XÁC NHẬN, KHÔNG HIỆN KẾT QUẢ
+      // Open lootbox from inventory - CONFIRM ONLY, NO RESULT SHOWN
       function openLootboxFromInventory(index) {
         const items = getInventory();
         if (index >= items.length) return;
@@ -773,24 +783,24 @@
         currentOpeningLootbox.inventoryIndex = index;
         closeModal('inventory-modal');
         
-        // Hiển thị modal xác nhận mở
+        // Show confirmation modal
         const modal = document.getElementById('lootbox-open-modal');
         const phaseShake = document.getElementById('lb-phase-shake');
         const phaseResult = document.getElementById('lb-phase-result');
         const boxImg = document.getElementById('lb-box-img');
         
-        // Reset UI - Hiện confirm, không random
+        // Reset UI - Show confirm, no random
         modal.style.display = 'flex';
         phaseShake.style.display = 'flex';
         phaseResult.style.display = 'none';
         boxImg.src = currentOpeningLootbox.image;
         boxImg.classList.remove('shaking');
         
-        // Cập nhật text confirm
+        // Update confirm text
         document.getElementById('lb-confirm-text').innerHTML = `
           <p style="font-size:18px; margin-bottom:10px;">🎁 <strong>${currentOpeningLootbox.name}</strong></p>
-          <p style="color:#aaa;">Bạn có chắc muốn mở hộp này?</p>
-          <p style="color:#ff9800; font-size:12px; margin-top:10px;">⚠️ Kết quả sẽ được bốc thăm ngẫu nhiên SAU khi thanh toán!</p>
+          <p style="color:#aaa;">Are you sure you want to open this box?</p>
+          <p style="color:#ff9800; font-size:12px; margin-top:10px;">⚠️ Results will be randomly drawn AFTER payment!</p>
         `;
       }
       
@@ -805,26 +815,26 @@
         return items[0];
       }
       
-      // Xác nhận mở lootbox - THANH TOÁN TRƯỚC, RANDOM SAU
+      // Confirm lootbox opening - PAY FIRST, RANDOM AFTER
       function confirmLootboxResult() {
         if (!currentOpeningLootbox) return;
         
-        // Tạo unique token để xác thực
+        // Create unique token for verification
         const token = Date.now().toString(36) + Math.random().toString(36).substr(2, 9);
         
-        // Lưu pending lootbox để random SAU khi checkout xong
+        // Save pending lootbox to random AFTER checkout complete
         const pendingData = {
           id: currentOpeningLootbox.id,
           name: currentOpeningLootbox.name,
           image: currentOpeningLootbox.image,
           lootTable: currentOpeningLootbox.lootTable,
           variantId: currentOpeningLootbox.variantId,
-          token: token,  // Token để xác thực
+          token: token,  // Token for verification
           timestamp: Date.now()
         };
         localStorage.setItem('pending_lootbox', JSON.stringify(pendingData));
         
-        // Xóa lootbox khỏi inventory NGAY
+        // Remove lootbox from inventory NOW
         const items = getInventory();
         const index = items.findIndex(i => i.id === currentOpeningLootbox.id);
         if (index > -1) {
@@ -832,7 +842,7 @@
           saveInventory(items);
         }
         
-        // Thêm vào cart với token - token sẽ được gửi trong email
+        // Add to cart with token - token will be sent in email
         fetch(window.Shopify.routes.root + 'cart/add.js', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -852,29 +862,29 @@
           if (response.ok) {
             window.location.href = '/checkout';
           } else {
-            // Rollback nếu lỗi
+            // Rollback on error
             localStorage.removeItem('pending_lootbox');
             const items = getInventory();
             items.push(currentOpeningLootbox);
             saveInventory(items);
-            showCustomAlert('❌', 'LỖI', 'Không thể thêm vào giỏ hàng. Vui lòng thử lại.');
+            showCustomAlert('❌', 'ERROR', 'Could not add to cart. Please try again.');
           }
         })
         .catch(e => {
           console.error(e);
           localStorage.removeItem('pending_lootbox');
-          showCustomAlert('❌', 'LỖI KẾT NỐI', 'Vui lòng kiểm tra mạng và thử lại.');
+          showCustomAlert('❌', 'CONNECTION ERROR', 'Please check your network and try again.');
         });
       }
       
-      // Kiểm tra pending lootbox khi load trang (sau checkout)
+      // Check pending lootbox on page load (after checkout)
       function checkPendingLootbox() {
         const pending = localStorage.getItem('pending_lootbox');
         if (!pending) return;
         
         try {
           const data = JSON.parse(pending);
-          // Chỉ xử lý nếu pending < 10 phút (tránh lỗi cũ)
+          // Only process if pending < 10 minutes (avoid old errors)
           if (Date.now() - data.timestamp > 600000) {
             localStorage.removeItem('pending_lootbox');
             return;
@@ -890,9 +900,9 @@
         }
       }
       
-      // Hiện popup thông báo có lootbox chờ mở
+      // Show popup notification for pending lootbox
       function showPendingLootboxPopup(data) {
-        // Tạo popup nếu chưa có
+        // Create popup if not exists
         let popup = document.getElementById('pending-lootbox-popup');
         if (!popup) {
           popup = document.createElement('div');
@@ -901,13 +911,13 @@
             <div class="plb-overlay">
               <div class="plb-box">
                 <div class="plb-icon">🎁</div>
-                <h2>BẠN CÓ LOOTBOX CHƯA MỞ!</h2>
-                <p>Bạn đã thanh toán thành công. Nhấn để mở hộp và nhận vật phẩm!</p>
+                <h2>YOU HAVE AN UNOPENED LOOTBOX!</h2>
+                <p>Payment successful. Click to open the box and receive your item!</p>
                 <img id="plb-img" src="" alt="Lootbox" class="plb-img">
                 <h3 id="plb-name"></h3>
                 <div class="plb-buttons">
-                  <button class="plb-btn-later" onclick="closePendingPopup()">Để sau</button>
-                  <button class="plb-btn-open" onclick="openPendingLootboxNow()">🎰 MỞ NGAY!</button>
+                  <button class="plb-btn-later" onclick="closePendingPopup()">Later</button>
+                  <button class="plb-btn-open" onclick="openPendingLootboxNow()">🎰 OPEN NOW!</button>
                 </div>
               </div>
             </div>
@@ -970,35 +980,35 @@
         
         const data = window.pendingLootboxData;
         if (!data || !data.lootTable) {
-          showCustomAlert('❌', 'LỖI', 'Không tìm thấy dữ liệu lootbox!');
+          showCustomAlert('❌', 'ERROR', 'Lootbox data not found!');
           return;
         }
         
-        // RANDOM KẾT QUẢ
+        // RANDOM RESULT
         const reward = getWeightedRandomLoot(data.lootTable);
         
-        // Xóa pending
+        // Remove pending
         localStorage.removeItem('pending_lootbox');
         
-        // Hiện modal kết quả
+        // Show result modal
         showLootboxResult(data, reward);
       }
       
-      // Hiển thị kết quả lootbox sau khi thanh toán
+      // Display lootbox result after payment
       function showLootboxResult(lootbox, reward) {
         const modal = document.getElementById('lootbox-open-modal');
         const phaseShake = document.getElementById('lb-phase-shake');
         const phaseResult = document.getElementById('lb-phase-result');
         const boxImg = document.getElementById('lb-box-img');
         
-        // Hiện animation mở
+        // Show opening animation
         modal.style.display = 'flex';
         phaseShake.style.display = 'flex';
         phaseResult.style.display = 'none';
         boxImg.src = lootbox.image;
         boxImg.classList.add('shaking');
         
-        // Sau 2.5s hiện kết quả
+        // After 2.5s show result
         setTimeout(() => {
           boxImg.classList.remove('shaking');
           phaseShake.style.display = 'none';
@@ -1006,18 +1016,18 @@
           
           document.getElementById('lb-prize-img').src = reward.image || '';
           document.getElementById('lb-prize-name').innerText = reward.name;
-          document.getElementById('lb-prize-chance').innerText = 'Tỉ lệ: ' + reward.chance + '%';
+          document.getElementById('lb-prize-chance').innerText = 'Drop rate: ' + reward.chance + '%';
           
-          // Đổi nút thành "ĐÓNG" thay vì "XÁC NHẬN"
-          document.getElementById('lb-confirm-btn').innerText = '🎉 TUYỆT VỜI!';
+          // Change button to "CLOSE" instead of "CONFIRM"
+          document.getElementById('lb-confirm-btn').innerText = '🎉 AWESOME!';
           document.getElementById('lb-confirm-btn').onclick = function() {
             closeModal('lootbox-open-modal');
-            showCustomAlert('🎊', 'CHÚC MỪNG!', `Bạn đã nhận được: ${reward.name}`);
+            showCustomAlert('🎊', 'CONGRATULATIONS!', `You received: ${reward.name}`);
           };
         }, 2500);
       }
       
-      // KHÔNG gọi checkPendingLootbox tự động nữa - user sẽ vào trang /pages/mo-lootbox từ email
+      // NO longer auto call checkPendingLootbox - user will go to /pages/lootbox-result from email
       // document.addEventListener('DOMContentLoaded', checkPendingLootbox);
     </script>
   {% render 'rpg-quests' %}

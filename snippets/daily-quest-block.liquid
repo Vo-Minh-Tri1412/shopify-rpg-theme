@@ -31,26 +31,26 @@
 </div>
 
 <style>
-    /* 1. CẤU TRÚC BAO NGOÀI CHO TO BẰNG SLIDE */
+    /* 1. OUTER STRUCTURE TO MATCH SLIDE SIZE */
   .daily-quest-wrapper {
     width: 100%;
     display: block;
     padding: 0;
     margin: 0;
-    background-color: #000; /* Màu nền đen lót dưới */
+    background-color: #000; /* Black background base */
   }
 
   .quest-container {
     width: 100%;
-    min-height: 500px; /* Độ cao tối thiểu để to bằng Slide */
-    background-size: cover; /* Ảnh nền phủ kín */
+    min-height: 500px; /* Minimum height to match Slide */
+    background-size: cover; /* Background image covers fully */
     background-position: center;
     background-repeat: no-repeat;
     display: flex;
     align-items: center;
     justify-content: center;
     position: relative;
-    /* Hiệu ứng tối dần để làm nổi bật nội dung */
+    /* Dark gradient effect to highlight content */
     box-shadow: inset 0 0 100px rgba(0,0,0,0.8); 
   }
 
@@ -58,18 +58,18 @@
     text-align: center;
     color: #fff;
     padding: 20px;
-    background: rgba(0, 0, 0, 0.6); /* Nền mờ đen sau chữ để dễ đọc */
-    border: 1px solid #d4af37; /* Viền vàng kim */
+    background: rgba(0, 0, 0, 0.6); /* Dark semi-transparent background for readability */
+    border: 1px solid #d4af37; /* Gold border */
     border-radius: 10px;
     max-width: 900px;
     width: 90%;
     box-shadow: 0 0 20px rgba(212, 175, 55, 0.2);
   }
 
-  /* 2. CHỮ & TIÊU ĐỀ */
+  /* 2. TEXT & TITLE */
   .quest-title {
-    font-family: "Courier New", monospace; /* Font kiểu game cổ điển */
-    color: #d4af37; /* Màu vàng Gold */
+    font-family: "Courier New", monospace; /* Classic game font */
+    color: #d4af37; /* Gold color */
     font-size: 2.5em;
     margin-bottom: 5px;
     text-transform: uppercase;
@@ -82,13 +82,13 @@
     font-style: italic;
   }
 
-  /* 3. LƯỚI 7 NGÀY */
+  /* 3. 7-DAY GRID */
   .quest-grid {
     display: flex;
     justify-content: center;
     gap: 10px;
     margin-bottom: 30px;
-    flex-wrap: wrap; /* Tự xuống dòng trên điện thoại */
+    flex-wrap: wrap; /* Auto wrap on mobile */
   }
 
   .day-card {
@@ -110,9 +110,9 @@
   .icon { font-size: 28px; margin: 10px 0; }
   .day-label { font-size: 12px; color: #888; text-transform: uppercase; }
   
-  /* Trạng thái các ngày */
+  /* Day card states */
   .day-card.active {
-    border: 2px solid #00ff00; /* Viền xanh lá sáng cho hôm nay */
+    border: 2px solid #00ff00; /* Bright green border for today */
     background: #2a2a2a;
     box-shadow: 0 0 10px #00ff00;
   }
@@ -122,7 +122,7 @@
   }
   .day-card.locked { opacity: 0.6; }
 
-  /* 4. NÚT BẤM */
+  /* 4. BUTTON */
   .quest-btn {
     background: linear-gradient(180deg, #d4af37 0%, #a67c00 100%);
     color: #000;
@@ -132,7 +132,7 @@
     font-weight: bold;
     text-transform: uppercase;
     cursor: pointer;
-    clip-path: polygon(10% 0, 100% 0, 100% 70%, 90% 100%, 0 100%, 0 30%); /* Cắt góc nút kiểu game */
+    clip-path: polygon(10% 0, 100% 0, 100% 70%, 90% 100%, 0 100%, 0 30%); /* Game-style clipped corners */
     transition: all 0.3s;
   }
   .quest-btn:hover {

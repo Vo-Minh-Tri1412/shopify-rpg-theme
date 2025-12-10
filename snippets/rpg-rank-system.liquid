@@ -1,10 +1,10 @@
 {% comment %}
   =========================================
-  PHẦN 1: TÍNH TOÁN CHỈ SỐ (CALCULATION)
+  PART 1: CALCULATION
   =========================================
 {% endcomment %}
 
-{% comment %} 1. Tính tổng số item đã mua (Do Shopify không có sẵn biến này) {% endcomment %}
+{% comment %} 1. Calculate total items purchased (Shopify doesn't have this variable built-in) {% endcomment %}
 {% assign total_items_count = 0 %}
 {% for order in customer.orders %}
   {% for line_item in order.line_items %}
@@ -12,8 +12,8 @@
   {% endfor %}
 {% endfor %}
 
-{% comment %} 2. Tính toán Rank Chi Tiêu (Adventurer Rank) {% endcomment %}
-{% assign spend_rank_name = "Chưa xếp hạng" %}
+{% comment %} 2. Calculate Spend Rank (Adventurer Rank) {% endcomment %}
+{% assign spend_rank_name = "Unranked" %}
 {% assign spend_rank_class = "rank-none" %}
 {% assign next_spend_target = 200000 %}
 {% assign current_spent = customer.total_spent %} 
@@ -40,8 +40,8 @@
   {% assign spend_rank_name = "Newblood" %} {% assign spend_rank_class = "rank-noob" %} {% assign next_spend_target = 500000 %}
 {% endif %}
 
-{% comment %} 3. Tính toán Rank Số Món (Item Rank) {% endcomment %}
-{% assign item_rank_name = "Dân thường" %}
+{% comment %} 3. Calculate Item Rank {% endcomment %}
+{% assign item_rank_name = "Commoner" %}
 {% assign item_rank_class = "rank-none" %}
 {% assign next_item_target = 1 %}
 
@@ -69,24 +69,24 @@
 
 {% comment %}
   =========================================
-  PHẦN 2: GIAO DIỆN HIỂN THỊ (HTML & CSS)
+  PART 2: DISPLAY UI (HTML & CSS)
   =========================================
 {% endcomment %}
 
 <div class="rpg-dashboard">
   <div class="rpg-header">
     <h2>⚔️ PLAYER STATUS</h2>
-    <p>Xin chào, <strong>{{ customer.name }}</strong></p>
+    <p>Welcome, <strong>{{ customer.name }}</strong></p>
   </div>
 
   <div class="rpg-grid">
     <!-- CARD 1: ADVENTURER RANK (SPEND) -->
     <div class="rpg-card {{ spend_rank_class }}">
-      <div class="card-label">CLASS (Chi tiêu)</div>
+      <div class="card-label">CLASS (Spending)</div>
       <div class="rank-title">{{ spend_rank_name }}</div>
       
       <div class="stats-row">
-        <span>Đã chi:</span>
+        <span>Total Spent:</span>
         <span class="value">{{ current_spent | money }}</span>
       </div>
 
@@ -104,7 +104,7 @@
 
     <!-- CARD 2: ITEM RANK (QUANTITY) -->
     <div class="rpg-card {{ item_rank_class }}">
-      <div class="card-label">MASTERY (Số món)</div>
+      <div class="card-label">MASTERY (Items)</div>
       <div class="rank-title">{{ item_rank_name }}</div>
       
       <div class="stats-row">
@@ -142,7 +142,7 @@
   }
 
   .rpg-header h2 {
-    font-family: 'Cinzel', serif; /* Font kiểu Game */
+    font-family: 'Cinzel', serif; /* Game-style font */
     color: #ffd700;
     text-transform: uppercase;
     letter-spacing: 2px;

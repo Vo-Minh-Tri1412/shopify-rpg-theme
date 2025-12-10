@@ -1,16 +1,16 @@
 {% comment %}
   LOOTBOX THANK YOU PAGE HANDLER
-  Đặt snippet này trong checkout additional scripts hoặc thank you page
-  Khi khách hàng thanh toán xong lootbox, tự động thêm vào túi đồ
+  Place this snippet in checkout additional scripts or thank you page
+  When customer completes lootbox payment, automatically add to inventory
 {% endcomment %}
 
 {% if checkout %}
 <script>
   document.addEventListener('DOMContentLoaded', function() {
-    // Kiểm tra các line items trong đơn hàng
+    // Check line items in order
     {% for line_item in checkout.line_items %}
       {% if line_item.properties['_is_lootbox'] == 'true' %}
-        // Đây là lootbox - thêm vào inventory
+        // This is a lootbox - add to inventory
         (function() {
           const lootboxData = {
             name: "{{ line_item.title | escape }}",
@@ -19,10 +19,10 @@
             lootTable: {{ line_item.properties['_loot_table'] | default: '[]' }}
           };
           
-          // Lấy inventory hiện tại
+          // Get current inventory
           let inventory = JSON.parse(localStorage.getItem('rpg_inventory') || '[]');
           
-          // Thêm lootbox mới (số lượng theo quantity)
+          // Add new lootbox (quantity based on line item)
           for (let i = 0; i < {{ line_item.quantity }}; i++) {
             inventory.push({
               id: Date.now() + i,
@@ -35,7 +35,7 @@
             });
           }
           
-          // Lưu lại
+          // Save to storage
           localStorage.setItem('rpg_inventory', JSON.stringify(inventory));
           
           console.log('✅ Lootbox added to inventory:', lootboxData.name);
