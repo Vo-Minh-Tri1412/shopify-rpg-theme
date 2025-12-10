@@ -417,13 +417,23 @@
     <!-- 7. MODAL MỞ LOOTBOX -->
     <div id="lootbox-open-modal" class="rpg-modal-overlay" style="z-index:200001;">
       <div class="lootbox-open-container">
-        <!-- Phase 1: Lắc hộp -->
+        <!-- Phase 1: Xác nhận mở -->
         <div id="lb-phase-shake" class="lb-phase">
           <img id="lb-box-img" src="" class="lb-box-shake" alt="Lootbox">
-          <h2 class="lb-status">ĐANG MỞ...</h2>
+          <div id="lb-confirm-text" style="text-align:center; margin-top:20px;">
+            <p style="color:#aaa;">Bạn có chắc muốn mở hộp này?</p>
+          </div>
+          <div style="display:flex; gap:10px; margin-top:20px; justify-content:center;">
+            <button class="rpg-btn-secondary" onclick="closeModal('lootbox-open-modal')" style="padding:10px 20px;">
+              ❌ HỦY
+            </button>
+            <button id="lb-confirm-btn" class="rpg-btn-primary" onclick="confirmLootboxResult()" style="padding:10px 20px;">
+              ✅ MỞ & THANH TOÁN
+            </button>
+          </div>
         </div>
         
-        <!-- Phase 2: Kết quả -->
+        <!-- Phase 2: Kết quả (hiện SAU khi thanh toán xong) -->
         <div id="lb-phase-result" class="lb-phase" style="display:none;">
           <div class="lb-halo"></div>
           <img id="lb-prize-img" src="" alt="Prize">
@@ -432,8 +442,8 @@
             <h2 id="lb-prize-name">VẬT PHẨM</h2>
             <div class="lb-badge" id="lb-prize-chance">Tỉ lệ: 1%</div>
           </div>
-          <button class="rpg-btn-primary" onclick="confirmLootboxResult()" style="margin-top:20px;">
-            NHẬN VÀ THANH TOÁN
+          <button id="lb-close-btn" class="rpg-btn-primary" onclick="closeModal('lootbox-open-modal')" style="margin-top:20px;">
+            🎉 TUYỆT VỜI!
           </button>
         </div>
       </div>
@@ -754,44 +764,34 @@
         document.getElementById('inventory-modal').style.display = 'flex';
       }
       
-      // Mở lootbox từ túi đồ
+      // Mở lootbox từ túi đồ - CHỈ XÁC NHẬN, KHÔNG HIỆN KẾT QUẢ
       function openLootboxFromInventory(index) {
         const items = getInventory();
         if (index >= items.length) return;
         
         currentOpeningLootbox = items[index];
+        currentOpeningLootbox.inventoryIndex = index;
         closeModal('inventory-modal');
         
-        // Hiển thị modal mở lootbox
+        // Hiển thị modal xác nhận mở
         const modal = document.getElementById('lootbox-open-modal');
         const phaseShake = document.getElementById('lb-phase-shake');
         const phaseResult = document.getElementById('lb-phase-result');
         const boxImg = document.getElementById('lb-box-img');
         
-        // Reset UI
+        // Reset UI - Hiện confirm, không random
         modal.style.display = 'flex';
         phaseShake.style.display = 'flex';
         phaseResult.style.display = 'none';
         boxImg.src = currentOpeningLootbox.image;
-        boxImg.classList.add('shaking');
+        boxImg.classList.remove('shaking');
         
-        // Animation 2.5 giây rồi hiện kết quả
-        setTimeout(() => {
-          boxImg.classList.remove('shaking');
-          phaseShake.style.display = 'none';
-          phaseResult.style.display = 'flex';
-          
-          // Random vật phẩm
-          const lootTable = currentOpeningLootbox.lootTable;
-          if (lootTable && lootTable.length > 0) {
-            const reward = getWeightedRandomLoot(lootTable);
-            currentOpeningLootbox.reward = reward;
-            
-            document.getElementById('lb-prize-img').src = reward.image;
-            document.getElementById('lb-prize-name').innerText = reward.name;
-            document.getElementById('lb-prize-chance').innerText = 'Tỉ lệ: ' + reward.chance + '%';
-          }
-        }, 2500);
+        // Cập nhật text confirm
+        document.getElementById('lb-confirm-text').innerHTML = `
+          <p style="font-size:18px; margin-bottom:10px;">🎁 <strong>${currentOpeningLootbox.name}</strong></p>
+          <p style="color:#aaa;">Bạn có chắc muốn mở hộp này?</p>
+          <p style="color:#ff9800; font-size:12px; margin-top:10px;">⚠️ Kết quả sẽ được bốc thăm ngẫu nhiên SAU khi thanh toán!</p>
+        `;
       }
       
       function getWeightedRandomLoot(items) {
@@ -805,11 +805,22 @@
         return items[0];
       }
       
-      // Xác nhận kết quả và thanh toán
+      // Xác nhận mở lootbox - THANH TOÁN TRƯỚC, RANDOM SAU
       function confirmLootboxResult() {
-        if (!currentOpeningLootbox || !currentOpeningLootbox.reward) return;
+        if (!currentOpeningLootbox) return;
         
-        // Xóa lootbox khỏi inventory
+        // Lưu pending lootbox để random SAU khi checkout xong
+        const pendingData = {
+          id: currentOpeningLootbox.id,
+          name: currentOpeningLootbox.name,
+          image: currentOpeningLootbox.image,
+          lootTable: currentOpeningLootbox.lootTable,
+          variantId: currentOpeningLootbox.variantId,
+          timestamp: Date.now()
+        };
+        localStorage.setItem('pending_lootbox', JSON.stringify(pendingData));
+        
+        // Xóa lootbox khỏi inventory NGAY
         const items = getInventory();
         const index = items.findIndex(i => i.id === currentOpeningLootbox.id);
         if (index > -1) {
@@ -817,8 +828,7 @@
           saveInventory(items);
         }
         
-        // Thêm vào cart với thông tin vật phẩm đã trúng
-        const reward = currentOpeningLootbox.reward;
+        // Thêm vào cart - CHƯA biết kết quả
         fetch(window.Shopify.routes.root + 'cart/add.js', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -827,9 +837,8 @@
               'id': currentOpeningLootbox.variantId,
               'quantity': 1,
               'properties': {
-                '🏆 Reward': reward.name,
-                '🎲 Rate': reward.chance + '%',
-                '_image': reward.image
+                '_lootbox_pending': 'true',
+                '_lootbox_name': currentOpeningLootbox.name
               }
             }]
           })
@@ -838,14 +847,93 @@
           if (response.ok) {
             window.location.href = '/checkout';
           } else {
+            // Rollback nếu lỗi
+            localStorage.removeItem('pending_lootbox');
+            const items = getInventory();
+            items.push(currentOpeningLootbox);
+            saveInventory(items);
             showCustomAlert('❌', 'LỖI', 'Không thể thêm vào giỏ hàng. Vui lòng thử lại.');
           }
         })
         .catch(e => {
           console.error(e);
+          localStorage.removeItem('pending_lootbox');
           showCustomAlert('❌', 'LỖI KẾT NỐI', 'Vui lòng kiểm tra mạng và thử lại.');
         });
       }
+      
+      // Kiểm tra pending lootbox khi load trang (sau checkout)
+      function checkPendingLootbox() {
+        const pending = localStorage.getItem('pending_lootbox');
+        if (!pending) return;
+        
+        try {
+          const data = JSON.parse(pending);
+          // Chỉ xử lý nếu pending < 10 phút (tránh lỗi cũ)
+          if (Date.now() - data.timestamp > 600000) {
+            localStorage.removeItem('pending_lootbox');
+            return;
+          }
+          
+          // Kiểm tra xem có vừa checkout xong không (URL check hoặc referrer)
+          const fromCheckout = document.referrer.includes('checkout') || 
+                               window.location.search.includes('checkout_success') ||
+                               sessionStorage.getItem('just_paid_lootbox');
+          
+          if (fromCheckout && data.lootTable && data.lootTable.length > 0) {
+            // RANDOM KẾT QUẢ NGAY BÂY GIỜ
+            const reward = getWeightedRandomLoot(data.lootTable);
+            
+            // Xóa pending
+            localStorage.removeItem('pending_lootbox');
+            sessionStorage.removeItem('just_paid_lootbox');
+            
+            // Hiện modal kết quả
+            setTimeout(() => {
+              showLootboxResult(data, reward);
+            }, 500);
+          }
+        } catch(e) {
+          console.error('Pending lootbox error:', e);
+          localStorage.removeItem('pending_lootbox');
+        }
+      }
+      
+      // Hiển thị kết quả lootbox sau khi thanh toán
+      function showLootboxResult(lootbox, reward) {
+        const modal = document.getElementById('lootbox-open-modal');
+        const phaseShake = document.getElementById('lb-phase-shake');
+        const phaseResult = document.getElementById('lb-phase-result');
+        const boxImg = document.getElementById('lb-box-img');
+        
+        // Hiện animation mở
+        modal.style.display = 'flex';
+        phaseShake.style.display = 'flex';
+        phaseResult.style.display = 'none';
+        boxImg.src = lootbox.image;
+        boxImg.classList.add('shaking');
+        
+        // Sau 2.5s hiện kết quả
+        setTimeout(() => {
+          boxImg.classList.remove('shaking');
+          phaseShake.style.display = 'none';
+          phaseResult.style.display = 'flex';
+          
+          document.getElementById('lb-prize-img').src = reward.image || '';
+          document.getElementById('lb-prize-name').innerText = reward.name;
+          document.getElementById('lb-prize-chance').innerText = 'Tỉ lệ: ' + reward.chance + '%';
+          
+          // Đổi nút thành "ĐÓNG" thay vì "XÁC NHẬN"
+          document.getElementById('lb-confirm-btn').innerText = '🎉 TUYỆT VỜI!';
+          document.getElementById('lb-confirm-btn').onclick = function() {
+            closeModal('lootbox-open-modal');
+            showCustomAlert('🎊', 'CHÚC MỪNG!', `Bạn đã nhận được: ${reward.name}`);
+          };
+        }, 2500);
+      }
+      
+      // Gọi check khi load trang
+      document.addEventListener('DOMContentLoaded', checkPendingLootbox);
     </script>
   {% render 'rpg-quests' %}
   </body>
