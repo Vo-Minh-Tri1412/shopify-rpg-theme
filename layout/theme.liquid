@@ -98,6 +98,87 @@
 
       .gradient { background: transparent !important; }
 
+      /* === CLASS COLOR BORDERS FOR UI ELEMENTS === */
+      /* Product Cards */
+      .card, .card-wrapper, .product-card, .product-card-wrapper,
+      .card--standard, .card--card, .card--media {
+        border: 1px solid var(--class-color) !important;
+        box-shadow: 0 0 10px rgba(var(--class-color-rgb, 255,215,0), 0.2);
+        transition: all 0.3s ease;
+      }
+      .card:hover, .card-wrapper:hover, .product-card:hover {
+        border-color: var(--class-color) !important;
+        box-shadow: 0 0 20px rgba(var(--class-color-rgb, 255,215,0), 0.4);
+        transform: translateY(-3px);
+      }
+
+      /* Buttons */
+      .button, .btn, button:not(.plain),
+      .shopify-payment-button__button,
+      .product-form__submit,
+      input[type="submit"],
+      .cart__checkout-button {
+        border: 2px solid var(--class-color) !important;
+        box-shadow: 0 0 8px rgba(var(--class-color-rgb, 255,215,0), 0.3);
+        transition: all 0.3s ease;
+      }
+      .button:hover, .btn:hover, button:not(.plain):hover,
+      .shopify-payment-button__button:hover,
+      .product-form__submit:hover {
+        box-shadow: 0 0 15px var(--class-color);
+        transform: scale(1.02);
+      }
+
+      /* Input Fields */
+      input[type="text"], input[type="email"], input[type="password"],
+      input[type="number"], input[type="tel"], input[type="search"],
+      textarea, select {
+        border: 1px solid var(--class-color) !important;
+        background: rgba(0,0,0,0.5) !important;
+        color: #fff !important;
+        transition: all 0.3s ease;
+      }
+      input:focus, textarea:focus, select:focus {
+        border-color: var(--class-color) !important;
+        box-shadow: 0 0 10px var(--class-color);
+        outline: none;
+      }
+
+      /* Collection Cards */
+      .collection-card, .collection-list__item {
+        border: 1px solid var(--class-color) !important;
+      }
+
+      /* Cart Items */
+      .cart-item, .cart-item__details {
+        border-bottom: 1px solid var(--class-color) !important;
+      }
+
+      /* Nav Links in HUD - use class color */
+      .hud-nav-link {
+        border-color: var(--class-color) !important;
+        color: var(--class-color) !important;
+      }
+      .hud-nav-link:hover {
+        background: var(--class-color) !important;
+        color: #000 !important;
+      }
+
+      /* Quantity Selector */
+      .quantity, .quantity-selector, quantity-input {
+        border: 1px solid var(--class-color) !important;
+      }
+
+      /* Accordion / Disclosure */
+      details, .accordion, summary {
+        border-color: var(--class-color) !important;
+      }
+
+      /* Modal / Popup borders */
+      .modal__content, .drawer__content, .popup-content {
+        border: 2px solid var(--class-color) !important;
+      }
+
       h1, h2, h3, h4, h5, h6, .h1, .h2 {
         font-family: 'Cinzel', serif !important;
         text-transform: uppercase;
