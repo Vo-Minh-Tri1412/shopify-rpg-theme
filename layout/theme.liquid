@@ -1012,8 +1012,8 @@
         }, 2500);
       }
       
-      // Gọi check khi load trang
-      document.addEventListener('DOMContentLoaded', checkPendingLootbox);
+      // KHÔNG gọi checkPendingLootbox tự động nữa - user sẽ vào trang /pages/mo-lootbox từ email
+      // document.addEventListener('DOMContentLoaded', checkPendingLootbox);
     </script>
   {% render 'rpg-quests' %}
   </body>

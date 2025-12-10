@@ -1,29 +1,38 @@
-<!-- TRANG KẾT QUẢ LOOTBOX - Hiện sau khi checkout xong -->
+<!-- TRANG KẾT QUẢ LOOTBOX - User vào từ link email sau checkout -->
 
 <div class="lootbox-result-page">
   <div class="result-container">
     <div class="result-header">
       <span class="icon">🎁</span>
-      <h1>THANH TOÁN THÀNH CÔNG!</h1>
-      <p>Bạn đã mua lootbox thành công. Nhấn nút bên dưới để mở hộp và nhận vật phẩm!</p>
+      <h1>MỞ LOOTBOX</h1>
+      <p>Nhấn nút bên dưới để bốc thăm ngẫu nhiên vật phẩm của bạn!</p>
     </div>
     
+    <!-- Nếu có pending trong localStorage -->
     <div class="pending-lootbox-info" id="pending-info" style="display:none;">
       <img id="pending-lootbox-img" src="" alt="Lootbox">
-      <h3 id="pending-lootbox-name">Đang tải...</h3>
+      <h3 id="pending-lootbox-name">Lootbox</h3>
+      <button id="btn-open-lootbox" class="btn-open" onclick="openPendingLootbox()">
+        <span class="icon">🎰</span>
+        <span class="text">MỞ HỘP NGAY!</span>
+      </button>
     </div>
     
+    <!-- Không có gì -->
     <div class="no-pending" id="no-pending" style="display:none;">
       <span class="icon">📦</span>
       <h3>Không có lootbox nào đang chờ mở</h3>
-      <p>Bạn có thể mua lootbox từ cửa hàng để bắt đầu.</p>
-      <a href="/collections/all" class="btn-shop">🛒 MUA NGAY</a>
+      <p>Hãy mua lootbox và quay lại đây sau khi thanh toán.</p>
+      <a href="/collections/all" class="btn-shop">🛒 MUA LOOTBOX</a>
     </div>
-    
-    <button id="btn-open-lootbox" class="btn-open" style="display:none;" onclick="openPendingLootbox()">
-      <span class="icon">🎰</span>
-      <span class="text">MỞ HỘP NGAY!</span>
-    </button>
+
+    <!-- Đã mở rồi -->
+    <div class="already-opened" id="already-opened" style="display:none;">
+      <span class="icon">✅</span>
+      <h3>Lootbox đã được mở!</h3>
+      <p>Bạn đã mở lootbox này rồi.</p>
+      <a href="/collections/all" class="btn-shop">🛒 MUA THÊM</a>
+    </div>
   </div>
 </div>
 
@@ -273,13 +282,24 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function checkForPendingLootbox() {
   const pending = localStorage.getItem('pending_lootbox');
+  const urlParams = new URLSearchParams(window.location.search);
+  const orderNumber = urlParams.get('order');
+  
+  // Check xem order này đã mở chưa
+  if (orderNumber) {
+    const openedOrders = JSON.parse(localStorage.getItem('opened_lootbox_orders') || '[]');
+    if (openedOrders.includes(orderNumber)) {
+      showAlreadyOpened();
+      return;
+    }
+  }
   
   if (pending) {
     try {
       const data = JSON.parse(pending);
       
-      // Check if not expired (10 phút)
-      if (Date.now() - data.timestamp > 600000) {
+      // Check if not expired (24 giờ thay vì 10 phút)
+      if (Date.now() - data.timestamp > 86400000) {
         localStorage.removeItem('pending_lootbox');
         showNoPending();
         return;
@@ -287,14 +307,19 @@ function checkForPendingLootbox() {
       
       // Hiện thông tin lootbox đang chờ
       document.getElementById('pending-info').style.display = 'block';
-      document.getElementById('btn-open-lootbox').style.display = 'flex';
       document.getElementById('no-pending').style.display = 'none';
+      document.getElementById('already-opened').style.display = 'none';
       
       if (data.image) {
         document.getElementById('pending-lootbox-img').src = data.image;
       }
       if (data.name) {
         document.getElementById('pending-lootbox-name').textContent = data.name;
+      }
+      
+      // Lưu order number để track
+      if (orderNumber) {
+        window.currentOrderNumber = orderNumber;
       }
       
     } catch(e) {
@@ -308,8 +333,14 @@ function checkForPendingLootbox() {
 
 function showNoPending() {
   document.getElementById('pending-info').style.display = 'none';
-  document.getElementById('btn-open-lootbox').style.display = 'none';
   document.getElementById('no-pending').style.display = 'block';
+  document.getElementById('already-opened').style.display = 'none';
+}
+
+function showAlreadyOpened() {
+  document.getElementById('pending-info').style.display = 'none';
+  document.getElementById('no-pending').style.display = 'none';
+  document.getElementById('already-opened').style.display = 'block';
 }
 
 function openPendingLootbox() {
@@ -354,6 +385,13 @@ function openPendingLootbox() {
       // Xóa pending
       localStorage.removeItem('pending_lootbox');
       
+      // Đánh dấu order đã mở (tránh mở lại)
+      if (window.currentOrderNumber) {
+        const openedOrders = JSON.parse(localStorage.getItem('opened_lootbox_orders') || '[]');
+        openedOrders.push(window.currentOrderNumber);
+        localStorage.setItem('opened_lootbox_orders', JSON.stringify(openedOrders));
+      }
+      
     }, 2500);
     
   } catch(e) {
@@ -375,8 +413,8 @@ function getWeightedRandom(items) {
 
 function closePageResultModal() {
   document.getElementById('page-lootbox-result-modal').style.display = 'none';
-  // Refresh trang để cập nhật trạng thái
-  location.reload();
+  // Hiện thông báo đã mở
+  showAlreadyOpened();
 }
 </script>
 
