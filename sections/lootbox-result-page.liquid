@@ -56,11 +56,18 @@
       <div class="lb-halo"></div>
       <img id="page-lb-result-img" src="" alt="Prize" class="lb-prize-img">
       <div class="lb-result-info">
-        <div class="lb-label">BẠN NHẬN ĐƯỢC</div>
+        <div class="lb-label">🎊 CHÚC MỪNG! BẠN NHẬN ĐƯỢC</div>
         <h2 id="page-lb-result-name">VẬT PHẨM</h2>
         <div class="lb-badge" id="page-lb-result-chance">Tỉ lệ: ?%</div>
+        
+        <!-- MÃ CODE -->
+        <div class="lb-code-section">
+          <p class="lb-code-label">MÃ XÁC NHẬN CỦA BẠN:</p>
+          <div class="lb-code-box" id="page-lb-reward-code">XXXX-XXXX-XXXX</div>
+          <p class="lb-code-note">📋 Hãy chụp màn hình hoặc lưu mã này để đổi quà!</p>
+        </div>
       </div>
-      <button class="lb-btn-close" onclick="closePageResultModal()">🎉 TUYỆT VỜI!</button>
+      <button class="lb-btn-close" onclick="closePageResultModal()">🎉 ĐÃ HIỂU!</button>
     </div>
   </div>
 </div>
@@ -250,15 +257,17 @@
   }
   
   .lb-label {
-    color: #aaa;
-    font-size: 14px;
-    letter-spacing: 2px;
+    color: #4cd137;
+    font-size: 16px;
+    letter-spacing: 1px;
+    font-weight: bold;
   }
   
   #page-lb-result-name {
     color: #ffd700;
-    font-size: 28px;
-    margin: 10px 0;
+    font-size: 32px;
+    margin: 15px 0;
+    text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
   }
   
   .lb-badge {
@@ -268,6 +277,42 @@
     border-radius: 20px;
     display: inline-block;
     color: #fff;
+  }
+  
+  /* CODE SECTION */
+  .lb-code-section {
+    margin-top: 25px;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 15px;
+    border: 1px dashed #ffd700;
+  }
+  
+  .lb-code-label {
+    color: #aaa;
+    font-size: 12px;
+    margin: 0 0 10px;
+    letter-spacing: 1px;
+  }
+  
+  .lb-code-box {
+    background: linear-gradient(145deg, #1a1a2e, #0f0f1a);
+    padding: 15px 25px;
+    border-radius: 10px;
+    font-family: 'Courier New', monospace;
+    font-size: 24px;
+    font-weight: bold;
+    color: #00ff88;
+    letter-spacing: 3px;
+    border: 2px solid #00ff88;
+    text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+    user-select: all;
+  }
+  
+  .lb-code-note {
+    color: #888;
+    font-size: 12px;
+    margin: 15px 0 0;
   }
   
   .lb-btn-close {
@@ -405,12 +450,16 @@ function openPendingLootbox() {
     setTimeout(() => {
       const reward = getWeightedRandom(data.lootTable);
       
+      // Tạo mã code ngẫu nhiên
+      const rewardCode = generateRewardCode();
+      
       openingPhase.style.display = 'none';
       resultPhase.style.display = 'block';
       
       document.getElementById('page-lb-result-img').src = reward.image || '';
       document.getElementById('page-lb-result-name').textContent = reward.name;
       document.getElementById('page-lb-result-chance').textContent = 'Tỉ lệ: ' + reward.chance + '%';
+      document.getElementById('page-lb-reward-code').textContent = rewardCode;
       
       // Xóa pending
       localStorage.removeItem('pending_lootbox');
@@ -428,6 +477,17 @@ function openPendingLootbox() {
     console.error('Error opening lootbox:', e);
     alert('Đã xảy ra lỗi!');
   }
+}
+
+// Tạo mã code ngẫu nhiên dạng XXXX-XXXX-XXXX
+function generateRewardCode() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code = '';
+  for (let i = 0; i < 12; i++) {
+    if (i > 0 && i % 4 === 0) code += '-';
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return code;
 }
 
 function getWeightedRandom(items) {
