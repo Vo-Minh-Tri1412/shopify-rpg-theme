@@ -864,6 +864,10 @@
       
       // Kiểm tra pending lootbox khi load trang (sau checkout)
       function checkPendingLootbox() {
+        // CÁCH MỚI: Check URL param ?open_result=true
+        const urlParams = new URLSearchParams(window.location.search);
+        const shouldOpen = urlParams.get('open_result') === 'true';
+        
         const pending = localStorage.getItem('pending_lootbox');
         if (!pending) return;
         
@@ -875,18 +879,16 @@
             return;
           }
           
-          // Kiểm tra xem có vừa checkout xong không (URL check hoặc referrer)
-          const fromCheckout = document.referrer.includes('checkout') || 
-                               window.location.search.includes('checkout_success') ||
-                               sessionStorage.getItem('just_paid_lootbox');
-          
-          if (fromCheckout && data.lootTable && data.lootTable.length > 0) {
+          // Chỉ mở kết quả khi có URL param (từ thank you page redirect)
+          if (shouldOpen && data.lootTable && data.lootTable.length > 0) {
+            // Xóa param khỏi URL
+            window.history.replaceState({}, '', window.location.pathname);
+            
             // RANDOM KẾT QUẢ NGAY BÂY GIỜ
             const reward = getWeightedRandomLoot(data.lootTable);
             
             // Xóa pending
             localStorage.removeItem('pending_lootbox');
-            sessionStorage.removeItem('just_paid_lootbox');
             
             // Hiện modal kết quả
             setTimeout(() => {

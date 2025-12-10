@@ -1,0 +1,393 @@
+<!-- TRANG KẾT QUẢ LOOTBOX - Hiện sau khi checkout xong -->
+
+<div class="lootbox-result-page">
+  <div class="result-container">
+    <div class="result-header">
+      <span class="icon">🎁</span>
+      <h1>THANH TOÁN THÀNH CÔNG!</h1>
+      <p>Bạn đã mua lootbox thành công. Nhấn nút bên dưới để mở hộp và nhận vật phẩm!</p>
+    </div>
+    
+    <div class="pending-lootbox-info" id="pending-info" style="display:none;">
+      <img id="pending-lootbox-img" src="" alt="Lootbox">
+      <h3 id="pending-lootbox-name">Đang tải...</h3>
+    </div>
+    
+    <div class="no-pending" id="no-pending" style="display:none;">
+      <span class="icon">📦</span>
+      <h3>Không có lootbox nào đang chờ mở</h3>
+      <p>Bạn có thể mua lootbox từ cửa hàng để bắt đầu.</p>
+      <a href="/collections/all" class="btn-shop">🛒 MUA NGAY</a>
+    </div>
+    
+    <button id="btn-open-lootbox" class="btn-open" style="display:none;" onclick="openPendingLootbox()">
+      <span class="icon">🎰</span>
+      <span class="text">MỞ HỘP NGAY!</span>
+    </button>
+  </div>
+</div>
+
+<!-- RESULT MODAL -->
+<div id="page-lootbox-result-modal" class="lb-modal-overlay" style="display:none;">
+  <div class="lb-result-container">
+    <div id="page-lb-opening-phase">
+      <img id="page-lb-box-img" src="" class="lb-box-shaking" alt="Opening...">
+      <h2 class="lb-opening-text">ĐANG MỞ HỘP...</h2>
+    </div>
+    
+    <div id="page-lb-result-phase" style="display:none;">
+      <div class="lb-halo"></div>
+      <img id="page-lb-result-img" src="" alt="Prize" class="lb-prize-img">
+      <div class="lb-result-info">
+        <div class="lb-label">BẠN NHẬN ĐƯỢC</div>
+        <h2 id="page-lb-result-name">VẬT PHẨM</h2>
+        <div class="lb-badge" id="page-lb-result-chance">Tỉ lệ: ?%</div>
+      </div>
+      <button class="lb-btn-close" onclick="closePageResultModal()">🎉 TUYỆT VỜI!</button>
+    </div>
+  </div>
+</div>
+
+<style>
+  .lootbox-result-page {
+    min-height: 60vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+  }
+  
+  .result-container {
+    text-align: center;
+    max-width: 500px;
+    width: 100%;
+  }
+  
+  .result-header .icon {
+    font-size: 60px;
+    display: block;
+    margin-bottom: 20px;
+  }
+  
+  .result-header h1 {
+    color: #4cd137;
+    font-size: 28px;
+    margin: 0 0 15px;
+  }
+  
+  .result-header p {
+    color: #aaa;
+    font-size: 16px;
+    margin: 0 0 30px;
+  }
+  
+  .pending-lootbox-info {
+    background: rgba(255, 215, 0, 0.1);
+    border: 2px solid #ffd700;
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+  
+  .pending-lootbox-info img {
+    width: 120px;
+    height: 120px;
+    object-fit: contain;
+    margin-bottom: 10px;
+  }
+  
+  .pending-lootbox-info h3 {
+    color: #ffd700;
+    margin: 0;
+  }
+  
+  .no-pending {
+    padding: 40px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 15px;
+  }
+  
+  .no-pending .icon {
+    font-size: 50px;
+    display: block;
+    margin-bottom: 15px;
+  }
+  
+  .no-pending h3 {
+    color: #fff;
+    margin: 0 0 10px;
+  }
+  
+  .no-pending p {
+    color: #888;
+    margin: 0 0 20px;
+  }
+  
+  .btn-shop {
+    display: inline-block;
+    padding: 12px 30px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: bold;
+  }
+  
+  .btn-open {
+    width: 100%;
+    padding: 20px;
+    background: linear-gradient(135deg, #ff0055 0%, #ff4400 100%);
+    border: none;
+    border-radius: 12px;
+    color: #fff;
+    cursor: pointer;
+    font-size: 20px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    box-shadow: 0 5px 20px rgba(255, 0, 85, 0.5);
+    transition: transform 0.2s;
+  }
+  
+  .btn-open:hover {
+    transform: scale(1.02);
+  }
+  
+  .btn-open .icon {
+    font-size: 28px;
+  }
+  
+  /* Modal Styles */
+  .lb-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0,0,0,0.95);
+    z-index: 999999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .lb-result-container {
+    text-align: center;
+    padding: 30px;
+    position: relative;
+  }
+  
+  .lb-box-shaking {
+    width: 200px;
+    height: 200px;
+    object-fit: contain;
+    animation: lbShake 0.3s infinite;
+  }
+  
+  @keyframes lbShake {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(5deg); }
+    75% { transform: rotate(-5deg); }
+  }
+  
+  .lb-opening-text {
+    color: #fff;
+    margin-top: 20px;
+    font-size: 24px;
+  }
+  
+  .lb-halo {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, rgba(255, 215, 0, 0.4) 0%, transparent 70%);
+    z-index: -1;
+    animation: lbBreathe 2s infinite alternate;
+  }
+  
+  @keyframes lbBreathe {
+    from { opacity: 0.5; }
+    to { opacity: 1; }
+  }
+  
+  .lb-prize-img {
+    width: 250px;
+    height: 250px;
+    object-fit: contain;
+    filter: drop-shadow(0 0 20px gold);
+    animation: lbZoomIn 0.5s ease-out;
+  }
+  
+  @keyframes lbZoomIn {
+    from { transform: scale(0); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+  
+  .lb-result-info {
+    margin-top: 20px;
+  }
+  
+  .lb-label {
+    color: #aaa;
+    font-size: 14px;
+    letter-spacing: 2px;
+  }
+  
+  #page-lb-result-name {
+    color: #ffd700;
+    font-size: 28px;
+    margin: 10px 0;
+  }
+  
+  .lb-badge {
+    background: #222;
+    border: 1px solid #444;
+    padding: 5px 15px;
+    border-radius: 20px;
+    display: inline-block;
+    color: #fff;
+  }
+  
+  .lb-btn-close {
+    margin-top: 25px;
+    padding: 15px 40px;
+    background: linear-gradient(135deg, #ffd700, #ff8c00);
+    border: none;
+    color: #000;
+    font-weight: bold;
+    font-size: 16px;
+    border-radius: 10px;
+    cursor: pointer;
+  }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  checkForPendingLootbox();
+});
+
+function checkForPendingLootbox() {
+  const pending = localStorage.getItem('pending_lootbox');
+  
+  if (pending) {
+    try {
+      const data = JSON.parse(pending);
+      
+      // Check if not expired (10 phút)
+      if (Date.now() - data.timestamp > 600000) {
+        localStorage.removeItem('pending_lootbox');
+        showNoPending();
+        return;
+      }
+      
+      // Hiện thông tin lootbox đang chờ
+      document.getElementById('pending-info').style.display = 'block';
+      document.getElementById('btn-open-lootbox').style.display = 'flex';
+      document.getElementById('no-pending').style.display = 'none';
+      
+      if (data.image) {
+        document.getElementById('pending-lootbox-img').src = data.image;
+      }
+      if (data.name) {
+        document.getElementById('pending-lootbox-name').textContent = data.name;
+      }
+      
+    } catch(e) {
+      console.error('Error parsing pending lootbox:', e);
+      showNoPending();
+    }
+  } else {
+    showNoPending();
+  }
+}
+
+function showNoPending() {
+  document.getElementById('pending-info').style.display = 'none';
+  document.getElementById('btn-open-lootbox').style.display = 'none';
+  document.getElementById('no-pending').style.display = 'block';
+}
+
+function openPendingLootbox() {
+  const pending = localStorage.getItem('pending_lootbox');
+  if (!pending) {
+    alert('Không tìm thấy lootbox!');
+    return;
+  }
+  
+  try {
+    const data = JSON.parse(pending);
+    
+    if (!data.lootTable || data.lootTable.length === 0) {
+      alert('Lỗi: Không có dữ liệu loot table!');
+      return;
+    }
+    
+    // Hiện modal mở hộp
+    const modal = document.getElementById('page-lootbox-result-modal');
+    const openingPhase = document.getElementById('page-lb-opening-phase');
+    const resultPhase = document.getElementById('page-lb-result-phase');
+    
+    modal.style.display = 'flex';
+    openingPhase.style.display = 'block';
+    resultPhase.style.display = 'none';
+    
+    if (data.image) {
+      document.getElementById('page-lb-box-img').src = data.image;
+    }
+    
+    // Random sau 2.5s
+    setTimeout(() => {
+      const reward = getWeightedRandom(data.lootTable);
+      
+      openingPhase.style.display = 'none';
+      resultPhase.style.display = 'block';
+      
+      document.getElementById('page-lb-result-img').src = reward.image || '';
+      document.getElementById('page-lb-result-name').textContent = reward.name;
+      document.getElementById('page-lb-result-chance').textContent = 'Tỉ lệ: ' + reward.chance + '%';
+      
+      // Xóa pending
+      localStorage.removeItem('pending_lootbox');
+      
+    }, 2500);
+    
+  } catch(e) {
+    console.error('Error opening lootbox:', e);
+    alert('Đã xảy ra lỗi!');
+  }
+}
+
+function getWeightedRandom(items) {
+  let total = items.reduce((sum, item) => sum + (item.chance || 0), 0);
+  let random = Math.random() * total;
+  let sum = 0;
+  for (let i = 0; i < items.length; i++) {
+    sum += items[i].chance || 0;
+    if (random <= sum) return items[i];
+  }
+  return items[0];
+}
+
+function closePageResultModal() {
+  document.getElementById('page-lootbox-result-modal').style.display = 'none';
+  // Refresh trang để cập nhật trạng thái
+  location.reload();
+}
+</script>
+
+{% schema %}
+{
+  "name": "Lootbox Result Page",
+  "settings": [],
+  "presets": [
+    {
+      "name": "Lootbox Result Page"
+    }
+  ]
+}
+{% endschema %}

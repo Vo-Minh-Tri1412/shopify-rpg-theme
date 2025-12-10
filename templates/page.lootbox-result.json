@@ -1,0 +1,9 @@
+{
+  "sections": {
+    "main": {
+      "type": "lootbox-result-page",
+      "settings": {}
+    }
+  },
+  "order": ["main"]
+}

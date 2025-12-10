@@ -1,11 +1,15 @@
 <!-- LOOTBOX GACHA SECTION - RANDOM SAU KHI THANH TOÁN -->
+<!-- HIDDEN LOOT TABLE DATA (parse sau checkout) -->
+<div id="loot-table-json" style="display:none;">
+[{% if product.metafields.custom.lootbox.value %}{% for item in product.metafields.custom.lootbox.value %}{"name":"{{ item.name | escape }}","image":"{{ item.image | image_url: width: 600 }}","chance":{{ item.chance | default: 0 }}}{% unless forloop.last %},{% endunless %}{% endfor %}{% endif %}]
+</div>
+
 <!-- 1. DATA CONFIGURATION -->
 <script>
   var currentVariantId = {{ product.selected_or_first_available_variant.id }};
   var currentProductHandle = "{{ product.handle }}";
   var currentProductImage = "{{ product.featured_image | image_url: width: 500 }}";
   var currentProductTitle = "{{ product.title | escape }}";
-  // KHÔNG load lootTable vào biến JS để tránh inspect
 </script>
 
 <!-- 2. TRIGGER BUTTON -->
@@ -160,8 +164,16 @@
 <!-- 7. JAVASCRIPT -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  // Kiểm tra nếu vừa checkout xong (từ sessionStorage)
-  checkForPendingResult();
+  // Kiểm tra URL param để biết vừa checkout xong
+  const urlParams = new URLSearchParams(window.location.search);
+  const openResult = urlParams.get('open_result');
+  
+  if (openResult === 'true') {
+    // Xóa param khỏi URL (để refresh không mở lại)
+    window.history.replaceState({}, '', window.location.pathname);
+    // Random và hiện kết quả
+    showLootboxResult();
+  }
 });
 
 function startLootboxPurchase() {
@@ -173,16 +185,11 @@ function closeLootboxConfirm() {
 }
 
 function proceedToCheckout() {
-  // Lưu thông tin để sau checkout biết cần random
-  const pendingData = {
-    productHandle: currentProductHandle,
-    productTitle: currentProductTitle,
-    productImage: currentProductImage,
-    variantId: currentVariantId,
+  // Lưu product handle vào localStorage để Custom Pixel biết redirect về đâu
+  localStorage.setItem('pending_lootbox', JSON.stringify({
+    handle: currentProductHandle,
     timestamp: Date.now()
-  };
-  // Lưu vào sessionStorage (sẽ mất khi đóng tab - an toàn hơn)
-  sessionStorage.setItem('pending_lootbox_purchase', JSON.stringify(pendingData));
+  }));
   
   // Add to cart và redirect checkout
   fetch(window.Shopify.routes.root + 'cart/add.js', {
@@ -193,8 +200,7 @@ function proceedToCheckout() {
         id: currentVariantId,
         quantity: 1,
         properties: {
-          '_lootbox': 'true',
-          '_awaiting_random': 'true'
+          '_lootbox': 'true'
         }
       }]
     })
@@ -204,63 +210,60 @@ function proceedToCheckout() {
       window.location.href = '/checkout';
     } else {
       alert('Lỗi! Vui lòng thử lại.');
-      sessionStorage.removeItem('pending_lootbox_purchase');
+      localStorage.removeItem('pending_lootbox');
     }
   })
   .catch(e => {
     console.error(e);
     alert('Lỗi kết nối!');
-    sessionStorage.removeItem('pending_lootbox_purchase');
+    localStorage.removeItem('pending_lootbox');
   });
 }
 
-function checkForPendingResult() {
-  // Kiểm tra flag từ checkout (set bởi pixel)
-  const justPaid = sessionStorage.getItem('lootbox_paid');
-  const pending = sessionStorage.getItem('pending_lootbox_purchase');
-  
-  if (justPaid && pending) {
-    try {
-      const data = JSON.parse(pending);
-      // Xóa flags
-      sessionStorage.removeItem('lootbox_paid');
-      sessionStorage.removeItem('pending_lootbox_purchase');
-      
-      // Fetch loot table từ product và random
-      fetchAndRandomLoot(data);
-    } catch(e) {
-      console.error('Error processing lootbox result:', e);
-    }
+function showLootboxResult() {
+  // Lấy loot table từ hidden div
+  const lootTableEl = document.getElementById('loot-table-json');
+  if (!lootTableEl) {
+    console.error('Không tìm thấy loot table!');
+    return;
   }
-}
-
-function fetchAndRandomLoot(purchaseData) {
-  // Fetch product data để lấy loot table (không lưu trước trong JS)
-  fetch('/products/' + purchaseData.productHandle + '.js')
-    .then(res => res.json())
-    .then(product => {
-      // Loot table sẽ ở trong metafields - nhưng .js không trả về metafields
-      // Nên ta cần dùng cách khác: fetch section
-      return fetch('/products/' + purchaseData.productHandle + '?section_id=lootbox-data');
-    })
-    .then(res => res.text())
-    .then(html => {
-      // Parse loot table từ HTML response
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(html, 'text/html');
-      const lootDataEl = doc.getElementById('loot-table-data');
-      
-      if (lootDataEl) {
-        const lootTable = JSON.parse(lootDataEl.textContent);
-        const reward = getWeightedRandom(lootTable);
-        showResult(purchaseData, reward);
-      }
-    })
-    .catch(e => {
-      console.error('Error fetching loot:', e);
-      // Fallback: hiện modal với message lỗi
-      alert('Đã xảy ra lỗi khi mở hộp. Vui lòng liên hệ hỗ trợ.');
-    });
+  
+  let lootTable;
+  try {
+    lootTable = JSON.parse(lootTableEl.textContent);
+  } catch(e) {
+    console.error('Invalid loot table:', e);
+    return;
+  }
+  
+  if (!lootTable || lootTable.length === 0) {
+    alert('Không có dữ liệu loot table!');
+    return;
+  }
+  
+  // Hiện modal với animation
+  const modal = document.getElementById('lootbox-result-modal');
+  const openingPhase = document.getElementById('lb-opening-phase');
+  const resultPhase = document.getElementById('lb-result-phase');
+  
+  modal.style.display = 'flex';
+  openingPhase.style.display = 'block';
+  resultPhase.style.display = 'none';
+  
+  // Random sau 2.5s
+  setTimeout(() => {
+    const reward = getWeightedRandom(lootTable);
+    
+    openingPhase.style.display = 'none';
+    resultPhase.style.display = 'block';
+    
+    document.getElementById('lb-result-img').src = reward.image;
+    document.getElementById('lb-result-name').textContent = reward.name;
+    document.getElementById('lb-result-chance').textContent = 'Tỉ lệ: ' + reward.chance + '%';
+    
+    // Xóa pending
+    localStorage.removeItem('pending_lootbox');
+  }, 2500);
 }
 
 function getWeightedRandom(items) {
@@ -272,27 +275,6 @@ function getWeightedRandom(items) {
     if (random <= sum) return items[i];
   }
   return items[0];
-}
-
-function showResult(purchaseData, reward) {
-  const modal = document.getElementById('lootbox-result-modal');
-  const openingPhase = document.getElementById('lb-opening-phase');
-  const resultPhase = document.getElementById('lb-result-phase');
-  
-  // Show modal with opening animation
-  modal.style.display = 'flex';
-  openingPhase.style.display = 'block';
-  resultPhase.style.display = 'none';
-  
-  // After 2.5s, show result
-  setTimeout(() => {
-    openingPhase.style.display = 'none';
-    resultPhase.style.display = 'block';
-    
-    document.getElementById('lb-result-img').src = reward.image;
-    document.getElementById('lb-result-name').textContent = reward.name;
-    document.getElementById('lb-result-chance').textContent = 'Tỉ lệ: ' + reward.chance + '%';
-  }, 2500);
 }
 
 function closeResultModal() {
