@@ -864,10 +864,6 @@
       
       // Kiểm tra pending lootbox khi load trang (sau checkout)
       function checkPendingLootbox() {
-        // CÁCH MỚI: Check URL param ?open_result=true
-        const urlParams = new URLSearchParams(window.location.search);
-        const shouldOpen = urlParams.get('open_result') === 'true';
-        
         const pending = localStorage.getItem('pending_lootbox');
         if (!pending) return;
         
@@ -879,26 +875,108 @@
             return;
           }
           
-          // Chỉ mở kết quả khi có URL param (từ thank you page redirect)
-          if (shouldOpen && data.lootTable && data.lootTable.length > 0) {
-            // Xóa param khỏi URL
-            window.history.replaceState({}, '', window.location.pathname);
-            
-            // RANDOM KẾT QUẢ NGAY BÂY GIỜ
-            const reward = getWeightedRandomLoot(data.lootTable);
-            
-            // Xóa pending
-            localStorage.removeItem('pending_lootbox');
-            
-            // Hiện modal kết quả
-            setTimeout(() => {
-              showLootboxResult(data, reward);
-            }, 500);
+          // Có pending lootbox -> Hiện popup hỏi mở ngay
+          if (data.lootTable && data.lootTable.length > 0) {
+            showPendingLootboxPopup(data);
           }
         } catch(e) {
           console.error('Pending lootbox error:', e);
           localStorage.removeItem('pending_lootbox');
         }
+      }
+      
+      // Hiện popup thông báo có lootbox chờ mở
+      function showPendingLootboxPopup(data) {
+        // Tạo popup nếu chưa có
+        let popup = document.getElementById('pending-lootbox-popup');
+        if (!popup) {
+          popup = document.createElement('div');
+          popup.id = 'pending-lootbox-popup';
+          popup.innerHTML = `
+            <div class="plb-overlay">
+              <div class="plb-box">
+                <div class="plb-icon">🎁</div>
+                <h2>BẠN CÓ LOOTBOX CHƯA MỞ!</h2>
+                <p>Bạn đã thanh toán thành công. Nhấn để mở hộp và nhận vật phẩm!</p>
+                <img id="plb-img" src="" alt="Lootbox" class="plb-img">
+                <h3 id="plb-name"></h3>
+                <div class="plb-buttons">
+                  <button class="plb-btn-later" onclick="closePendingPopup()">Để sau</button>
+                  <button class="plb-btn-open" onclick="openPendingLootboxNow()">🎰 MỞ NGAY!</button>
+                </div>
+              </div>
+            </div>
+          `;
+          document.body.appendChild(popup);
+          
+          // Add styles
+          const style = document.createElement('style');
+          style.textContent = `
+            .plb-overlay {
+              position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+              background: rgba(0,0,0,0.9); z-index: 999998;
+              display: flex; align-items: center; justify-content: center;
+              animation: plbFadeIn 0.3s ease;
+            }
+            @keyframes plbFadeIn { from { opacity: 0; } to { opacity: 1; } }
+            .plb-box {
+              background: linear-gradient(145deg, #1a1a2e, #16213e);
+              padding: 30px; border-radius: 20px; text-align: center;
+              max-width: 400px; width: 90%; border: 2px solid #ffd700;
+              box-shadow: 0 0 30px rgba(255,215,0,0.3);
+            }
+            .plb-icon { font-size: 50px; margin-bottom: 10px; }
+            .plb-box h2 { color: #ffd700; margin: 0 0 10px; font-size: 22px; }
+            .plb-box p { color: #aaa; margin: 0 0 20px; font-size: 14px; }
+            .plb-img { width: 120px; height: 120px; object-fit: contain; margin-bottom: 10px; }
+            .plb-box h3 { color: #fff; margin: 0 0 20px; font-size: 18px; }
+            .plb-buttons { display: flex; gap: 10px; justify-content: center; }
+            .plb-btn-later {
+              padding: 12px 25px; background: #333; border: 1px solid #555;
+              color: #aaa; border-radius: 8px; cursor: pointer; font-weight: bold;
+            }
+            .plb-btn-open {
+              padding: 12px 30px; background: linear-gradient(135deg, #ff0055, #ff4400);
+              border: none; color: #fff; border-radius: 8px; cursor: pointer;
+              font-weight: bold; font-size: 16px;
+              box-shadow: 0 4px 15px rgba(255,0,85,0.4);
+            }
+            .plb-btn-open:hover { transform: scale(1.05); }
+          `;
+          document.head.appendChild(style);
+        }
+        
+        // Set data
+        document.getElementById('plb-img').src = data.image || '';
+        document.getElementById('plb-name').textContent = data.name || 'Lootbox';
+        popup.style.display = 'block';
+        
+        // Lưu data để dùng khi mở
+        window.pendingLootboxData = data;
+      }
+      
+      function closePendingPopup() {
+        const popup = document.getElementById('pending-lootbox-popup');
+        if (popup) popup.style.display = 'none';
+      }
+      
+      function openPendingLootboxNow() {
+        closePendingPopup();
+        
+        const data = window.pendingLootboxData;
+        if (!data || !data.lootTable) {
+          showCustomAlert('❌', 'LỖI', 'Không tìm thấy dữ liệu lootbox!');
+          return;
+        }
+        
+        // RANDOM KẾT QUẢ
+        const reward = getWeightedRandomLoot(data.lootTable);
+        
+        // Xóa pending
+        localStorage.removeItem('pending_lootbox');
+        
+        // Hiện modal kết quả
+        showLootboxResult(data, reward);
       }
       
       // Hiển thị kết quả lootbox sau khi thanh toán
