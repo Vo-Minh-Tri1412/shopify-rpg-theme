@@ -809,6 +809,9 @@
       function confirmLootboxResult() {
         if (!currentOpeningLootbox) return;
         
+        // Tạo unique token để xác thực
+        const token = Date.now().toString(36) + Math.random().toString(36).substr(2, 9);
+        
         // Lưu pending lootbox để random SAU khi checkout xong
         const pendingData = {
           id: currentOpeningLootbox.id,
@@ -816,6 +819,7 @@
           image: currentOpeningLootbox.image,
           lootTable: currentOpeningLootbox.lootTable,
           variantId: currentOpeningLootbox.variantId,
+          token: token,  // Token để xác thực
           timestamp: Date.now()
         };
         localStorage.setItem('pending_lootbox', JSON.stringify(pendingData));
@@ -828,7 +832,7 @@
           saveInventory(items);
         }
         
-        // Thêm vào cart - CHƯA biết kết quả
+        // Thêm vào cart với token - token sẽ được gửi trong email
         fetch(window.Shopify.routes.root + 'cart/add.js', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -837,7 +841,8 @@
               'id': currentOpeningLootbox.variantId,
               'quantity': 1,
               'properties': {
-                '_lootbox_pending': 'true',
+                '_lootbox': 'true',
+                '_lootbox_token': token,
                 '_lootbox_name': currentOpeningLootbox.name
               }
             }]
