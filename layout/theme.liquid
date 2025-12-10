@@ -535,11 +535,15 @@
       function initRPGSystem() {
         const savedClass = localStorage.getItem('rpg_class_name');
         const savedColor = localStorage.getItem('rpg_class_color');
+        
+        console.log('[RPG Debug] Saved class:', savedClass, 'Color:', savedColor);
 
         if (!savedClass) {
+          console.log('[RPG Debug] No class found, showing selection modal');
           document.getElementById('class-selection-modal').style.display = 'flex';
           document.body.style.overflow = 'hidden'; 
         } else {
+          console.log('[RPG Debug] Applying theme for:', savedClass);
           applyTheme(savedClass, savedColor);
         }
         
