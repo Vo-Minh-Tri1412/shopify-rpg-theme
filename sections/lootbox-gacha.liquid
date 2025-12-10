@@ -1,0 +1,313 @@
+<!-- LOOTBOX GACHA SECTION - RANDOM SAU KHI THANH TOÁN -->
+<!-- 1. DATA CONFIGURATION -->
+<script>
+  var currentVariantId = {{ product.selected_or_first_available_variant.id }};
+  var currentProductHandle = "{{ product.handle }}";
+  var currentProductImage = "{{ product.featured_image | image_url: width: 500 }}";
+  var currentProductTitle = "{{ product.title | escape }}";
+  // KHÔNG load lootTable vào biến JS để tránh inspect
+</script>
+
+<!-- 2. TRIGGER BUTTON -->
+<div class="lootbox-trigger-wrapper">
+  <button id="btn-start-gacha" onclick="startLootboxPurchase()">
+    <div class="btn-content">
+      <span class="icon">🎰</span>
+      <span class="text">MUA & MỞ HỘP</span>
+    </div>
+    <span class="sub-text">{{ product.price | money }} / Lần mở</span>
+  </button>
+  <p class="note">⚠️ Kết quả sẽ được bốc thăm ngẫu nhiên SAU khi thanh toán thành công!</p>
+</div>
+
+<!-- 3. LOOT TABLE PREVIEW (Chỉ hiện tỉ lệ, không cho biết sẽ trúng gì) -->
+<div class="loot-table-preview">
+  <h4>📦 Vật phẩm có thể nhận được:</h4>
+  <div class="loot-items">
+    {% if product.metafields.custom.lootbox.value %}
+      {% for item in product.metafields.custom.lootbox.value %}
+        <div class="loot-item">
+          <img src="{{ item.image | image_url: width: 100 }}" alt="{{ item.name }}">
+          <span class="loot-name">{{ item.name }}</span>
+          <span class="loot-chance">{{ item.chance }}%</span>
+        </div>
+      {% endfor %}
+    {% endif %}
+  </div>
+</div>
+
+<!-- 4. CONFIRMATION MODAL -->
+<div id="lootbox-confirm-modal" class="lb-modal-overlay" style="display:none;">
+  <div class="lb-modal-box">
+    <img src="{{ product.featured_image | image_url: width: 300 }}" alt="{{ product.title }}" class="lb-product-img">
+    <h2>🎁 {{ product.title }}</h2>
+    <p style="color:#ff9800; margin: 15px 0;">⚠️ Bạn sẽ được bốc thăm ngẫu nhiên 1 vật phẩm SAU KHI thanh toán thành công.</p>
+    <p style="color:#aaa; font-size:14px;">Kết quả hoàn toàn ngẫu nhiên và không thể biết trước!</p>
+    <div class="lb-modal-buttons">
+      <button class="lb-btn-cancel" onclick="closeLootboxConfirm()">❌ HỦY</button>
+      <button class="lb-btn-confirm" onclick="proceedToCheckout()">💳 THANH TOÁN NGAY</button>
+    </div>
+  </div>
+</div>
+
+<!-- 5. RESULT MODAL (Hiện sau khi checkout xong) -->
+<div id="lootbox-result-modal" class="lb-modal-overlay" style="display:none;">
+  <div class="lb-result-container">
+    <!-- Phase 1: Opening Animation -->
+    <div id="lb-opening-phase">
+      <img src="{{ product.featured_image | image_url: width: 300 }}" class="lb-box-shaking" alt="Opening...">
+      <h2 class="lb-opening-text">ĐANG MỞ HỘP...</h2>
+    </div>
+    
+    <!-- Phase 2: Result -->
+    <div id="lb-result-phase" style="display:none;">
+      <div class="lb-halo"></div>
+      <img id="lb-result-img" src="" alt="Prize" class="lb-prize-img">
+      <div class="lb-result-info">
+        <div class="lb-label">BẠN NHẬN ĐƯỢC</div>
+        <h2 id="lb-result-name">VẬT PHẨM</h2>
+        <div class="lb-badge" id="lb-result-chance">Tỉ lệ: ?%</div>
+      </div>
+      <button class="lb-btn-close" onclick="closeResultModal()">🎉 TUYỆT VỜI!</button>
+    </div>
+  </div>
+</div>
+
+<!-- 6. CSS -->
+<style>
+  .lootbox-trigger-wrapper { margin: 20px 0; text-align: center; }
+  #btn-start-gacha {
+    width: 100%; background: linear-gradient(135deg, #ff0055 0%, #ff4400 100%);
+    border: none; padding: 15px; border-radius: 10px; color: white; cursor: pointer;
+    box-shadow: 0 4px 15px rgba(255, 0, 85, 0.4); transition: transform 0.2s;
+  }
+  #btn-start-gacha:hover { transform: scale(1.02); }
+  .btn-content { display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 20px; font-weight: 800; }
+  .sub-text { font-size: 13px; opacity: 0.9; margin-top: 4px; display: block; }
+  .note { font-size: 12px; color: #ff9800; margin-top: 10px; font-weight: bold; }
+
+  /* Loot Table Preview */
+  .loot-table-preview { margin-top: 20px; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 10px; }
+  .loot-table-preview h4 { margin: 0 0 15px; color: #ffd700; }
+  .loot-items { display: flex; flex-wrap: wrap; gap: 10px; }
+  .loot-item { 
+    display: flex; flex-direction: column; align-items: center; 
+    padding: 10px; background: rgba(0,0,0,0.3); border-radius: 8px; min-width: 80px;
+  }
+  .loot-item img { width: 60px; height: 60px; object-fit: contain; border-radius: 5px; }
+  .loot-name { font-size: 11px; margin-top: 5px; text-align: center; color: #fff; }
+  .loot-chance { font-size: 10px; color: #4cd137; font-weight: bold; }
+
+  /* Modal Overlay */
+  .lb-modal-overlay {
+    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+    background: rgba(0,0,0,0.95); z-index: 999999;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .lb-modal-box {
+    background: #1a1a2e; padding: 30px; border-radius: 15px; text-align: center;
+    max-width: 400px; width: 90%; border: 2px solid #ffd700;
+  }
+  .lb-product-img { width: 150px; height: 150px; object-fit: contain; margin-bottom: 15px; }
+  .lb-modal-buttons { display: flex; gap: 10px; margin-top: 20px; justify-content: center; }
+  .lb-btn-cancel { 
+    padding: 12px 25px; background: #333; border: 1px solid #666; color: #fff; 
+    border-radius: 8px; cursor: pointer; font-weight: bold;
+  }
+  .lb-btn-confirm {
+    padding: 12px 25px; background: linear-gradient(135deg, #4cd137, #2ecc71); 
+    border: none; color: #fff; border-radius: 8px; cursor: pointer; font-weight: bold;
+  }
+
+  /* Result Modal */
+  .lb-result-container { text-align: center; padding: 30px; }
+  .lb-box-shaking { 
+    width: 200px; height: 200px; object-fit: contain;
+    animation: lbShake 0.3s infinite;
+  }
+  @keyframes lbShake {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(5deg); }
+    75% { transform: rotate(-5deg); }
+  }
+  .lb-opening-text { color: #fff; margin-top: 20px; font-size: 24px; }
+  
+  .lb-halo {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(255, 215, 0, 0.4) 0%, transparent 70%);
+    z-index: -1; animation: lbBreathe 2s infinite alternate;
+  }
+  @keyframes lbBreathe { from { opacity: 0.5; } to { opacity: 1; } }
+  
+  .lb-prize-img {
+    width: 250px; height: 250px; object-fit: contain;
+    filter: drop-shadow(0 0 20px gold);
+    animation: lbZoomIn 0.5s ease-out;
+  }
+  @keyframes lbZoomIn { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  
+  .lb-result-info { margin-top: 20px; }
+  .lb-label { color: #aaa; font-size: 14px; letter-spacing: 2px; }
+  #lb-result-name { color: #ffd700; font-size: 28px; margin: 10px 0; }
+  .lb-badge { background: #222; border: 1px solid #444; padding: 5px 15px; border-radius: 20px; display: inline-block; }
+  .lb-btn-close {
+    margin-top: 25px; padding: 15px 40px; background: linear-gradient(135deg, #ffd700, #ff8c00);
+    border: none; color: #000; font-weight: bold; font-size: 16px; border-radius: 10px; cursor: pointer;
+  }
+</style>
+
+<!-- 7. JAVASCRIPT -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Kiểm tra nếu vừa checkout xong (từ sessionStorage)
+  checkForPendingResult();
+});
+
+function startLootboxPurchase() {
+  document.getElementById('lootbox-confirm-modal').style.display = 'flex';
+}
+
+function closeLootboxConfirm() {
+  document.getElementById('lootbox-confirm-modal').style.display = 'none';
+}
+
+function proceedToCheckout() {
+  // Lưu thông tin để sau checkout biết cần random
+  const pendingData = {
+    productHandle: currentProductHandle,
+    productTitle: currentProductTitle,
+    productImage: currentProductImage,
+    variantId: currentVariantId,
+    timestamp: Date.now()
+  };
+  // Lưu vào sessionStorage (sẽ mất khi đóng tab - an toàn hơn)
+  sessionStorage.setItem('pending_lootbox_purchase', JSON.stringify(pendingData));
+  
+  // Add to cart và redirect checkout
+  fetch(window.Shopify.routes.root + 'cart/add.js', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      items: [{
+        id: currentVariantId,
+        quantity: 1,
+        properties: {
+          '_lootbox': 'true',
+          '_awaiting_random': 'true'
+        }
+      }]
+    })
+  })
+  .then(res => {
+    if (res.ok) {
+      window.location.href = '/checkout';
+    } else {
+      alert('Lỗi! Vui lòng thử lại.');
+      sessionStorage.removeItem('pending_lootbox_purchase');
+    }
+  })
+  .catch(e => {
+    console.error(e);
+    alert('Lỗi kết nối!');
+    sessionStorage.removeItem('pending_lootbox_purchase');
+  });
+}
+
+function checkForPendingResult() {
+  // Kiểm tra flag từ checkout (set bởi pixel)
+  const justPaid = sessionStorage.getItem('lootbox_paid');
+  const pending = sessionStorage.getItem('pending_lootbox_purchase');
+  
+  if (justPaid && pending) {
+    try {
+      const data = JSON.parse(pending);
+      // Xóa flags
+      sessionStorage.removeItem('lootbox_paid');
+      sessionStorage.removeItem('pending_lootbox_purchase');
+      
+      // Fetch loot table từ product và random
+      fetchAndRandomLoot(data);
+    } catch(e) {
+      console.error('Error processing lootbox result:', e);
+    }
+  }
+}
+
+function fetchAndRandomLoot(purchaseData) {
+  // Fetch product data để lấy loot table (không lưu trước trong JS)
+  fetch('/products/' + purchaseData.productHandle + '.js')
+    .then(res => res.json())
+    .then(product => {
+      // Loot table sẽ ở trong metafields - nhưng .js không trả về metafields
+      // Nên ta cần dùng cách khác: fetch section
+      return fetch('/products/' + purchaseData.productHandle + '?section_id=lootbox-data');
+    })
+    .then(res => res.text())
+    .then(html => {
+      // Parse loot table từ HTML response
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+      const lootDataEl = doc.getElementById('loot-table-data');
+      
+      if (lootDataEl) {
+        const lootTable = JSON.parse(lootDataEl.textContent);
+        const reward = getWeightedRandom(lootTable);
+        showResult(purchaseData, reward);
+      }
+    })
+    .catch(e => {
+      console.error('Error fetching loot:', e);
+      // Fallback: hiện modal với message lỗi
+      alert('Đã xảy ra lỗi khi mở hộp. Vui lòng liên hệ hỗ trợ.');
+    });
+}
+
+function getWeightedRandom(items) {
+  let total = items.reduce((sum, item) => sum + (item.chance || 0), 0);
+  let random = Math.random() * total;
+  let sum = 0;
+  for (let i = 0; i < items.length; i++) {
+    sum += items[i].chance || 0;
+    if (random <= sum) return items[i];
+  }
+  return items[0];
+}
+
+function showResult(purchaseData, reward) {
+  const modal = document.getElementById('lootbox-result-modal');
+  const openingPhase = document.getElementById('lb-opening-phase');
+  const resultPhase = document.getElementById('lb-result-phase');
+  
+  // Show modal with opening animation
+  modal.style.display = 'flex';
+  openingPhase.style.display = 'block';
+  resultPhase.style.display = 'none';
+  
+  // After 2.5s, show result
+  setTimeout(() => {
+    openingPhase.style.display = 'none';
+    resultPhase.style.display = 'block';
+    
+    document.getElementById('lb-result-img').src = reward.image;
+    document.getElementById('lb-result-name').textContent = reward.name;
+    document.getElementById('lb-result-chance').textContent = 'Tỉ lệ: ' + reward.chance + '%';
+  }, 2500);
+}
+
+function closeResultModal() {
+  document.getElementById('lootbox-result-modal').style.display = 'none';
+}
+</script>
+
+{% schema %}
+{
+  "name": "Lootbox Gacha",
+  "settings": [],
+  "presets": [
+    {
+      "name": "Lootbox Gacha"
+    }
+  ]
+}
+{% endschema %}

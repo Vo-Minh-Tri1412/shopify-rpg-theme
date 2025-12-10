@@ -1,0 +1,22 @@
+<!-- Section này chỉ trả về loot table data dạng JSON -->
+<!-- Được fetch bởi lootbox-gacha.liquid sau khi checkout -->
+<div id="loot-table-data" style="display:none;">
+[
+  {% if product.metafields.custom.lootbox.value %}
+    {% for item in product.metafields.custom.lootbox.value %}
+      {
+        "name": "{{ item.name | escape }}",
+        "image": "{{ item.image | image_url: width: 600 }}",
+        "chance": {{ item.chance | default: 0 }}
+      }{% unless forloop.last %},{% endunless %}
+    {% endfor %}
+  {% endif %}
+]
+</div>
+
+{% schema %}
+{
+  "name": "Lootbox Data",
+  "settings": []
+}
+{% endschema %}
