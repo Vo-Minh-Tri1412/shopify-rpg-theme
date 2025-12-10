@@ -1,7 +1,7 @@
 {
   "sections": {
     "main": {
-      "type": "lootbox-result-page",
+      "type": "lootbox-result-page-new",
       "settings": {}
     }
   },
