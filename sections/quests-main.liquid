@@ -1,0 +1,306 @@
+{% comment %}
+  SECTION: RPG GUILD BOARD (FULL DARK MODE - ENGLISH)
+{% endcomment %}
+
+<div class="rpg-full-screen-wrapper">
+  <div class="rpg-page-container">
+    
+    <!-- HEADER -->
+    <div class="rpg-header">
+      <span class="decoration-icon">⚔️</span>
+      <h1>GUILD QUEST BOARD</h1>
+      <span class="decoration-icon">⚔️</span>
+    </div>
+
+    <p class="rpg-subtitle">Welcome, <span id="rpg-hero-name">Traveler</span>! Complete quests to unlock rewards.</p>
+
+    <!-- QUEST GRID -->
+    <div class="quest-grid">
+      
+      <!-- QUEST 1 -->
+      <div class="quest-card" id="quest-daily">
+        <div class="quest-icon">🛡️</div>
+        <div class="quest-info">
+          <h3>Knight's Persistence</h3>
+          <p>Visit the Guild for 3 consecutive days.</p>
+          <div class="progress-track">
+            <div class="progress-fill" id="daily-progress" style="width: 0%"></div>
+          </div>
+          <small id="daily-text">Progress: 0/3 days</small>
+        </div>
+        <div class="quest-status pending" id="status-daily">In Progress</div>
+      </div>
+
+      <!-- QUEST 2 -->
+      <div class="quest-card" id="quest-treasure">
+        <div class="quest-icon">💎</div>
+        <div class="quest-info">
+          <h3>Lost Treasure</h3>
+          <p>Find the hidden chest randomly appearing on pages.</p>
+        </div>
+        <div class="quest-status pending" id="status-treasure">Not Found</div>
+      </div>
+
+      <!-- QUEST 3 -->
+      <div class="quest-card" id="quest-cart">
+        <div class="quest-icon">💰</div>
+        <div class="quest-info">
+          <h3>Wealthy Merchant</h3>
+          <p>Cart value reaches over 500,000 VND.</p>
+          <div class="progress-track">
+            <div class="progress-fill" style="width: {{ cart.total_price | divided_by: 5000.0 | at_most: 100 }}%"></div>
+          </div>
+          <small>Current: {{ cart.total_price | money }} / 500,000 VND</small>
+        </div>
+        {% if cart.total_price >= 500000 %}
+          <div class="quest-status completed" onclick="claimAPReward('wealthy_merchant', 500, this)">CLAIM: +500 AP</div>
+        {% else %}
+          <div class="quest-status pending">Need more gold</div>
+        {% endif %}
+      </div>
+
+    </div>
+
+    <!-- WALLET -->
+    <div class="rpg-wallet">
+      <h2>🎒 YOUR INVENTORY</h2>
+      <div id="collected-codes-list">
+        <p style="color:#666; font-style:italic;">No items collected yet...</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<style>
+  /* --- FORCE FULL BLACK BACKGROUND --- */
+  body, html, main, .main-content, .page-container, #MainContent {
+    background-color: #050505 !important;
+    color: #e0e0e0;
+  }
+  
+  .section-header, .page-width h1 {
+    display: none !important;
+  }
+
+  /* --- RPG STYLES --- */
+  .rpg-full-screen-wrapper {
+    background-color: #050505;
+    min-height: 100vh;
+    padding-top: 20px;
+    display: flex;
+    justify-content: center;
+  }
+
+  .rpg-page-container {
+    width: 100%;
+    max-width: 900px;
+    margin: 0 20px;
+    padding: 30px;
+    font-family: 'Courier New', Courier, monospace;
+    background-color: #0d0d0d;
+    border: 1px solid #333;
+    border-radius: 8px;
+    box-shadow: 0 0 30px rgba(0,0,0,1);
+  }
+
+  .rpg-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    border-bottom: 2px solid #b8860b;
+    padding-bottom: 20px;
+    margin-bottom: 20px;
+    white-space: nowrap;
+  }
+
+  .rpg-header h1 {
+    color: #ffd700;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    margin: 0;
+    font-size: 24px;
+    line-height: 1;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+  }
+
+  .decoration-icon { font-size: 28px; }
+  .rpg-subtitle { text-align: center; color: #888; margin-bottom: 40px; }
+  #rpg-hero-name { color: #ffd700; font-weight: bold; }
+
+  .quest-grid { display: flex; flex-direction: column; gap: 20px; }
+  
+  .quest-card {
+    display: flex;
+    align-items: center;
+    background: #141414;
+    border: 1px solid #333;
+    padding: 20px;
+    border-radius: 6px;
+    transition: all 0.3s;
+  }
+  .quest-card:hover { border-color: #ffd700; transform: translateY(-2px); }
+
+  .quest-icon { font-size: 35px; margin-right: 25px; min-width: 50px; text-align: center; }
+  .quest-info { flex: 1; margin-right: 20px; }
+  .quest-info h3 { margin: 0 0 8px 0; color: #eee; font-size: 18px; text-transform: uppercase; letter-spacing: 1px;}
+  .quest-info p { margin: 0; font-size: 14px; color: #aaa; }
+  .quest-info small { display: block; margin-top: 8px; color: #666; font-size: 12px; }
+
+  .progress-track {
+    background: #222;
+    height: 6px;
+    border-radius: 3px;
+    margin-top: 10px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    background: linear-gradient(90deg, #b8860b, #ffd700);
+    height: 100%;
+    transition: width 0.5s ease-out;
+  }
+
+  .quest-status {
+    padding: 12px 20px;
+    border-radius: 4px;
+    font-weight: bold;
+    text-align: center;
+    min-width: 150px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: default;
+  }
+  .quest-status.pending { background: #222; color: #555; border: 1px solid #333; }
+  .quest-status.completed { 
+    background: #8b0000; color: #fff; 
+    border: 1px solid #ff0000; cursor: pointer;
+    box-shadow: 0 0 10px rgba(139, 0, 0, 0.5);
+    animation: glow 2s infinite alternate;
+  }
+
+  .rpg-wallet { margin-top: 50px; background: #0a0a0a; border: 1px dashed #555; padding: 25px; border-radius: 6px; }
+  .rpg-wallet h2 { color: #b8860b; margin-top: 0; font-size: 18px; padding-bottom: 10px; border-bottom: 1px solid #333;}
+  
+  .code-item { background: #1a1a1a; padding: 12px; margin: 10px 0; border-left: 3px solid #b8860b; color: #ccc; cursor: pointer; font-size: 13px;}
+  .code-item:hover { background: #252525; color: #fff; }
+
+  @keyframes glow { from { box-shadow: 0 0 5px #8b0000; } to { box-shadow: 0 0 15px #ff4444; } }
+
+  @media (max-width: 600px) {
+    .quest-card { flex-direction: column; text-align: center; }
+    .quest-icon { margin: 0 0 15px 0; }
+    .quest-info { margin: 0 0 20px 0; }
+    .quest-status { width: 100%; }
+  }
+</style>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    {% if customer %}
+      document.getElementById('rpg-hero-name').innerText = "{{ customer.first_name }}";
+    {% endif %}
+
+    const streak = parseInt(localStorage.getItem('rpg_streak') || 0);
+    const streakClaimed = localStorage.getItem('rpg_streak_claimed');
+    
+    const streakPercent = (streak / 3) * 100;
+    document.getElementById('daily-progress').style.width = (streakPercent > 100 ? 100 : streakPercent) + '%';
+    document.getElementById('daily-text').innerText = `Progress: ${streak}/3 days`;
+
+    const btnDaily = document.getElementById('status-daily');
+    if (streakClaimed) {
+      btnDaily.innerText = "COMPLETED";
+      btnDaily.classList.add('completed');
+      btnDaily.style.background = '#1b5e20';
+      btnDaily.style.border = '1px solid #2e7d32';
+      btnDaily.style.animation = 'none';
+    } else if (streak >= 3) {
+      btnDaily.innerText = "CLAIM: +200 AP";
+      btnDaily.classList.remove('pending');
+      btnDaily.classList.add('completed');
+      btnDaily.onclick = function() {
+         claimAPReward('daily_persistence', 200, btnDaily);
+         localStorage.setItem('rpg_streak_claimed', 'true');
+      };
+    }
+
+    const treasureFound = localStorage.getItem('rpg_treasure_found');
+    const btnTreasure = document.getElementById('status-treasure');
+    if (treasureFound) {
+      btnTreasure.innerText = "FOUND";
+      btnTreasure.classList.remove('pending');
+      btnTreasure.classList.add('completed');
+      btnTreasure.style.background = '#1b5e20';
+      btnTreasure.style.border = '1px solid #2e7d32';
+      btnTreasure.style.animation = 'none';
+    }
+
+    renderWallet();
+  });
+
+  function addToWallet(name, code) {
+    let codes = JSON.parse(localStorage.getItem('rpg_my_codes') || "[]");
+    if (!codes.some(e => e.code === code)) {
+      codes.push({name: name, code: code});
+      localStorage.setItem('rpg_my_codes', JSON.stringify(codes));
+    }
+  }
+
+  function renderWallet() {
+    let codes = JSON.parse(localStorage.getItem('rpg_my_codes') || "[]");
+    const listDiv = document.getElementById('collected-codes-list');
+    if (codes.length > 0) {
+      listDiv.innerHTML = "";
+      codes.forEach(item => {
+        listDiv.innerHTML += `<div class="code-item" onclick="copyToClipboard('${item.code}')">📜 <b>${item.name}</b>: ${item.code} <span style="float:right;">(Copy)</span></div>`;
+      });
+    }
+  }
+
+  function copyToClipboard(text) {
+    navigator.clipboard.writeText(text);
+    alert("Copied to clipboard: " + text);
+  }
+  
+  function claimAPReward(questId, apAmount, btnElement) {
+    const claimedKey = 'rpg_quest_claimed_' + questId;
+    if (localStorage.getItem(claimedKey)) {
+      alert('You have already claimed this reward!');
+      return;
+    }
+    
+    let currentAP = parseInt(localStorage.getItem('rpg_activity_points') || 0);
+    let newAP = currentAP + apAmount;
+    localStorage.setItem('rpg_activity_points', newAP);
+    
+    localStorage.setItem(claimedKey, 'true');
+    
+    const hudAP = document.getElementById('hud-ap-display');
+    if (hudAP) {
+      hudAP.innerText = newAP + ' AP 🛒';
+      hudAP.style.display = 'block';
+    }
+    
+    if (btnElement) {
+      btnElement.innerText = 'COMPLETED';
+      btnElement.style.background = '#1b5e20';
+      btnElement.style.border = '1px solid #2e7d32';
+      btnElement.style.animation = 'none';
+      btnElement.onclick = null;
+    }
+    
+    addToWallet('Quest: ' + questId, '+' + apAmount + ' AP');
+    renderWallet();
+    
+    alert('🎉 Congratulations! You received +' + apAmount + ' AP!');
+  }
+</script>
+
+{% schema %}
+{
+  "name": "Quests Main",
+  "settings": []
+}
+{% endschema %}
