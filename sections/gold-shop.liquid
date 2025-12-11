@@ -1,172 +1,300 @@
-<!-- GLORY SHOP - SPEND LEADERBOARD GOLD -->
-<div class="glory-shop-wrapper">
-  <div class="shop-header">
-    <h1 class="rpg-title">🏆 CỬA HÀNG DANH VỌNG</h1>
-    <p class="rpg-sub">Dùng GOLD từ Bảng Xếp Hạng để đổi lấy vật phẩm MIỄN PHÍ 100%</p>
-    
-    <div class="gold-balance-display">
-      TÀI SẢN: <span id="user-gold-display" style="color:#ffd700; font-size:1.8em;">0</span> GOLD 🪙
-    </div>
-    <p style="font-size:12px; color:#666; margin-top:5px;">(Gold được tổng kết từ Leaderboard hàng tuần)</p>
-  </div>
+<!-- GLORY SHOP SECTION - THE HALL OF LEGENDS -->
+<!-- CURRENCY: LEADERBOARD GOLD -->
 
-  <!-- LƯỚI SẢN PHẨM -->
-  <div class="glory-grid" id="glory-grid-render"></div>
+<div class="glory-sanctuary">
+  <!-- BACKGROUND FX -->
+  <div class="sanctuary-bg"></div>
+  <div class="gold-particles"></div>
+
+  <div class="glory-container">
+    <!-- HEADER -->
+    <div class="glory-header">
+      <h1 class="glory-title">HALL OF GLORY</h1>
+      <p class="glory-sub">Exclusive rewards for the Top Ranked Champions. Spend your Leaderboard Gold here.</p>
+      
+      <div class="gold-wallet">
+        <span class="wallet-label">YOUR WEALTH:</span>
+        <span class="wallet-amount" id="user-gold">0</span>
+        <span class="wallet-currency">GOLD</span>
+      </div>
+    </div>
+
+    <!-- THE 3 LEGENDARY SETS -->
+    <div class="legendary-grid">
+      
+      <!-- ITEM 1: WARRIOR -->
+      <div class="legend-card warrior-card">
+        <div class="card-border"></div>
+        <div class="card-shine"></div>
+        <div class="card-content">
+          <h2 class="card-title">WARRIOR CHAMPION</h2>
+          <div class="img-frame">
+            <img src="{{ 'Warrior_Top1.png' | asset_url }}" alt="Warrior Set" class="product-img">
+          </div>
+          <p class="card-desc">The ultimate armor set for the bravest.</p>
+          <div class="card-price">50,000 GOLD</div>
+          <button class="btn-redeem" onclick="attemptRedeem('warrior', 50000, 'WARRIOR_KING_100')">REDEEM</button>
+        </div>
+      </div>
+
+      <!-- ITEM 2: MAGE -->
+      <div class="legend-card mage-card">
+        <div class="card-border"></div>
+        <div class="card-shine"></div>
+        <div class="card-content">
+          <h2 class="card-title">MAGE SUPREME</h2>
+          <div class="img-frame">
+            <img src="{{ 'Mage_Top1.png' | asset_url }}" alt="Mage Set" class="product-img">
+          </div>
+          <p class="card-desc">Forbidden magic woven into fabric.</p>
+          <div class="card-price">50,000 GOLD</div>
+          <button class="btn-redeem" onclick="attemptRedeem('mage', 50000, 'MAGE_ARCHON_100')">REDEEM</button>
+        </div>
+      </div>
+
+      <!-- ITEM 3: ARCHER -->
+      <div class="legend-card archer-card">
+        <div class="card-border"></div>
+        <div class="card-shine"></div>
+        <div class="card-content">
+          <h2 class="card-title">ARCHER PHANTOM</h2>
+          <div class="img-frame">
+            <img src="{{ 'Archer_Top1.png' | asset_url }}" alt="Archer Set" class="product-img">
+          </div>
+          <p class="card-desc">Strike from the shadows, unseen.</p>
+          <div class="card-price">50,000 GOLD</div>
+          <button class="btn-redeem" onclick="attemptRedeem('archer', 50000, 'ARCHER_HAWK_100')">REDEEM</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
 </div>
 
-<!-- MODAL XÁC NHẬN MUA -->
-<div id="glory-modal" class="rpg-modal-overlay">
-  <div class="rpg-modal-box">
-    <div style="font-size:50px; margin-bottom:10px;">👑</div>
-    <h3 id="modal-title" style="color:#ffd700">XÁC NHẬN ĐỔI</h3>
-    <p id="modal-msg" style="color:#ccc;">Bạn có muốn dùng Gold để đổi món này?</p>
+<!-- REDEMPTION MODAL -->
+<div id="glory-modal" class="modal-overlay">
+  <div class="modal-box">
+    <h3 class="modal-h3">CONFIRMATION</h3>
+    <p class="modal-p">Exchange <span id="modal-price" style="color:#ffd700"></span> GOLD for this item?</p>
     
-    <!-- Code Box -->
-    <div id="glory-code-display" class="code-box" style="display:none;" onclick="copyGloryCode()">CODE</div>
-    
-    <div id="modal-actions" style="margin-top:20px;">
-      <button id="btn-confirm-glory" class="rpg-btn">ĐỔI NGAY</button>
-      <button onclick="closeGloryModal()" class="rpg-btn-secondary">ĐÓNG</button>
+    <!-- RESULT CODE -->
+    <div id="result-area" style="display:none;">
+      <p style="color:#4cd137; margin-bottom:5px;">SUCCESS! HERE IS YOUR 100% OFF CODE:</p>
+      <div class="code-pill" id="final-code" onclick="copyCode(this)">CODE</div>
     </div>
+
+    <div class="modal-btns" id="action-btns">
+      <button id="btn-confirm" class="btn-confirm">YES, REDEEM</button>
+      <button onclick="closeModal()" class="btn-cancel">CANCEL</button>
+    </div>
+    <button id="btn-close-final" class="btn-confirm" style="display:none; width:100%;" onclick="closeModal()">CLOSE</button>
   </div>
 </div>
 
 <style>
-  /* GIAO DIỆN SANG TRỌNG (Vàng + Đen) */
-  .glory-shop-wrapper {
-    background-color: #0a0a0c; 
-    background-image: radial-gradient(circle at 50% 0%, #2a1a00 0%, #000 80%);
-    color: #fff; padding: 60px 20px;
-    min-height: 100vh; font-family: 'Cinzel', serif; text-align: center;
-  }
-  .rpg-title { color: #ffd700; text-shadow: 0 0 20px #ffd700; margin-bottom: 10px; font-size: 2.5rem; }
-  .rpg-sub { color: #aaa; margin-bottom: 30px; font-family: sans-serif; }
-  
-  .gold-balance-display {
-    background: linear-gradient(90deg, #000, #332200, #000);
-    border: 2px solid #ffd700;
-    display: inline-block; padding: 15px 40px; border-radius: 4px;
-    font-weight: bold; font-size: 1.2em;
-    box-shadow: 0 0 30px rgba(255, 215, 0, 0.2);
+  /* --- CORE LAYOUT --- */
+  .glory-sanctuary {
+    background-color: #050505;
+    min-height: 100vh;
+    padding: 80px 20px;
+    font-family: 'Cinzel', serif;
+    position: relative;
+    overflow: hidden;
   }
 
-  .glory-grid {
-    display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 30px; max-width: 1000px; margin: 50px auto;
+  .sanctuary-bg {
+    position: absolute; inset: 0;
+    background: radial-gradient(circle at 50% 30%, #1a0f00 0%, #000 70%);
+    z-index: 0;
   }
 
-  .glory-card {
-    background: #111; border: 1px solid #444; border-radius: 8px;
-    padding: 30px 20px; transition: 0.3s; position: relative;
-    display: flex; flex-direction: column; align-items: center;
-  }
-  .glory-card:hover { transform: translateY(-10px); border-color: #ffd700; box-shadow: 0 0 25px rgba(255, 215, 0, 0.3); }
-  
-  .item-icon { font-size: 70px; margin-bottom: 20px; filter: drop-shadow(0 0 10px gold); }
-  .item-name { font-size: 1.4em; font-weight: bold; color: #fff; margin-bottom: 5px; }
-  .item-desc { font-size: 0.9em; color: #888; margin-bottom: 20px; min-height: 40px;}
-  .item-price { color: #ffd700; font-weight: bold; font-size: 1.2em; margin-bottom: 20px; display: block; border: 1px solid #ffd700; padding: 5px 15px; border-radius: 20px; }
-  
-  .buy-btn {
-    width: 100%; padding: 15px; background: linear-gradient(to bottom, #ffd700, #b8860b);
-    border: none; color: #000; font-weight: bold; cursor: pointer; text-transform: uppercase; font-family: 'Cinzel', serif; font-size: 1rem;
-  }
-  .buy-btn:hover { filter: brightness(1.2); }
-  .buy-btn.disabled { background: #333; color: #666; cursor: not-allowed; }
+  .glory-container { position: relative; z-index: 2; max-width: 1400px; margin: 0 auto; text-align: center; }
 
-  /* Modal */
-  .rpg-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 99999; display: none; justify-content: center; align-items: center; }
-  .rpg-modal-box { background: #0f0f0f; border: 2px solid #ffd700; padding: 40px; width: 400px; text-align: center; border-radius: 4px; box-shadow: 0 0 50px rgba(255,215,0,0.2); }
-  .code-box { background: #222; border: 2px dashed #2ecc71; padding: 20px; margin-top: 20px; color: #2ecc71; font-size: 2em; font-weight: bold; cursor: pointer; }
-  .rpg-btn { background: #ffd700; color: #000; border: none; padding: 10px 30px; font-weight: bold; cursor: pointer; }
-  .rpg-btn-secondary { background: transparent; border: 1px solid #777; color: #ccc; padding: 10px 30px; cursor: pointer; margin-left: 10px; }
+  /* --- HEADER --- */
+  .glory-title {
+    font-size: 4rem;
+    color: transparent;
+    background: linear-gradient(to bottom, #ffd700, #b8860b);
+    -webkit-background-clip: text;
+    text-shadow: 0 0 30px rgba(255, 215, 0, 0.3);
+    margin: 0; letter-spacing: 5px;
+  }
+  
+  .glory-sub { color: #888; font-family: 'Roboto', sans-serif; letter-spacing: 2px; margin-bottom: 40px; }
+
+  .gold-wallet {
+    display: inline-flex; align-items: center; gap: 15px;
+    background: rgba(0,0,0,0.8); border: 1px solid #ffd700;
+    padding: 15px 50px; border-radius: 4px;
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.15);
+  }
+  .wallet-amount { font-size: 2.5rem; color: #ffd700; font-weight: bold; text-shadow: 0 0 10px #ffd700; }
+  .wallet-currency { color: #b8860b; font-weight: bold; font-size: 1rem; margin-top: 10px; }
+
+  /* --- CARDS GRID --- */
+  .legendary-grid {
+    display: flex; justify-content: center; gap: 40px; flex-wrap: wrap; margin-top: 60px;
+  }
+
+  .legend-card {
+    width: 350px; position: relative;
+    background: #0a0a0a;
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    cursor: pointer;
+  }
+
+  .legend-card:hover { transform: translateY(-20px); z-index: 5; }
+
+  /* BORDER GLOW EFFECTS */
+  .card-border {
+    position: absolute; inset: 0;
+    border: 2px solid #333;
+    clip-path: polygon(0 0, 100% 0, 100% 85%, 85% 100%, 0 100%);
+    transition: 0.3s;
+  }
+
+  /* COLOR THEMES */
+  .warrior-card:hover .card-border { border-color: #ff4d4d; box-shadow: 0 0 30px rgba(255, 77, 77, 0.3); }
+  .mage-card:hover .card-border { border-color: #a335ee; box-shadow: 0 0 30px rgba(163, 53, 238, 0.3); }
+  .archer-card:hover .card-border { border-color: #2ecc71; box-shadow: 0 0 30px rgba(46, 204, 113, 0.3); }
+
+  .card-content { position: relative; padding: 40px 20px; z-index: 2; }
+
+  .card-title { font-size: 1.8rem; color: #fff; margin-bottom: 20px; text-shadow: 0 5px 10px #000; }
+  
+  .img-frame {
+    width: 100%; height: 250px;
+    display: flex; justify-content: center; align-items: center;
+    margin-bottom: 20px; position: relative;
+  }
+  
+  /* HIEU UNG ANH */
+  .product-img {
+    max-width: 100%; max-height: 100%;
+    filter: drop-shadow(0 0 10px rgba(255,255,255,0.2));
+    transition: 0.4s;
+  }
+  .legend-card:hover .product-img { transform: scale(1.15); filter: drop-shadow(0 0 20px rgba(255,255,255,0.6)); }
+
+  .card-desc { color: #777; font-size: 0.9rem; font-family: 'Roboto', sans-serif; min-height: 40px; }
+
+  .card-price {
+    font-size: 1.5rem; color: #ffd700; font-weight: bold;
+    margin: 20px 0; letter-spacing: 2px;
+  }
+
+  .btn-redeem {
+    width: 100%; padding: 15px;
+    background: transparent; border: 1px solid #555; color: #fff;
+    font-family: 'Cinzel', serif; font-weight: bold; font-size: 1.1rem;
+    cursor: pointer; transition: 0.3s; clip-path: polygon(0 0, 100% 0, 100% 70%, 90% 100%, 0 100%);
+  }
+
+  .warrior-card:hover .btn-redeem { background: #ff4d4d; border-color: #ff4d4d; color: #000; }
+  .mage-card:hover .btn-redeem { background: #a335ee; border-color: #a335ee; color: #fff; }
+  .archer-card:hover .btn-redeem { background: #2ecc71; border-color: #2ecc71; color: #000; }
+  
+  .btn-redeem:disabled { background: #222 !important; color: #555 !important; border-color: #333 !important; cursor: not-allowed; }
+
+  /* --- MODAL --- */
+  .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 9999; display: none; justify-content: center; align-items: center; }
+  .modal-box { background: #111; border: 1px solid #ffd700; padding: 40px; width: 450px; text-align: center; box-shadow: 0 0 50px rgba(255,215,0,0.2); }
+  .modal-h3 { color: #fff; font-size: 2rem; margin-top: 0; }
+  .modal-p { color: #aaa; font-size: 1.1rem; margin-bottom: 30px; }
+  
+  .code-pill { background: #222; border: 1px dashed #ffd700; color: #ffd700; padding: 15px; font-size: 1.5rem; font-family: monospace; cursor: pointer; user-select: all; margin-bottom: 20px; }
+  .code-pill:hover { background: #333; }
+
+  .modal-btns { display: flex; gap: 15px; justify-content: center; }
+  .btn-confirm { background: #ffd700; color: #000; border: none; padding: 12px 30px; font-weight: bold; cursor: pointer; font-family: 'Cinzel', serif; }
+  .btn-cancel { background: transparent; color: #fff; border: 1px solid #555; padding: 12px 30px; cursor: pointer; font-family: 'Cinzel', serif; }
 </style>
 
 <script>
-  // DANH SÁCH VẬT PHẨM ĐỔI BẰNG GOLD (Mã giảm giá 100%)
-  // Bạn cần tạo các mã này trong Admin: FREE_SWORD, FREE_ARMOR...
-  const GLORY_ITEMS = [
-    { id: 1, name: "Kiếm Rồng (Legendary)", desc: "Vũ khí cấp huyền thoại. Miễn phí 100%.", price: 5000, icon: "⚔️", code: "FREE_DRAGON_SWORD" },
-    { id: 2, name: "Giáp Hoàng Kim", desc: "Bộ giáp của Vua. Miễn phí 100%.", price: 8000, icon: "🛡️", code: "FREE_GOLD_ARMOR" },
-    { id: 3, name: "Cánh Thiên Thần", desc: "Skin cánh siêu hiếm. Miễn phí 100%.", price: 15000, icon: "🪽", code: "FREE_ANGEL_WINGS" },
-    { id: 4, name: "Rương Thần Bí", desc: "Set quà bí mật trị giá 5 triệu.", price: 30000, icon: "🎁", code: "FREE_MYSTERY_BOX" }
-  ];
-
-  // Key lưu trữ Gold (Phải khớp với key mà Leaderboard cộng vào)
-  const KEY_GOLD = 'rpg_local_gold'; 
+  // KEY FOR LEADERBOARD GOLD
+  const KEY_GOLD = 'rpg_local_gold';
   
   let userGold = 0;
-  let selectedItem = null;
+  let targetPrice = 0;
+  let targetCode = '';
 
   document.addEventListener("DOMContentLoaded", function() {
-    loadGloryShop();
+    initGloryShop();
   });
 
-  function loadGloryShop() {
-    // 1. Lấy Gold (từ Leaderboard tích lũy)
+  function initGloryShop() {
     userGold = parseInt(localStorage.getItem(KEY_GOLD) || 0);
-    document.getElementById('user-gold-display').innerText = userGold.toLocaleString();
-
-    // 2. Render
-    const grid = document.getElementById('glory-grid-render');
-    grid.innerHTML = '';
-
-    GLORY_ITEMS.forEach(item => {
-      const canBuy = userGold >= item.price;
-      const btnState = canBuy ? '' : 'disabled';
-      const btnText = canBuy ? 'ĐỔI NGAY' : 'CHƯA ĐỦ GOLD';
-      
-      grid.innerHTML += `
-        <div class="glory-card">
-          <div class="item-icon">${item.icon}</div>
-          <div class="item-name">${item.name}</div>
-          <div class="item-desc">${item.desc}</div>
-          <span class="item-price">🪙 ${item.price.toLocaleString()} GOLD</span>
-          <button class="buy-btn ${btnState}" onclick="confirmGloryBuy(${item.id})">${btnText}</button>
-        </div>
-      `;
+    document.getElementById('user-gold').innerText = userGold.toLocaleString();
+    
+    // Check affordability
+    const buttons = document.querySelectorAll('.btn-redeem');
+    buttons.forEach(btn => {
+      // Assuming all items are 50,000 for simplicity as per UI
+      // In real scenario you might want dynamic checks
+      if (userGold < 50000) {
+        btn.innerText = "LOCKED";
+        btn.disabled = true;
+        btn.style.opacity = "0.5";
+      }
     });
   }
 
-  function confirmGloryBuy(id) {
-    selectedItem = GLORY_ITEMS.find(i => i.id === id);
-    if(selectedItem) {
-      document.getElementById('glory-modal').style.display = 'flex';
-      document.getElementById('modal-title').innerText = "XÁC NHẬN";
-      document.getElementById('modal-msg').innerText = `Dùng ${selectedItem.price.toLocaleString()} Gold để đổi ${selectedItem.name}?`;
-      
-      document.getElementById('btn-confirm-glory').style.display = 'inline-block';
-      document.getElementById('btn-confirm-glory').onclick = processGloryTransaction;
-      document.getElementById('glory-code-display').style.display = 'none';
-    }
+  function attemptRedeem(type, price, code) {
+    if (userGold < price) return;
+
+    targetPrice = price;
+    targetCode = code;
+
+    // Show Modal
+    const modal = document.getElementById('glory-modal');
+    modal.style.display = 'flex';
+    
+    // Reset UI
+    document.getElementById('modal-price').innerText = price.toLocaleString();
+    document.getElementById('result-area').style.display = 'none';
+    document.getElementById('action-btns').style.display = 'flex';
+    document.getElementById('btn-close-final').style.display = 'none';
+    
+    // Bind click
+    document.getElementById('btn-confirm').onclick = processRedeem;
   }
 
-  function processGloryTransaction() {
-    // 1. Trừ Gold
-    userGold -= selectedItem.price;
+  function processRedeem() {
+    // 1. Deduct Gold
+    userGold -= targetPrice;
     localStorage.setItem(KEY_GOLD, userGold);
     
-    loadGloryShop();
+    // 2. Update UI
+    document.getElementById('user-gold').innerText = userGold.toLocaleString();
+    initGloryShop(); // Re-check buttons
 
-    // 2. Hiện Code
-    document.getElementById('modal-title').innerText = "THÀNH CÔNG!";
-    document.getElementById('modal-msg').innerText = "Vật phẩm đã thuộc về bạn. Hãy dùng mã này:";
-    
-    const codeBox = document.getElementById('glory-code-display');
-    codeBox.style.display = 'block';
-    codeBox.innerText = selectedItem.code;
-    
-    document.getElementById('btn-confirm-glory').style.display = 'none';
+    // 3. Update HUD if exists
+    try {
+      const hudMoney = document.querySelector('.hud-right div[style*="color:var(--rpg-gold)"]');
+      if(hudMoney) hudMoney.innerHTML = `💰 ${userGold.toLocaleString()} G`; // Update HUD visuals if matches structure
+    } catch(e) {}
+
+    // 4. Show Code
+    document.getElementById('action-btns').style.display = 'none';
+    document.getElementById('result-area').style.display = 'block';
+    document.getElementById('final-code').innerText = targetCode;
+    document.getElementById('btn-close-final').style.display = 'block';
   }
 
-  function closeGloryModal() { document.getElementById('glory-modal').style.display = 'none'; }
-  function copyGloryCode() { navigator.clipboard.writeText(document.getElementById('glory-code-display').innerText); alert("Đã copy mã!"); }
+  function closeModal() {
+    document.getElementById('glory-modal').style.display = 'none';
+  }
+
+  function copyCode(el) {
+    navigator.clipboard.writeText(el.innerText);
+    alert("Code copied to clipboard!");
+  }
 </script>
 
 {% schema %}
 {
-  "name": "Glory Shop (Gold)",
+  "name": "Glory Shop (Images)",
   "settings": [],
-  "presets": [{"name": "Glory Shop (Gold)"}]
+  "presets": [{"name": "Glory Shop (Images)"}]
 }
 {% endschema %}
