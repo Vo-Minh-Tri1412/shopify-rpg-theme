@@ -416,6 +416,11 @@
           📜 <span class="mobile-hide">Quests</span>
         </a>
         
+        <!-- NAV LINKS: GOLD & LOOTBOX SHOP -->
+        <a href="/pages/gold-shop" class="hud-nav-link" title="Gold & Lootbox Shop" style="color: #ffd700;">
+          🪙 <span class="mobile-hide">Lootbox</span>
+        </a>
+        
         <!-- NAV LINKS: AP SHOP -->
         <a href="/pages/ap-shop" class="hud-nav-link" title="AP Shop">
           🛍️ <span class="mobile-hide">Shop</span>
@@ -439,14 +444,14 @@
         </div>
 
         <div style="text-align: right;">
-          <div style="color:var(--rpg-gold); font-weight: bold;">
-            💰 <span id="hud-money">{{ customer.total_spent | money_without_currency | default: '0' }}</span> G
-          </div>
-          <!-- AP POINTS (DAILY REWARD) -->
-          <!-- AP BUTTON (LINK TO SHOP) -->
-<a href="/pages/ap-shop" id="hud-ap-display" class="hud-ap" style="display:none; text-decoration:none; cursor:pointer;" title="Click to visit Reward Shop">
-  0 AP 🛒
-</a>
+          <!-- GOLD DISPLAY -->
+          <a href="/pages/gold-shop" style="color:#ffd700; font-weight: bold; text-decoration:none; display:block; margin-bottom:3px;" title="Click to buy more Gold">
+            🪙 <span id="hud-gold-display">0</span> Gold
+          </a>
+          <!-- AP POINTS -->
+          <a href="/pages/ap-shop" id="hud-ap-display" class="hud-ap" style="display:none; text-decoration:none; cursor:pointer; font-size:12px;" title="Click to visit AP Shop">
+            ⚡ 0 AP
+          </a>
         </div>
       </div>
     </div>
@@ -666,9 +671,10 @@
           applyTheme(savedClass, savedColor);
         }
         
-        // Calculate VIP rank and display AP
+        // Calculate VIP rank and display AP + Gold
         calculateVipRank();
         updateAPDisplay();
+        updateGoldDisplay(); // Update Gold in HUD
         initializeDefaultDiscounts(); // Initialize discount codes
       }
 
@@ -748,6 +754,14 @@
         const apBox = document.getElementById('hud-ap-display');
         apBox.innerText = `⚡ ${ap} AP`;
         apBox.style.display = 'inline-block';
+      }
+      
+      // Update Gold display in HUD
+      function updateGoldDisplay() {
+        const KEY_GOLD = KEY_PREFIX + 'gold';
+        const gold = parseInt(localStorage.getItem(KEY_GOLD) || 0);
+        const goldEl = document.getElementById('hud-gold-display');
+        if (goldEl) goldEl.innerText = gold.toLocaleString();
       }
 
       // --- LOGIC NHẬN QUÀ ---

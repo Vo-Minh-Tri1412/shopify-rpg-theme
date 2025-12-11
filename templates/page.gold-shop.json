@@ -1,0 +1,9 @@
+{
+  "sections": {
+    "main": {
+      "type": "gold-shop",
+      "settings": {}
+    }
+  },
+  "order": ["main"]
+}
