@@ -366,6 +366,13 @@
   </head>
 
   <body class="gradient">
+    <!-- DEBUG INFO (XÓA SAU KHI TEST) -->
+    <div id="debug-info" style="position:fixed; bottom:10px; left:10px; background:#000; color:#0f0; padding:10px; font-size:11px; z-index:999999; border:1px solid #0f0; font-family:monospace; max-width:300px;">
+      <strong>🔧 DEBUG:</strong><br>
+      Customer: {% if customer %}{{ customer.email }} (ID: {{ customer.id }}){% else %}NOT LOGGED IN{% endif %}<br>
+      <span id="debug-js">JS: Loading...</span>
+    </div>
+    
     <!-- 3. RPG HUD (CẬP NHẬT VIP) -->
     <div id="rpg-hud">
 <div class="hud-left">
@@ -648,6 +655,13 @@
 
       document.addEventListener("DOMContentLoaded", function() {
         console.log('[RPG Debug] DOMContentLoaded fired');
+        
+        // Update debug panel
+        const debugEl = document.getElementById('debug-js');
+        if (debugEl) {
+          debugEl.innerHTML = `JS OK! | CUSTOMER_ID: ${CUSTOMER_ID} | KEY_CLASS: ${KEY_CLASS} | Saved: ${localStorage.getItem(KEY_CLASS) || 'none'}`;
+        }
+        
         try {
           // Migrate guest data to customer account if just logged in
           if (IS_LOGGED_IN) {
@@ -660,6 +674,7 @@
           updateInventoryCount(); // Update inventory count
         } catch(e) {
           console.error('[RPG Debug] Error in init:', e);
+          if (debugEl) debugEl.innerHTML = `ERROR: ${e.message}`;
         }
       });
       
