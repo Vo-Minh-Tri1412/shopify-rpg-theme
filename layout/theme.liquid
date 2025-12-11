@@ -489,10 +489,10 @@
             You must login to choose your class and save your RPG progress. Your class, VIP rank, and rewards will be linked to your account.
           </p>
           <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
-            <a href="/account/login" class="rpg-btn-primary" style="padding: 15px 40px; font-size: 16px; text-decoration: none;">
+            <a href="/account/login?return_url=/" class="rpg-btn-primary" style="padding: 15px 40px; font-size: 16px; text-decoration: none;">
               🔑 LOGIN
             </a>
-            <a href="/account/register" class="rpg-btn-secondary" style="padding: 15px 40px; font-size: 16px; text-decoration: none;">
+            <a href="/account/register?return_url=/" class="rpg-btn-secondary" style="padding: 15px 40px; font-size: 16px; text-decoration: none;">
               ✨ CREATE ACCOUNT
             </a>
           </div>
@@ -649,6 +649,11 @@
       document.addEventListener("DOMContentLoaded", function() {
         console.log('[RPG Debug] DOMContentLoaded fired');
         try {
+          // Migrate guest data to customer account if just logged in
+          if (IS_LOGGED_IN) {
+            migrateGuestData();
+          }
+          
           initRPGSystem();
           checkRewardStatus();
           setInterval(checkRewardStatus, 1000);
@@ -657,6 +662,31 @@
           console.error('[RPG Debug] Error in init:', e);
         }
       });
+      
+      // Migrate data from guest storage to customer storage
+      function migrateGuestData() {
+        const GUEST_PREFIX = 'rpg_guest_';
+        const guestClass = localStorage.getItem(GUEST_PREFIX + 'class_name');
+        
+        // Only migrate if guest has data AND customer doesn't have class yet
+        if (guestClass && !localStorage.getItem(KEY_CLASS)) {
+          console.log('[RPG Debug] Migrating guest data to customer account...');
+          
+          // List of keys to migrate
+          const keysToMigrate = ['class_name', 'class_color', 'activity_points', 'discount_codes', 'gold', 'lootboxes', 'daily_day', 'daily_time'];
+          
+          keysToMigrate.forEach(key => {
+            const guestValue = localStorage.getItem(GUEST_PREFIX + key);
+            if (guestValue) {
+              localStorage.setItem(KEY_PREFIX + key, guestValue);
+              localStorage.removeItem(GUEST_PREFIX + key); // Clean up guest data
+              console.log('[RPG Debug] Migrated:', key);
+            }
+          });
+          
+          showCustomAlert('✅', 'DATA SYNCED!', 'Your guest progress has been saved to your account!');
+        }
+      }
 
       function initRPGSystem() {
         console.log('[RPG Debug] Customer ID:', CUSTOMER_ID, 'Logged in:', IS_LOGGED_IN);
