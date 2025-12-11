@@ -400,13 +400,24 @@ document.addEventListener('DOMContentLoaded', function() {
   initLootboxPage();
 });
 
-// Get params from URL
+// FIX LOGIC URL PARAMS: Xử lý dấu #
 function getUrlParams() {
-  const params = new URLSearchParams(window.location.search);
+  // Lấy toàn bộ URL hiện tại
+  let currentUrl = window.location.href;
+  
+  // Thay thế các ký tự làm gãy URL (token=#1046) thành (token=1046)
+  // Việc này giúp URLSearchParams đọc được cả chuỗi phía sau
+  currentUrl = currentUrl.replace('token=#', 'token=');
+  
+  // Parse URL đã sửa
+  const urlObj = new URL(currentUrl);
+  const params = new URLSearchParams(urlObj.search);
+  
   return {
     token: params.get('token'),
     order: params.get('order'),
-    product: params.get('product')  // Product handle
+    product: params.get('product'),
+    open_result: params.get('open_result')
   };
 }
 
@@ -426,7 +437,6 @@ async function initLootboxPage() {
   
   debugLog('URL: ' + window.location.href);
   debugLog('Token: ' + (params.token || 'MISSING'));
-  debugLog('Order: ' + (params.order || 'MISSING'));
   debugLog('Product: ' + (params.product || 'MISSING'));
   
   // Check token - IMPORTANT: Token is required
@@ -438,7 +448,6 @@ async function initLootboxPage() {
   
   // Check if already used
   const usedTokens = JSON.parse(localStorage.getItem('used_lootbox_tokens') || '[]');
-  debugLog('Used tokens count: ' + usedTokens.length);
   
   if (usedTokens.includes(params.token)) {
     debugLog('Token already used!');
@@ -453,7 +462,7 @@ async function initLootboxPage() {
       const response = await fetch('/products/' + params.product + '.js');
       
       if (!response.ok) {
-        throw new Error('Product not found: ' + response.status);
+        throw new Error('Product not found');
       }
       
       const product = await response.json();
@@ -466,20 +475,21 @@ async function initLootboxPage() {
       // Save product handle for metafield fetch later
       window.currentProduct = params.product;
     } catch(e) {
-      debugLog('Error fetching product: ' + e.message);
       console.error('Error fetching product:', e);
-      // Continue anyway - will use default loot table
     }
-  } else {
-    debugLog('No product handle - using defaults');
   }
   
   // Save token
   window.currentToken = params.token;
   
   debugLog('Ready to open!');
-  // Show ready state
-  showState('ready');
+  
+  // Auto open if flagged
+  if (params.open_result === 'true') {
+    openLootbox();
+  } else {
+    showState('ready');
+  }
 }
 
 function showState(state) {

@@ -1,493 +1,559 @@
-<!-- TRANG KẾT QUẢ LOOTBOX - User vào từ link email sau checkout -->
+<!-- LOOTBOX RESULT PAGE - Beautiful RPG Theme -->
 
-<div class="lootbox-result-page">
-  <div class="result-container">
-    <div class="result-header">
-      <span class="icon">🎁</span>
-      <h1>MỞ LOOTBOX</h1>
-      <p>Nhấn nút bên dưới để bốc thăm ngẫu nhiên vật phẩm của bạn!</p>
-    </div>
-    
-    <!-- Nếu có pending và token hợp lệ -->
-    <div class="pending-lootbox-info" id="pending-info" style="display:none;">
-      <img id="pending-lootbox-img" src="" alt="Lootbox">
-      <h3 id="pending-lootbox-name">Lootbox</h3>
-      <button id="btn-open-lootbox" class="btn-open" onclick="openPendingLootbox()">
-        <span class="icon">🎰</span>
-        <span class="text">MỞ HỘP NGAY!</span>
-      </button>
-    </div>
-    
-    <!-- Token không hợp lệ / chưa thanh toán -->
-    <div class="invalid-token" id="invalid-token" style="display:none;">
-      <span class="icon">🔒</span>
-      <h3>KHÔNG THỂ MỞ LOOTBOX</h3>
-      <p>Link không hợp lệ hoặc bạn chưa thanh toán.<br>Vui lòng thanh toán và sử dụng link trong email.</p>
-      <a href="/collections/all" class="btn-shop">🛒 MUA LOOTBOX</a>
-    </div>
-    
-    <!-- Không có gì -->
-    <div class="no-pending" id="no-pending" style="display:none;">
-      <span class="icon">📦</span>
-      <h3>Không có lootbox nào đang chờ mở</h3>
-      <p>Hãy mua lootbox và quay lại đây sau khi thanh toán.</p>
-      <a href="/collections/all" class="btn-shop">🛒 MUA LOOTBOX</a>
-    </div>
+{% comment %} Get product handle from URL param {% endcomment %}
+{% assign product_handle = '' %}
 
-    <!-- Đã mở rồi -->
-    <div class="already-opened" id="already-opened" style="display:none;">
-      <span class="icon">✅</span>
-      <h3>Lootbox đã được mở!</h3>
-      <p>Bạn đã mở lootbox này rồi.</p>
-      <a href="/collections/all" class="btn-shop">🛒 MUA THÊM</a>
-    </div>
-  </div>
-</div>
+<!-- Debug info - remove in production -->
+<div id="debug-info" style="display:none; position:fixed; bottom:10px; right:10px; background:#333; color:#0f0; padding:10px; font-family:monospace; font-size:11px; z-index:9999; border-radius:5px; max-width:300px;"></div>
 
-<!-- RESULT MODAL -->
-<div id="page-lootbox-result-modal" class="lb-modal-overlay" style="display:none;">
-  <div class="lb-result-container">
-    <div id="page-lb-opening-phase">
-      <img id="page-lb-box-img" src="" class="lb-box-shaking" alt="Opening...">
-      <h2 class="lb-opening-text">ĐANG MỞ HỘP...</h2>
-    </div>
-    
-    <div id="page-lb-result-phase" style="display:none;">
-      <div class="lb-halo"></div>
-      <img id="page-lb-result-img" src="" alt="Prize" class="lb-prize-img">
-      <div class="lb-result-info">
-        <div class="lb-label">🎊 CHÚC MỪNG! BẠN NHẬN ĐƯỢC</div>
-        <h2 id="page-lb-result-name">VẬT PHẨM</h2>
-        <div class="lb-badge" id="page-lb-result-chance">Tỉ lệ: ?%</div>
-        
-        <!-- MÃ CODE -->
-        <div class="lb-code-section">
-          <p class="lb-code-label">MÃ XÁC NHẬN CỦA BẠN:</p>
-          <div class="lb-code-box" id="page-lb-reward-code">XXXX-XXXX-XXXX</div>
-          <p class="lb-code-note">📋 Hãy chụp màn hình hoặc lưu mã này để đổi quà!</p>
-        </div>
+<div class="lootbox-page-wrapper">
+  <!-- PARTICLES BACKGROUND -->
+  <div class="particles-bg" id="particles-bg"></div>
+  
+  <!-- MAIN CONTENT -->
+  <div class="lootbox-main-content">
+    <!-- STATE: Ready to open -->
+    <div id="state-ready" class="lootbox-state" style="display:none;">
+      <div class="lootbox-card">
+        <div class="card-glow"></div>
+        <img id="lootbox-product-img" src="https://cdn.shopify.com/s/files/1/0000/0000/files/lootbox-default.png?v=1" alt="Lootbox" class="lootbox-img" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 200 200%22><rect fill=%22%231a1a2e%22 width=%22200%22 height=%22200%22/><text x=%2250%%22 y=%2250%%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22gold%22 font-size=%2280%22>🎁</text></svg>'">
+        <h1 id="lootbox-product-name" class="lootbox-title">LOOTBOX</h1>
+        <p class="lootbox-desc">Click to open the box and receive a random item!</p>
+        <button id="btn-open" class="btn-open-lootbox" onclick="openLootbox()">
+          <span class="btn-icon">🎰</span>
+          <span class="btn-text">OPEN NOW!</span>
+        </button>
       </div>
-      <button class="lb-btn-close" onclick="closePageResultModal()">🎉 ĐÃ HIỂU!</button>
+    </div>
+    
+    <!-- STATE: Opening -->
+    <div id="state-opening" class="lootbox-state" style="display:none;">
+      <img id="opening-box-img" src="" alt="Opening..." class="opening-box-img">
+      <h2 class="opening-text">OPENING<span class="dots">...</span></h2>
+    </div>
+    
+    <!-- STATE: Result -->
+    <div id="state-result" class="lootbox-state" style="display:none;">
+      <div class="result-halo"></div>
+      <div class="result-rays"></div>
+      <img id="result-item-img" src="" alt="Prize" class="result-item-img">
+      <div class="result-info">
+        <p class="result-label">🎊 CONGRATULATIONS! YOU RECEIVED</p>
+        <h1 id="result-item-name" class="result-item-name">ITEM</h1>
+        <div class="result-chance" id="result-item-chance">Drop Rate: ?%</div>
+        
+        <div class="result-code-box">
+          <p class="code-label">REWARD CODE:</p>
+          <div class="code-value" id="result-code">XXXX-XXXX-XXXX</div>
+          <p class="code-note">📋 Screenshot this to redeem your reward!</p>
+        </div>
+        
+        <button class="btn-done" onclick="closeLootbox()">🎉 AWESOME!</button>
+      </div>
+    </div>
+    
+    <!-- STATE: Already opened -->
+    <div id="state-used" class="lootbox-state" style="display:none;">
+      <div class="used-icon">✅</div>
+      <h2 class="used-title">LOOTBOX OPENED</h2>
+      <p class="used-desc">This link has already been used.</p>
+      <a href="/collections/all" class="btn-shop">🛒 BUY MORE LOOTBOX</a>
+    </div>
+    
+    <!-- STATE: Error -->
+    <div id="state-error" class="lootbox-state" style="display:none;">
+      <div class="error-icon">❌</div>
+      <h2 class="error-title">CANNOT OPEN</h2>
+      <p class="error-desc">Invalid or expired link.</p>
+      <a href="/collections/all" class="btn-shop">🛒 BUY LOOTBOX</a>
     </div>
   </div>
 </div>
 
 <style>
-  .lootbox-result-page {
-    min-height: 60vh;
+  /* === WRAPPER & BACKGROUND === */
+  .lootbox-page-wrapper {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 50%, #0f0f1a 100%);
+    position: relative;
+    overflow: hidden;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 40px 20px;
+    padding: 20px;
   }
   
-  .result-container {
+  .particles-bg {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-image: 
+      radial-gradient(2px 2px at 20px 30px, rgba(255,215,0,0.3), transparent),
+      radial-gradient(2px 2px at 40px 70px, rgba(255,215,0,0.2), transparent),
+      radial-gradient(1px 1px at 90px 40px, rgba(255,255,255,0.3), transparent),
+      radial-gradient(2px 2px at 130px 80px, rgba(255,215,0,0.2), transparent),
+      radial-gradient(1px 1px at 160px 120px, rgba(255,255,255,0.2), transparent);
+    background-size: 200px 200px;
+    animation: particleFloat 20s linear infinite;
+    opacity: 0.5;
+  }
+  
+  @keyframes particleFloat {
+    from { transform: translateY(0); }
+    to { transform: translateY(-200px); }
+  }
+  
+  /* === MAIN CONTENT === */
+  .lootbox-main-content {
+    position: relative;
+    z-index: 10;
     text-align: center;
     max-width: 500px;
     width: 100%;
   }
   
-  .result-header .icon {
-    font-size: 60px;
-    display: block;
-    margin-bottom: 20px;
-  }
+  .lootbox-state { display: none; }
   
-  .result-header h1 {
-    color: #4cd137;
-    font-size: 28px;
-    margin: 0 0 15px;
-  }
-  
-  .result-header p {
-    color: #aaa;
-    font-size: 16px;
-    margin: 0 0 30px;
-  }
-  
-  .pending-lootbox-info {
-    background: rgba(255, 215, 0, 0.1);
+  /* === STATE: READY === */
+  .lootbox-card {
+    background: linear-gradient(145deg, rgba(26,26,46,0.9), rgba(15,15,26,0.95));
     border: 2px solid #ffd700;
-    border-radius: 15px;
-    padding: 20px;
-    margin-bottom: 20px;
-  }
-  
-  .pending-lootbox-info img {
-    width: 120px;
-    height: 120px;
-    object-fit: contain;
-    margin-bottom: 10px;
-  }
-  
-  .pending-lootbox-info h3 {
-    color: #ffd700;
-    margin: 0;
-  }
-  
-  .no-pending {
-    padding: 40px;
-    background: rgba(255,255,255,0.05);
-    border-radius: 15px;
-  }
-  
-  .no-pending .icon {
-    font-size: 50px;
-    display: block;
-    margin-bottom: 15px;
-  }
-  
-  .no-pending h3 {
-    color: #fff;
-    margin: 0 0 10px;
-  }
-  
-  .no-pending p {
-    color: #888;
-    margin: 0 0 20px;
-  }
-  
-  .btn-shop {
-    display: inline-block;
-    padding: 12px 30px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: #fff;
-    text-decoration: none;
-    border-radius: 8px;
-    font-weight: bold;
-  }
-  
-  .btn-open {
-    width: 100%;
-    padding: 20px;
-    background: linear-gradient(135deg, #ff0055 0%, #ff4400 100%);
-    border: none;
-    border-radius: 12px;
-    color: #fff;
-    cursor: pointer;
-    font-size: 20px;
-    font-weight: bold;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    box-shadow: 0 5px 20px rgba(255, 0, 85, 0.5);
-    transition: transform 0.2s;
-  }
-  
-  .btn-open:hover {
-    transform: scale(1.02);
-  }
-  
-  .btn-open .icon {
-    font-size: 28px;
-  }
-  
-  /* Modal Styles */
-  .lb-modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background: rgba(0,0,0,0.95);
-    z-index: 999999;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  
-  .lb-result-container {
-    text-align: center;
-    padding: 30px;
+    border-radius: 20px;
+    padding: 40px 30px;
     position: relative;
+    box-shadow: 0 0 50px rgba(255,215,0,0.2), inset 0 0 30px rgba(255,215,0,0.05);
   }
   
-  .lb-box-shaking {
+  .card-glow {
+    position: absolute;
+    top: -2px; left: -2px; right: -2px; bottom: -2px;
+    border-radius: 20px;
+    background: linear-gradient(45deg, #ffd700, #ff8c00, #ffd700);
+    z-index: -1;
+    opacity: 0.5;
+    filter: blur(10px);
+    animation: glowPulse 2s ease-in-out infinite;
+  }
+  
+  @keyframes glowPulse {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 0.6; }
+  }
+  
+  .lootbox-img {
     width: 200px;
     height: 200px;
     object-fit: contain;
-    animation: lbShake 0.3s infinite;
+    filter: drop-shadow(0 0 30px rgba(255,215,0,0.5));
+    animation: floatBox 3s ease-in-out infinite;
   }
   
-  @keyframes lbShake {
-    0%, 100% { transform: rotate(0deg); }
-    25% { transform: rotate(5deg); }
-    75% { transform: rotate(-5deg); }
+  @keyframes floatBox {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
   }
   
-  .lb-opening-text {
+  .lootbox-title {
+    color: #ffd700;
+    font-size: 28px;
+    margin: 20px 0 10px;
+    text-shadow: 0 0 20px rgba(255,215,0,0.5);
+    font-family: 'Cinzel', serif;
+  }
+  
+  .lootbox-desc {
+    color: #aaa;
+    font-size: 14px;
+    margin: 0 0 25px;
+  }
+  
+  .btn-open-lootbox {
+    background: linear-gradient(135deg, #ff0055 0%, #ff4400 100%);
+    border: none;
+    padding: 18px 50px;
+    border-radius: 12px;
+    color: white;
+    font-size: 20px;
+    font-weight: bold;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 5px 30px rgba(255,0,85,0.5);
+    transition: all 0.3s ease;
+  }
+  
+  .btn-open-lootbox:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 40px rgba(255,0,85,0.7);
+  }
+  
+  .btn-icon { font-size: 24px; }
+  
+  /* === STATE: OPENING === */
+  #state-opening {
+    padding: 50px 0;
+  }
+  
+  .opening-box-img {
+    width: 250px;
+    height: 250px;
+    object-fit: contain;
+    animation: shakeBox 0.3s infinite;
+  }
+  
+  @keyframes shakeBox {
+    0%, 100% { transform: rotate(0deg) scale(1); }
+    25% { transform: rotate(5deg) scale(1.02); }
+    75% { transform: rotate(-5deg) scale(1.02); }
+  }
+  
+  .opening-text {
     color: #fff;
+    font-size: 28px;
     margin-top: 20px;
-    font-size: 24px;
+    font-family: 'Cinzel', serif;
   }
   
-  .lb-halo {
+  .dots {
+    animation: dotsAnim 1s infinite;
+  }
+  
+  @keyframes dotsAnim {
+    0% { opacity: 0.2; }
+    50% { opacity: 1; }
+    100% { opacity: 0.2; }
+  }
+  
+  /* === STATE: RESULT === */
+  #state-result {
+    position: relative;
+    padding: 30px 0;
+  }
+  
+  .result-halo {
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 400px;
-    height: 400px;
-    background: radial-gradient(circle, rgba(255, 215, 0, 0.4) 0%, transparent 70%);
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, rgba(255,215,0,0.4) 0%, transparent 70%);
     z-index: -1;
-    animation: lbBreathe 2s infinite alternate;
+    animation: haloBreath 2s ease-in-out infinite alternate;
   }
   
-  @keyframes lbBreathe {
-    from { opacity: 0.5; }
-    to { opacity: 1; }
+  @keyframes haloBreath {
+    from { opacity: 0.5; transform: translate(-50%, -50%) scale(0.9); }
+    to { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
   }
   
-  .lb-prize-img {
-    width: 250px;
-    height: 250px;
+  .result-rays {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 600px;
+    height: 600px;
+    background: conic-gradient(from 0deg, transparent, rgba(255,215,0,0.1), transparent, rgba(255,215,0,0.1), transparent);
+    z-index: -2;
+    animation: raysRotate 10s linear infinite;
+  }
+  
+  @keyframes raysRotate {
+    from { transform: translate(-50%, -50%) rotate(0deg); }
+    to { transform: translate(-50%, -50%) rotate(360deg); }
+  }
+  
+  .result-item-img {
+    width: 280px;
+    height: 280px;
     object-fit: contain;
-    filter: drop-shadow(0 0 20px gold);
-    animation: lbZoomIn 0.5s ease-out;
+    filter: drop-shadow(0 0 40px gold);
+    animation: resultZoom 0.6s ease-out;
   }
   
-  @keyframes lbZoomIn {
-    from { transform: scale(0); opacity: 0; }
-    to { transform: scale(1); opacity: 1; }
+  @keyframes resultZoom {
+    from { transform: scale(0) rotate(-10deg); opacity: 0; }
+    to { transform: scale(1) rotate(0deg); opacity: 1; }
   }
   
-  .lb-result-info {
+  .result-info {
     margin-top: 20px;
   }
   
-  .lb-label {
+  .result-label {
     color: #4cd137;
     font-size: 16px;
-    letter-spacing: 1px;
+    margin: 0;
     font-weight: bold;
   }
   
-  #page-lb-result-name {
+  .result-item-name {
     color: #ffd700;
-    font-size: 32px;
+    font-size: 36px;
     margin: 15px 0;
-    text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+    text-shadow: 0 0 30px rgba(255,215,0,0.7);
+    font-family: 'Cinzel', serif;
+    animation: nameGlow 1.5s ease-in-out infinite alternate;
   }
   
-  .lb-badge {
-    background: #222;
+  @keyframes nameGlow {
+    from { text-shadow: 0 0 20px rgba(255,215,0,0.5); }
+    to { text-shadow: 0 0 40px rgba(255,215,0,1), 0 0 60px rgba(255,215,0,0.5); }
+  }
+  
+  .result-chance {
+    background: rgba(0,0,0,0.5);
     border: 1px solid #444;
-    padding: 5px 15px;
+    padding: 8px 20px;
     border-radius: 20px;
     display: inline-block;
-    color: #fff;
-  }
-  
-  /* CODE SECTION */
-  .lb-code-section {
-    margin-top: 25px;
-    padding: 20px;
-    background: rgba(0, 0, 0, 0.5);
-    border-radius: 15px;
-    border: 1px dashed #ffd700;
-  }
-  
-  .lb-code-label {
     color: #aaa;
+    font-size: 14px;
+  }
+  
+  .result-code-box {
+    margin-top: 30px;
+    padding: 20px;
+    background: rgba(0,0,0,0.6);
+    border: 1px dashed #ffd700;
+    border-radius: 15px;
+  }
+  
+  .code-label {
+    color: #888;
     font-size: 12px;
     margin: 0 0 10px;
-    letter-spacing: 1px;
+    letter-spacing: 2px;
   }
   
-  .lb-code-box {
-    background: linear-gradient(145deg, #1a1a2e, #0f0f1a);
-    padding: 15px 25px;
+  .code-value {
+    background: linear-gradient(145deg, #0a0a0f, #1a1a2e);
+    padding: 15px 30px;
     border-radius: 10px;
     font-family: 'Courier New', monospace;
-    font-size: 24px;
+    font-size: 28px;
     font-weight: bold;
     color: #00ff88;
-    letter-spacing: 3px;
+    letter-spacing: 4px;
     border: 2px solid #00ff88;
-    text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+    text-shadow: 0 0 15px rgba(0,255,136,0.7);
     user-select: all;
   }
   
-  .lb-code-note {
-    color: #888;
+  .code-note {
+    color: #666;
     font-size: 12px;
     margin: 15px 0 0;
   }
   
-  .lb-btn-close {
+  .btn-done {
     margin-top: 25px;
-    padding: 15px 40px;
+    padding: 15px 50px;
     background: linear-gradient(135deg, #ffd700, #ff8c00);
     border: none;
     color: #000;
     font-weight: bold;
-    font-size: 16px;
-    border-radius: 10px;
+    font-size: 18px;
+    border-radius: 12px;
     cursor: pointer;
+    transition: transform 0.2s;
+  }
+  
+  .btn-done:hover {
+    transform: scale(1.05);
+  }
+  
+  /* === STATE: USED & ERROR === */
+  .used-icon, .error-icon {
+    font-size: 80px;
+    margin-bottom: 20px;
+  }
+  
+  .used-title, .error-title {
+    color: #fff;
+    font-size: 28px;
+    margin: 0 0 15px;
+    font-family: 'Cinzel', serif;
+  }
+  
+  .used-desc, .error-desc {
+    color: #888;
+    font-size: 16px;
+    margin: 0 0 30px;
+  }
+  
+  .btn-shop {
+    display: inline-block;
+    padding: 15px 40px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: #fff;
+    text-decoration: none;
+    border-radius: 10px;
+    font-weight: bold;
+    font-size: 16px;
   }
 </style>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  checkForPendingLootbox();
+  initLootboxPage();
 });
 
-function checkForPendingLootbox() {
-  const pending = localStorage.getItem('pending_lootbox');
-  const urlParams = new URLSearchParams(window.location.search);
-  const urlToken = urlParams.get('token');  // Token từ email link
-  const orderNumber = urlParams.get('order');
+// FIX LOGIC URL PARAMS: Xử lý dấu #
+function getUrlParams() {
+  // Lấy toàn bộ URL hiện tại
+  let currentUrl = window.location.href;
   
-  // PHẢI có token trong URL (từ email sau thanh toán)
-  if (!urlToken) {
-    showInvalidToken();
+  // Thay thế các ký tự làm gãy URL (token=#1046) thành (token=1046)
+  // Việc này giúp URLSearchParams đọc được cả chuỗi phía sau
+  currentUrl = currentUrl.replace('token=#', 'token=');
+  
+  // Parse URL đã sửa
+  const urlObj = new URL(currentUrl);
+  const params = new URLSearchParams(urlObj.search);
+  
+  return {
+    token: params.get('token'),
+    order: params.get('order'),
+    product: params.get('product'),
+    open_result: params.get('open_result')
+  };
+}
+
+// Debug function
+function debugLog(msg) {
+  console.log('[Lootbox Debug]', msg);
+  const debugEl = document.getElementById('debug-info');
+  if (debugEl) {
+    debugEl.style.display = 'block';
+    debugEl.innerHTML += msg + '<br>';
+  }
+}
+
+// Initialize page
+async function initLootboxPage() {
+  const params = getUrlParams();
+  
+  debugLog('URL: ' + window.location.href);
+  debugLog('Token: ' + (params.token || 'MISSING'));
+  debugLog('Product: ' + (params.product || 'MISSING'));
+  
+  // Check token - IMPORTANT: Token is required
+  if (!params.token) {
+    debugLog('ERROR: No token found!');
+    showState('error');
     return;
   }
   
-  // Check xem token này đã dùng chưa
+  // Check if already used
   const usedTokens = JSON.parse(localStorage.getItem('used_lootbox_tokens') || '[]');
-  if (usedTokens.includes(urlToken)) {
-    showAlreadyOpened();
+  
+  if (usedTokens.includes(params.token)) {
+    debugLog('Token already used!');
+    showState('used');
     return;
   }
   
-  if (pending) {
+  // If product handle exists, fetch product info
+  if (params.product) {
     try {
-      const data = JSON.parse(pending);
+      debugLog('Fetching product: ' + params.product);
+      const response = await fetch('/products/' + params.product + '.js');
       
-      // Check token khớp không
-      if (data.token !== urlToken) {
-        showInvalidToken();
-        return;
+      if (!response.ok) {
+        throw new Error('Product not found');
       }
       
-      // Check if not expired (24 giờ)
-      if (Date.now() - data.timestamp > 86400000) {
-        localStorage.removeItem('pending_lootbox');
-        showInvalidToken();
-        return;
-      }
+      const product = await response.json();
+      debugLog('Product found: ' + product.title);
       
-      // Token hợp lệ - Hiện thông tin lootbox
-      document.getElementById('pending-info').style.display = 'block';
-      document.getElementById('no-pending').style.display = 'none';
-      document.getElementById('already-opened').style.display = 'none';
-      document.getElementById('invalid-token').style.display = 'none';
+      document.getElementById('lootbox-product-img').src = product.featured_image;
+      document.getElementById('lootbox-product-name').textContent = product.title;
+      document.getElementById('opening-box-img').src = product.featured_image;
       
-      if (data.image) {
-        document.getElementById('pending-lootbox-img').src = data.image;
-      }
-      if (data.name) {
-        document.getElementById('pending-lootbox-name').textContent = data.name;
-      }
-      
-      // Lưu để dùng khi mở
-      window.currentToken = urlToken;
-      if (orderNumber) {
-        window.currentOrderNumber = orderNumber;
-      }
-      
+      // Save product handle for metafield fetch later
+      window.currentProduct = params.product;
     } catch(e) {
-      console.error('Error parsing pending lootbox:', e);
-      showInvalidToken();
+      console.error('Error fetching product:', e);
     }
-  } else {
-    showInvalidToken();
-  }
-}
-
-function showNoPending() {
-  document.getElementById('pending-info').style.display = 'none';
-  document.getElementById('no-pending').style.display = 'block';
-  document.getElementById('already-opened').style.display = 'none';
-  document.getElementById('invalid-token').style.display = 'none';
-}
-
-function showAlreadyOpened() {
-  document.getElementById('pending-info').style.display = 'none';
-  document.getElementById('no-pending').style.display = 'none';
-  document.getElementById('already-opened').style.display = 'block';
-  document.getElementById('invalid-token').style.display = 'none';
-}
-
-function showInvalidToken() {
-  document.getElementById('pending-info').style.display = 'none';
-  document.getElementById('no-pending').style.display = 'none';
-  document.getElementById('already-opened').style.display = 'none';
-  document.getElementById('invalid-token').style.display = 'block';
-}
-
-function openPendingLootbox() {
-  const pending = localStorage.getItem('pending_lootbox');
-  if (!pending) {
-    alert('Không tìm thấy lootbox!');
-    return;
   }
   
-  try {
-    const data = JSON.parse(pending);
-    
-    if (!data.lootTable || data.lootTable.length === 0) {
-      alert('Lỗi: Không có dữ liệu loot table!');
-      return;
-    }
-    
-    // Hiện modal mở hộp
-    const modal = document.getElementById('page-lootbox-result-modal');
-    const openingPhase = document.getElementById('page-lb-opening-phase');
-    const resultPhase = document.getElementById('page-lb-result-phase');
-    
-    modal.style.display = 'flex';
-    openingPhase.style.display = 'block';
-    resultPhase.style.display = 'none';
-    
-    if (data.image) {
-      document.getElementById('page-lb-box-img').src = data.image;
-    }
-    
-    // Random sau 2.5s
-    setTimeout(() => {
-      const reward = getWeightedRandom(data.lootTable);
-      
-      // Tạo mã code ngẫu nhiên
-      const rewardCode = generateRewardCode();
-      
-      openingPhase.style.display = 'none';
-      resultPhase.style.display = 'block';
-      
-      document.getElementById('page-lb-result-img').src = reward.image || '';
-      document.getElementById('page-lb-result-name').textContent = reward.name;
-      document.getElementById('page-lb-result-chance').textContent = 'Tỉ lệ: ' + reward.chance + '%';
-      document.getElementById('page-lb-reward-code').textContent = rewardCode;
-      
-      // Xóa pending
-      localStorage.removeItem('pending_lootbox');
-      
-      // Đánh dấu token đã dùng (tránh mở lại)
-      if (window.currentToken) {
-        const usedTokens = JSON.parse(localStorage.getItem('used_lootbox_tokens') || '[]');
-        usedTokens.push(window.currentToken);
-        localStorage.setItem('used_lootbox_tokens', JSON.stringify(usedTokens));
-      }
-      
-    }, 2500);
-    
-  } catch(e) {
-    console.error('Error opening lootbox:', e);
-    alert('Đã xảy ra lỗi!');
+  // Save token
+  window.currentToken = params.token;
+  
+  debugLog('Ready to open!');
+  
+  // Auto open if flagged
+  if (params.open_result === 'true') {
+    openLootbox();
+  } else {
+    showState('ready');
   }
 }
 
-// Tạo mã code ngẫu nhiên dạng XXXX-XXXX-XXXX
-function generateRewardCode() {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  let code = '';
-  for (let i = 0; i < 12; i++) {
-    if (i > 0 && i % 4 === 0) code += '-';
-    code += chars.charAt(Math.floor(Math.random() * chars.length));
+function showState(state) {
+  // Hide all states
+  document.querySelectorAll('.lootbox-state').forEach(el => el.style.display = 'none');
+  // Show selected state
+  const stateEl = document.getElementById('state-' + state);
+  if (stateEl) stateEl.style.display = 'block';
+}
+
+async function openLootbox() {
+  // Switch to opening state
+  showState('opening');
+  
+  // Fetch loot table from product metafield
+  let lootTable = [];
+  
+  if (window.currentProduct) {
+    try {
+      // Fetch section to get metafield
+      const response = await fetch('/products/' + window.currentProduct + '?section_id=lootbox-data');
+      const html = await response.text();
+      
+      // Parse HTML để lấy data
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+      const dataEl = doc.getElementById('loot-table-data');
+      
+      if (dataEl) {
+        lootTable = JSON.parse(dataEl.textContent);
+      }
+    } catch(e) {
+      console.error('Error fetching loot table:', e);
+    }
   }
-  return code;
+  
+  // If no loot table, use default
+  if (!lootTable || lootTable.length === 0) {
+    lootTable = [
+      { name: 'Mystery Item', image: '', chance: 100 }
+    ];
+  }
+  
+  // Wait for animation
+  setTimeout(() => {
+    // Random vật phẩm
+    const reward = getWeightedRandom(lootTable);
+    const code = generateRewardCode();
+    
+    // Display result
+    document.getElementById('result-item-img').src = reward.image || document.getElementById('lootbox-product-img').src;
+    document.getElementById('result-item-name').textContent = reward.name;
+    document.getElementById('result-item-chance').textContent = 'Drop Rate: ' + reward.chance + '%';
+    document.getElementById('result-code').textContent = code;
+    
+    // Mark token as used
+    if (window.currentToken) {
+      const usedTokens = JSON.parse(localStorage.getItem('used_lootbox_tokens') || '[]');
+      usedTokens.push(window.currentToken);
+      localStorage.setItem('used_lootbox_tokens', JSON.stringify(usedTokens));
+    }
+    
+    showState('result');
+  }, 2500);
 }
 
 function getWeightedRandom(items) {
@@ -501,10 +567,18 @@ function getWeightedRandom(items) {
   return items[0];
 }
 
-function closePageResultModal() {
-  document.getElementById('page-lootbox-result-modal').style.display = 'none';
-  // Hiện thông báo đã mở
-  showAlreadyOpened();
+function generateRewardCode() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code = '';
+  for (let i = 0; i < 12; i++) {
+    if (i > 0 && i % 4 === 0) code += '-';
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return code;
+}
+
+function closeLootbox() {
+  showState('used');
 }
 </script>
 
