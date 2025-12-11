@@ -1,5 +1,5 @@
 {% comment %} 
-  V7 GOD MODE: Full Width + Class + Reward + Countdown
+  V7 GOD MODE: Full Width + Class + Reward + Countdown + Fix Syntax Error
 {% endcomment %}
 
 <!-- Container chính -->
@@ -155,15 +155,14 @@
       const snapshot = await get(usersRef);
       if (snapshot.exists()) {
         const data = snapshot.val();
-        // Chuyển object thành array và sort giảm dần
         let leaderboard = Object.values(data).sort((a, b) => b.points - a.points);
         renderTable(leaderboard);
       } else {
-        document.querySelector('#leaderboard-table tbody').innerHTML = "<tr><td colspan='4' class='loading-text'>No warriors found.</td></tr>";
+        document.querySelector('#leaderboard-table tbody').innerHTML = "<tr><td colspan='4' class='loading-text'>No warriors found.<\/td><\/tr>";
       }
     } catch (error) {
       console.error(error);
-      document.querySelector('#leaderboard-table tbody').innerHTML = `<tr><td colspan='4' class='error-text'>Server Error</td></tr>`;
+      document.querySelector('#leaderboard-table tbody').innerHTML = "<tr><td colspan='4' class='error-text'>Server Error<\/td><\/tr>";
     }
   }
 
@@ -171,3 +170,50 @@
     let html = '';
     users.forEach((user, index) => {
       let rank = index + 1;
+      let name = user.name || "Unknown Hero";
+      let points = user.points ? user.points.toLocaleString() : 0;
+      
+      const classes = ['Warrior', 'Mage', 'Archer'];
+      let userClass = user.class || classes[Math.floor(Math.random() * classes.length)];
+      let classCss = 'class-' + userClass.toLowerCase();
+
+      let rankDisplay = `<span class="rank-num">#${rank}</span>`;
+      let rewardText = "";
+
+      if (rank === 1) { 
+        rankDisplay = '<span class="rank-icon">🥇</span>'; 
+        rewardText = '<br><span style="font-size:10px; color:#ffd700;">+50k Gold</span>';
+      }
+      else if (rank === 2) {
+        rankDisplay = '<span class="rank-icon">🥈</span>';
+        rewardText = '<br><span style="font-size:10px; color:#c0c0c0;">+20k Gold</span>';
+      }
+      else if (rank === 3) {
+        rankDisplay = '<span class="rank-icon">🥉</span>';
+        rewardText = '<br><span style="font-size:10px; color:#cd7f32;">+10k Gold</span>';
+      }
+      
+      html += `
+        <tr class="rank-${rank}">
+          <td>${rankDisplay}</td>
+          <td style="font-weight:bold;">${name} ${rewardText}</td>
+          <td class="${classCss}">${userClass.toUpperCase()}</td>
+          <td>${points} pts</td>
+        <\/tr>
+      `;
+    });
+    document.querySelector('#leaderboard-table tbody').innerHTML = html;
+  }
+  
+  loadLeaderboard();
+</script>
+
+{% schema %}
+{
+  "name": "Leaderboard God Mode V7",
+  "tag": "section",
+  "class": "section",
+  "settings": [],
+  "presets": [{ "name": "Leaderboard God Mode V7" }]
+}
+{% endschema %}
