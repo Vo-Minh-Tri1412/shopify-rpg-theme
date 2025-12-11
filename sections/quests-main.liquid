@@ -197,18 +197,12 @@
 </style>
 
 <script>
-  // Customer-specific storage keys
-  {% if customer %}
-    const QUEST_CUSTOMER_ID = {{ customer.id }};
-  {% else %}
-    const QUEST_CUSTOMER_ID = null;
-  {% endif %}
-  const QUEST_KEY_PREFIX = QUEST_CUSTOMER_ID ? `rpg_${QUEST_CUSTOMER_ID}_` : 'rpg_guest_';
-  const QUEST_KEY_AP = QUEST_KEY_PREFIX + 'activity_points';
-  const QUEST_KEY_STREAK = QUEST_KEY_PREFIX + 'streak';
-  const QUEST_KEY_STREAK_CLAIMED = QUEST_KEY_PREFIX + 'streak_claimed';
-  const QUEST_KEY_TREASURE = QUEST_KEY_PREFIX + 'treasure_found';
-  const QUEST_KEY_CODES = QUEST_KEY_PREFIX + 'my_codes';
+  // Simple storage keys
+  const QUEST_KEY_AP = 'rpg_activity_points';
+  const QUEST_KEY_STREAK = 'rpg_streak';
+  const QUEST_KEY_STREAK_CLAIMED = 'rpg_streak_claimed';
+  const QUEST_KEY_TREASURE = 'rpg_treasure_found';
+  const QUEST_KEY_CODES = 'rpg_my_codes';
   
   document.addEventListener("DOMContentLoaded", function() {
     {% if customer %}
@@ -278,7 +272,7 @@
   }
   
   function claimAPReward(questId, apAmount, btnElement) {
-    const claimedKey = QUEST_KEY_PREFIX + 'quest_claimed_' + questId;
+    const claimedKey = 'rpg_quest_claimed_' + questId;
     if (localStorage.getItem(claimedKey)) {
       alert('You have already claimed this reward!');
       return;
@@ -292,7 +286,7 @@
     
     const hudAP = document.getElementById('hud-ap-display');
     if (hudAP) {
-      hudAP.innerText = newAP + ' AP 🛒';
+      hudAP.innerText = '⚡ ' + newAP + ' AP';
       hudAP.style.display = 'block';
     }
     

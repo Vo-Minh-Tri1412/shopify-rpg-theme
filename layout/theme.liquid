@@ -472,42 +472,19 @@
 
     <!-- 4. CLASS SELECTION MODAL -->
     <div id="class-selection-modal">
-      {% if customer %}
-        <!-- LOGGED IN: Show class selection -->
-        <h1 style="color: #fff; font-size: 2.5rem; letter-spacing: 3px;">CHOOSE YOUR CLASS</h1>
-        <p style="color: #888;">Your journey begins here, <span style="color: var(--rpg-gold);">{{ customer.first_name | default: 'Adventurer' }}</span></p>
-        <div class="class-grid">
-          <div class="class-card" style="--hover-color: #ff4d4d;" onclick="selectRPGClass('Warrior', '#ff4d4d')">
-            <span class="class-img">⚔️</span><div class="class-title">WARRIOR</div><p class="class-desc">Strength & Melee</p>
-          </div>
-          <div class="class-card" style="--hover-color: #a335ee;" onclick="selectRPGClass('Mage', '#a335ee')">
-            <span class="class-img">🔮</span><div class="class-title">MAGE</div><p class="class-desc">Magic & Intelligence</p>
-          </div>
-          <div class="class-card" style="--hover-color: #2ecc71;" onclick="selectRPGClass('Archer', '#2ecc71')">
-            <span class="class-img">🏹</span><div class="class-title">ARCHER</div><p class="class-desc">Speed & Precision</p>
-          </div>
+      <h1 style="color: #fff; font-size: 2.5rem; letter-spacing: 3px;">CHOOSE YOUR CLASS</h1>
+      <p style="color: #888;">Your journey begins here{% if customer %}, <span style="color: var(--rpg-gold);">{{ customer.first_name | default: 'Adventurer' }}</span>{% endif %}</p>
+      <div class="class-grid">
+        <div class="class-card" style="--hover-color: #ff4d4d;" onclick="selectRPGClass('Warrior', '#ff4d4d')">
+          <span class="class-img">⚔️</span><div class="class-title">WARRIOR</div><p class="class-desc">Strength & Melee</p>
         </div>
-      {% else %}
-        <!-- NOT LOGGED IN: Show login prompt -->
-        <div style="text-align: center; padding: 40px;">
-          <div style="font-size: 80px; margin-bottom: 20px;">🔐</div>
-          <h1 style="color: #fff; font-size: 2rem; letter-spacing: 2px; margin-bottom: 10px;">LOGIN REQUIRED</h1>
-          <p style="color: #888; font-size: 14px; margin-bottom: 30px; max-width: 400px; margin-left: auto; margin-right: auto;">
-            You must login to choose your class and save your RPG progress. Your class, VIP rank, and rewards will be linked to your account.
-          </p>
-          <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
-            <a href="/account/login?return_url=/" class="rpg-btn-primary" style="padding: 15px 40px; font-size: 16px; text-decoration: none;">
-              🔑 LOGIN
-            </a>
-            <a href="/account/register?return_url=/" class="rpg-btn-secondary" style="padding: 15px 40px; font-size: 16px; text-decoration: none;">
-              ✨ CREATE ACCOUNT
-            </a>
-          </div>
-          <p style="color: #666; font-size: 12px; margin-top: 30px;">
-            Already have a class? Login to access your saved progress.
-          </p>
+        <div class="class-card" style="--hover-color: #a335ee;" onclick="selectRPGClass('Mage', '#a335ee')">
+          <span class="class-img">🔮</span><div class="class-title">MAGE</div><p class="class-desc">Magic & Intelligence</p>
         </div>
-      {% endif %}
+        <div class="class-card" style="--hover-color: #2ecc71;" onclick="selectRPGClass('Archer', '#2ecc71')">
+          <span class="class-img">🏹</span><div class="class-title">ARCHER</div><p class="class-desc">Speed & Precision</p>
+        </div>
+      </div>
     </div>
 
     <!-- 5. DAILY REWARD MODAL -->
@@ -632,23 +609,23 @@
         {d:7, val: 'Cheap Product', type:'code', label:'GIFTCODE'}
       ];
       
-      // Customer ID for data storage (null if not logged in)
+      // Check if customer is logged in
       {% if customer %}
-        const CUSTOMER_ID = {{ customer.id }};
         const IS_LOGGED_IN = true;
+        const CUSTOMER_EMAIL = "{{ customer.email }}";
       {% else %}
-        const CUSTOMER_ID = null;
         const IS_LOGGED_IN = false;
+        const CUSTOMER_EMAIL = null;
       {% endif %}
       
-      // Storage keys (prefixed with customer ID for multi-account support)
-      const KEY_PREFIX = CUSTOMER_ID ? `rpg_${CUSTOMER_ID}_` : 'rpg_guest_';
-      const KEY_DAY = KEY_PREFIX + 'daily_day';
-      const KEY_TIME = KEY_PREFIX + 'daily_time';
-      const KEY_AP = KEY_PREFIX + 'activity_points'; // Store AP points
-      const KEY_INVENTORY = KEY_PREFIX + 'discount_codes'; // Store discount codes
-      const KEY_CLASS = KEY_PREFIX + 'class_name';
-      const KEY_COLOR = KEY_PREFIX + 'class_color';
+      // Simple storage keys (same for all users on this browser)
+      const KEY_DAY = 'rpg_daily_day';
+      const KEY_TIME = 'rpg_daily_time';
+      const KEY_AP = 'rpg_activity_points';
+      const KEY_INVENTORY = 'rpg_discount_codes';
+      const KEY_CLASS = 'rpg_class_name';
+      const KEY_COLOR = 'rpg_class_color';
+      const KEY_GOLD = 'rpg_gold';
 
       // Temp variable for current opening lootbox
       let currentOpeningLootbox = null;
@@ -659,54 +636,25 @@
         // Update debug panel
         const debugEl = document.getElementById('debug-js');
         if (debugEl) {
-          debugEl.innerHTML = `JS OK! | CUSTOMER_ID: ${CUSTOMER_ID} | KEY_CLASS: ${KEY_CLASS} | Saved: ${localStorage.getItem(KEY_CLASS) || 'none'}`;
+          debugEl.innerHTML = `JS OK! | Logged: ${IS_LOGGED_IN} | Class: ${localStorage.getItem(KEY_CLASS) || 'none'}`;
         }
         
         try {
-          // Migrate guest data to customer account if just logged in
-          if (IS_LOGGED_IN) {
-            migrateGuestData();
-          }
-          
           initRPGSystem();
           checkRewardStatus();
           setInterval(checkRewardStatus, 1000);
           updateInventoryCount(); // Update inventory count
         } catch(e) {
           console.error('[RPG Debug] Error in init:', e);
+          const debugEl = document.getElementById('debug-js');
           if (debugEl) debugEl.innerHTML = `ERROR: ${e.message}`;
         }
       });
-      
-      // Migrate data from guest storage to customer storage
-      function migrateGuestData() {
-        const GUEST_PREFIX = 'rpg_guest_';
-        const guestClass = localStorage.getItem(GUEST_PREFIX + 'class_name');
-        
-        // Only migrate if guest has data AND customer doesn't have class yet
-        if (guestClass && !localStorage.getItem(KEY_CLASS)) {
-          console.log('[RPG Debug] Migrating guest data to customer account...');
-          
-          // List of keys to migrate
-          const keysToMigrate = ['class_name', 'class_color', 'activity_points', 'discount_codes', 'gold', 'lootboxes', 'daily_day', 'daily_time'];
-          
-          keysToMigrate.forEach(key => {
-            const guestValue = localStorage.getItem(GUEST_PREFIX + key);
-            if (guestValue) {
-              localStorage.setItem(KEY_PREFIX + key, guestValue);
-              localStorage.removeItem(GUEST_PREFIX + key); // Clean up guest data
-              console.log('[RPG Debug] Migrated:', key);
-            }
-          });
-          
-          showCustomAlert('✅', 'DATA SYNCED!', 'Your guest progress has been saved to your account!');
-        }
-      }
 
       function initRPGSystem() {
-        console.log('[RPG Debug] Customer ID:', CUSTOMER_ID, 'Logged in:', IS_LOGGED_IN);
+        console.log('[RPG Debug] Logged in:', IS_LOGGED_IN);
         
-        // Read class from customer-specific storage
+        // Read class from storage
         const savedClass = localStorage.getItem(KEY_CLASS);
         const savedColor = localStorage.getItem(KEY_COLOR);
         
@@ -729,20 +677,14 @@
       }
 
       function selectRPGClass(className, colorHex) {
-        // Require login to select class
-        if (!IS_LOGGED_IN) {
-          showCustomAlert('🔐', 'LOGIN REQUIRED', 'Please login to select and save your class.');
-          return;
-        }
-        
-        // Save to customer-specific storage
+        // Save class to localStorage
         localStorage.setItem(KEY_CLASS, className);
         localStorage.setItem(KEY_COLOR, colorHex);
         document.getElementById('class-selection-modal').style.display = 'none';
         document.body.style.overflow = 'auto';
         
         // SHOW WELCOME MODAL
-        showCustomAlert('👋', 'WELCOME!', `You have joined the ${className} class. Your progress is saved to your account.`);
+        showCustomAlert('👋', 'WELCOME!', `You have joined the ${className} class!`);
         
         setTimeout(() => location.reload(), 2000); // Reload after 2s
       }
@@ -763,7 +705,7 @@
         if (className === 'Warrior') codeText.innerText = 'WARRIOR_VIP';
         else if (className === 'Mage') codeText.innerText = 'MAGE_VIP';
         else if (className === 'Archer') codeText.innerText = 'ARCHER_VIP';
-        codeBox.style.display = IS_LOGGED_IN ? 'inline-block' : 'none'; // Only show code for logged-in users
+        codeBox.style.display = 'inline-block';
       }
 
       // --- VIP RANK CALCULATION LOGIC (VIP 1 - 5) ---
@@ -808,7 +750,6 @@
       
       // Update Gold display in HUD
       function updateGoldDisplay() {
-        const KEY_GOLD = KEY_PREFIX + 'gold';
         const gold = parseInt(localStorage.getItem(KEY_GOLD) || 0);
         const goldEl = document.getElementById('hud-gold-display');
         if (goldEl) goldEl.innerText = gold.toLocaleString();
@@ -1014,13 +955,6 @@
       
       // Initialize default discounts based on VIP and Class
       function initializeDefaultDiscounts() {
-        // Only initialize for logged-in users
-        if (!IS_LOGGED_IN) {
-          console.log('[RPG Debug] Not logged in - skipping discount initialization');
-          updateInventoryCount();
-          return;
-        }
-        
         const savedClass = localStorage.getItem(KEY_CLASS);
         
         // Add Class discount if class is selected

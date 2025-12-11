@@ -445,15 +445,9 @@
 </style>
 
 <script>
-  // Customer-specific keys
-  {% if customer %}
-    const GOLD_CUSTOMER_ID = {{ customer.id }};
-  {% else %}
-    const GOLD_CUSTOMER_ID = null;
-  {% endif %}
-  const GOLD_KEY_PREFIX = GOLD_CUSTOMER_ID ? `rpg_${GOLD_CUSTOMER_ID}_` : 'rpg_guest_';
-  const KEY_GOLD = GOLD_KEY_PREFIX + 'gold';
-  const KEY_LOOTBOXES = GOLD_KEY_PREFIX + 'lootboxes';
+  // Simple storage keys
+  const KEY_GOLD = 'rpg_gold';
+  const KEY_LOOTBOXES = 'rpg_lootboxes';
   
   // Lootbox types available for purchase
   const LOOTBOX_TYPES = [
@@ -675,9 +669,8 @@
       document.getElementById('lb-prize-code').style.display = 'none';
       
       // Add AP
-      const KEY_AP = GOLD_KEY_PREFIX + 'activity_points';
-      const currentAP = parseInt(localStorage.getItem(KEY_AP) || 0);
-      localStorage.setItem(KEY_AP, currentAP + currentPrize.ap);
+      const currentAP = parseInt(localStorage.getItem('rpg_activity_points') || 0);
+      localStorage.setItem('rpg_activity_points', currentAP + currentPrize.ap);
     } else if (currentPrize.gold) {
       document.getElementById('lb-prize-desc').innerText = `+${currentPrize.gold} Gold added to your balance!`;
       document.getElementById('lb-prize-code').style.display = 'none';
