@@ -1,6 +1,5 @@
 {% comment %} 
-  V6 GOD MODE: Sử dụng kỹ thuật 100vw + Transform để ép Full màn hình
-  kết hợp Script chặn thanh cuộn ngang.
+  V7 GOD MODE: Full Width + Class + Reward + Countdown
 {% endcomment %}
 
 <!-- Container chính -->
@@ -8,20 +7,27 @@
   <div class="leaderboard-inner-content">
     
     <div class="header-wrapper">
-      <h2 class="leaderboard-title">🏆 TOP LOYAL CUSTOMERS 🏆</h2>
-      <p class="leaderboard-subtitle">Weekly Leaderboard</p>
+      <h2 class="leaderboard-title">🏆 LEGENDARY RANKING 🏆</h2>
+      <p class="leaderboard-subtitle">Season ends in: <span id="season-countdown" style="color:#ff4d4d; font-weight:bold;">Loading...</span></p>
+      
+      <div class="reward-info">
+        <span>🥇 Top 1: <b style="color:#ffd700">50,000 Gold</b></span> • 
+        <span>🥈 Top 2: <b style="color:#c0c0c0">20,000 Gold</b></span> • 
+        <span>🥉 Top 3: <b style="color:#cd7f32">10,000 Gold</b></span>
+      </div>
     </div>
     
     <table id="leaderboard-table">
       <thead>
         <tr>
           <th style="width: 15%;">RANK</th>
-          <th style="width: 55%;">NAME</th>
+          <th style="width: 35%;">NAME</th>
+          <th style="width: 20%;">CLASS</th>
           <th style="width: 30%;">POINTS</th>
         </tr>
       </thead>
       <tbody>
-        <tr><td colspan="3" class="loading-text">Loading Data...</td></tr>
+        <tr><td colspan="4" class="loading-text">Summoning Data...</td></tr>
       </tbody>
     </table>
 
@@ -29,43 +35,43 @@
 </div>
 
 <style>
-  /* 1. KỸ THUẬT PHÁ VỠ GIỚI HẠN (BREAKOUT) */
+  /* 1. LAYOUT FULL WIDTH */
   .leaderboard-god-mode-wrapper {
-    /* Ép chiều rộng bằng đúng chiều rộng màn hình thiết bị */
     width: 100vw !important; 
-    
-    /* Căn giữa tuyệt đối dựa trên màn hình, không dựa trên theme */
     position: relative !important;
     left: 50% !important;
     transform: translateX(-50%) !important;
-    margin-left: 0 !important;
-    margin-right: 0 !important;
-    
-    background-color: #000000;
+    background-color: #0a0a0c;
     color: #ffffff;
     padding: 60px 0;
+    font-family: 'Cinzel', serif; /* Font game */
   }
 
-  /* 2. NỘI DUNG BÊN TRONG */
   .leaderboard-inner-content {
-    max-width: 900px;
+    max-width: 1000px;
     margin: 0 auto;
     padding: 0 20px;
     text-align: center;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   }
 
-  /* 3. STYLE GIAO DIỆN (GIỮ NGUYÊN) */
   .leaderboard-title {
     color: #FFD700; 
-    font-size: 2.2rem;
+    font-size: 2.5rem;
     font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 2px;
+    text-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
     margin: 0;
-    line-height: 1.3;
   }
-  .leaderboard-subtitle { color: #888; text-transform: uppercase; margin-top: 10px; letter-spacing: 1px; }
+  .leaderboard-subtitle { color: #aaa; margin-top: 10px; font-family: sans-serif; font-size: 14px; }
+  
+  .reward-info {
+    margin-top: 15px;
+    padding: 10px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid #333;
+    display: inline-block;
+    border-radius: 50px;
+    font-size: 13px;
+  }
 
   table { 
     width: 100%; 
@@ -73,57 +79,62 @@
     border-spacing: 0;
     background-color: #111; 
     border-radius: 12px;
-    border: 1px solid #333;
+    border: 2px solid #333;
     overflow: hidden;
-    margin-top: 30px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    margin-top: 40px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.6);
   }
 
-  th { background-color: #222; color: #fff; padding: 18px; border-bottom: 2px solid #444; text-align: center; }
-  td { padding: 15px; border-bottom: 1px solid #333; color: #ddd; text-align: center; }
-  tr:last-child td { border-bottom: none; }
+  th { background-color: #1a1a1a; color: #888; padding: 20px; border-bottom: 2px solid #444; font-size: 12px; letter-spacing: 2px; }
+  td { padding: 18px; border-bottom: 1px solid #222; color: #ddd; text-align: center; font-family: sans-serif; font-weight: 500; }
+  
+  /* Class Colors */
+  .class-warrior { color: #ff4d4d !important; font-weight: bold; }
+  .class-mage { color: #a335ee !important; font-weight: bold; }
+  .class-archer { color: #2ecc71 !important; font-weight: bold; }
 
-  /* MÀU TOP 3 */
-  tr.rank-1 td { color: #FFD700; font-weight: bold; background: rgba(255, 215, 0, 0.15); }
-  tr.rank-2 td { color: #E0E0E0; font-weight: bold; background: rgba(255, 255, 255, 0.1); }
-  tr.rank-3 td { color: #CD7F32; font-weight: bold; background: rgba(205, 127, 50, 0.15); }
+  /* Top 3 Styles */
+  tr.rank-1 td { background: linear-gradient(90deg, rgba(255,215,0,0.1), transparent); border-bottom: 1px solid #ffd700; color: #fff; }
+  tr.rank-1 .rank-icon { font-size: 1.5em; text-shadow: 0 0 10px gold; }
+  
+  tr.rank-2 td { background: linear-gradient(90deg, rgba(255,255,255,0.05), transparent); }
+  tr.rank-3 td { background: linear-gradient(90deg, rgba(205,127,50,0.05), transparent); }
 
-  .loading-text { font-style: italic; color: #666; padding: 40px; }
-  .error-text { color: #ff4d4d; padding: 20px; font-weight: bold; }
+  .loading-text { font-style: italic; color: #666; padding: 50px; }
 </style>
 
 <script>
-  // --- JS FIX THANH CUỘN NGANG (SCROLLBAR FIX) ---
-  // Khi dùng 100vw, Windows sẽ hiện thanh cuộn ngang. Script này sẽ chặn nó.
+  // --- COUNTDOWN LOGIC (Reset Chủ Nhật) ---
+  function updateTimer() {
+    const now = new Date();
+    const nextSunday = new Date();
+    nextSunday.setDate(now.getDate() + (7 - now.getDay()) % 7);
+    nextSunday.setHours(23, 59, 59, 0); // 23:59:59 Chủ nhật
+
+    const diff = nextSunday - now;
+    if (diff <= 0) {
+      document.getElementById('season-countdown').innerText = "SEASON ENDED";
+      return;
+    }
+
+    const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    
+    document.getElementById('season-countdown').innerText = `${d}d ${h}h ${m}m`;
+  }
+  setInterval(updateTimer, 60000); // Update mỗi phút
+  updateTimer();
+
+  // --- PREVENT SCROLL ---
   function preventHorizontalScroll() {
-    // Ép body và html không được cuộn ngang
     document.documentElement.style.overflowX = 'hidden';
     document.body.style.overflowX = 'hidden';
-    
-    // Tìm section cha của Shopify và reset padding/margin nếu có
-    const wrapper = document.querySelector('.leaderboard-god-mode-wrapper');
-    if(wrapper) {
-      let parent = wrapper.parentElement;
-      // Leo lên 3 cấp để đảm bảo xóa hết padding của theme
-      for(let i=0; i<3; i++) {
-        if(parent) {
-          parent.style.padding = '0';
-          parent.style.margin = '0';
-          parent.style.maxWidth = 'none';
-          parent.style.width = '100%';
-          parent = parent.parentElement;
-        }
-      }
-    }
   }
-
   window.addEventListener('load', preventHorizontalScroll);
-  window.addEventListener('resize', preventHorizontalScroll);
-  setTimeout(preventHorizontalScroll, 100);
 </script>
 
 <script type="module">
-  // --- FIREBASE LOGIC ---
   import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
   import { getDatabase, ref, query, orderByChild, limitToLast, get } 
     from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
@@ -132,10 +143,6 @@
     apiKey: "AIzaSyBOg7VD7SdFREtVqqBtRcKiGYe-aMUY4mc",
     authDomain: "shopify-e88b6.firebaseapp.com",
     projectId: "shopify-e88b6",
-    storageBucket: "shopify-e88b6.firebasestorage.app",
-    messagingSenderId: "866420293794",
-    appId: "1:866420293794:web:79805088b41cee137697fb",
-    measurementId: "G-S8VH3MGBRQ",
     databaseURL: "https://shopify-e88b6-default-rtdb.asia-southeast1.firebasedatabase.app/" 
   };
 
@@ -143,25 +150,20 @@
   const db = getDatabase(app);
 
   async function loadLeaderboard() {
-    // Chạy lại fix layout trước khi tải
-    if(window.preventHorizontalScroll) window.preventHorizontalScroll();
-
     const usersRef = query(ref(db, 'users'), orderByChild('points'), limitToLast(10));
     try {
       const snapshot = await get(usersRef);
       if (snapshot.exists()) {
         const data = snapshot.val();
+        // Chuyển object thành array và sort giảm dần
         let leaderboard = Object.values(data).sort((a, b) => b.points - a.points);
         renderTable(leaderboard);
       } else {
-        document.querySelector('#leaderboard-table tbody').innerHTML = "<tr><td colspan='3' class='loading-text'>No data found.</td></tr>";
+        document.querySelector('#leaderboard-table tbody').innerHTML = "<tr><td colspan='4' class='loading-text'>No warriors found.</td></tr>";
       }
     } catch (error) {
       console.error(error);
-      let msg = "Connection Error.";
-      if(error.message && error.message.includes("Index not defined")) msg = "⚠️ ERROR: Index not defined (Check Firebase Rules)";
-      else if(error.code === "permission_denied") msg = "⚠️ ACCESS DENIED (Check Firebase Rules)";
-      document.querySelector('#leaderboard-table tbody').innerHTML = `<tr><td colspan='3' class='error-text'>${msg}</td></tr>`;
+      document.querySelector('#leaderboard-table tbody').innerHTML = `<tr><td colspan='4' class='error-text'>Server Error</td></tr>`;
     }
   }
 
@@ -169,37 +171,3 @@
     let html = '';
     users.forEach((user, index) => {
       let rank = index + 1;
-      let name = user.name || "Anonymous";
-      
-      let rankIcon = rank;
-      if (rank === 1) rankIcon = '🥇 1st';
-      else if (rank === 2) rankIcon = '🥈 2nd';
-      else if (rank === 3) rankIcon = '🥉 3rd';
-      
-      html += `
-        <tr class="rank-${rank}">
-          <td>${rankIcon}</td>
-          <td>${name}</td>
-          <td>${user.points ? user.points.toLocaleString() : 0}</td>
-        </tr>
-      `;
-    });
-    document.querySelector('#leaderboard-table tbody').innerHTML = html;
-  }
-  
-  loadLeaderboard();
-</script>
-
-{% schema %}
-{
-  "name": "Leaderboard God Mode",
-  "tag": "section",
-  "class": "section",
-  "settings": [],
-  "presets": [
-    {
-      "name": "Leaderboard God Mode"
-    }
-  ]
-}
-{% endschema %}
