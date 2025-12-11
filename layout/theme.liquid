@@ -421,9 +421,9 @@
           🛍️ <span class="mobile-hide">Shop</span>
         </a>
         
-        <!-- ICON INVENTORY -->
-        <div class="hud-inventory-btn" onclick="openInventory()" title="Inventory">
-          🎒
+        <!-- ICON DISCOUNT CODES -->
+        <div class="hud-inventory-btn" onclick="openInventory()" title="My Discount Codes">
+          🎟️
           <span class="inventory-count" id="inventory-count">0</span>
         </div>
         
@@ -492,14 +492,14 @@
       </div>
     </div>
 
-    <!-- 6. INVENTORY MODAL -->
+    <!-- 6. INVENTORY MODAL - DISCOUNT CODES -->
     <div id="inventory-modal" class="rpg-modal-overlay">
-      <div class="rpg-modal-box" style="width: 450px; max-width: 95vw;">
+      <div class="rpg-modal-box" style="width: 500px; max-width: 95vw;">
         <span onclick="closeModal('inventory-modal')" style="position:absolute; top:10px; right:15px; cursor:pointer; font-size:20px; color:#888;">✕</span>
-        <h3 style="color:#ffd700; margin-top:0;">🎒 INVENTORY</h3>
-        <p style="font-size:12px; color:#aaa; margin-bottom:20px;">Unopened lootboxes will appear here</p>
+        <h3 style="color:#ffd700; margin-top:0;">🎟️ MY DISCOUNT CODES</h3>
+        <p style="font-size:12px; color:#aaa; margin-bottom:20px;">Your VIP, Class & Earned discount codes</p>
         
-        <div id="inventory-items" style="max-height: 300px; overflow-y: auto;">
+        <div id="inventory-items" style="max-height: 350px; overflow-y: auto;">
           <p style="color:#666; font-style:italic;">Inventory empty...</p>
         </div>
       </div>
@@ -636,6 +636,7 @@
         // TÍNH VIP RANK VÀ HIỂN THỊ AP
         calculateVipRank();
         updateAPDisplay();
+        initializeDefaultDiscounts(); // Initialize discount codes
       }
 
       function selectRPGClass(className, colorHex) {
@@ -797,20 +798,22 @@
       }
 
       // ==========================================
-      // INVENTORY (TÚI ĐỒ) - LOOTBOX SYSTEM
+      // DISCOUNT CODES INVENTORY SYSTEM
       // ==========================================
       
-      function getInventory() {
-        return JSON.parse(localStorage.getItem(KEY_INVENTORY) || '[]');
+      const KEY_DISCOUNTS = 'rpg_discount_codes';
+      
+      function getDiscountInventory() {
+        return JSON.parse(localStorage.getItem(KEY_DISCOUNTS) || '[]');
       }
       
-      function saveInventory(items) {
-        localStorage.setItem(KEY_INVENTORY, JSON.stringify(items));
+      function saveDiscountInventory(items) {
+        localStorage.setItem(KEY_DISCOUNTS, JSON.stringify(items));
         updateInventoryCount();
       }
       
       function updateInventoryCount() {
-        const items = getInventory();
+        const items = getDiscountInventory();
         const countEl = document.getElementById('inventory-count');
         if (countEl) {
           countEl.innerText = items.length;
@@ -818,80 +821,134 @@
         }
       }
       
-      // Add lootbox to inventory (called from product.lootbox page)
-      function addLootboxToInventory(lootboxData) {
-        const items = getInventory();
+      // Add discount code to inventory
+      function addDiscountToInventory(discountData) {
+        const items = getDiscountInventory();
+        // Check if code already exists
+        if (items.some(item => item.code === discountData.code)) {
+          console.log('Discount code already in inventory:', discountData.code);
+          return false;
+        }
         const newItem = {
           id: Date.now(),
-          name: lootboxData.name || 'Mystery Lootbox',
-          image: lootboxData.image || '',
-          variantId: lootboxData.variantId,
-          lootTable: lootboxData.lootTable || [],
-          addedAt: new Date().toISOString()
+          name: discountData.name || 'Discount Code',
+          code: discountData.code,
+          type: discountData.type || 'general', // vip, class, quest, shop, daily
+          discount: discountData.discount || '???',
+          icon: discountData.icon || '🎟️',
+          addedAt: new Date().toISOString(),
+          expiresAt: discountData.expiresAt || null
         };
         items.push(newItem);
-        saveInventory(items);
-        showCustomAlert('🎒', 'ADDED TO INVENTORY', `${newItem.name} has been added to your inventory. Open your inventory to unbox!`);
+        saveDiscountInventory(items);
+        return true;
+      }
+      
+      // Remove discount from inventory (after use)
+      function removeDiscountFromInventory(code) {
+        let items = getDiscountInventory();
+        items = items.filter(item => item.code !== code);
+        saveDiscountInventory(items);
       }
       
       // Open inventory modal
       function openInventory() {
-        const items = getInventory();
+        const items = getDiscountInventory();
         const container = document.getElementById('inventory-items');
         
         if (items.length === 0) {
-          container.innerHTML = '<p style="color:#666; font-style:italic; text-align:center; padding:30px 0;">Inventory empty...<br><small>Buy lootbox to receive here!</small></p>';
+          container.innerHTML = '<p style="color:#666; font-style:italic; text-align:center; padding:30px 0;">No discount codes yet...<br><small>Earn codes from VIP, Class bonuses, Quests & AP Shop!</small></p>';
         } else {
           let html = '';
-          items.forEach((item, index) => {
-            const date = new Date(item.addedAt).toLocaleDateString('en-US');
-            html += `
-              <div class="inv-item">
-                <img src="${item.image}" class="inv-item-img" alt="${item.name}">
-                <div class="inv-item-info">
-                  <div class="inv-item-name">${item.name}</div>
-                  <div class="inv-item-date">Received: ${date}</div>
-                </div>
-                <button class="inv-item-btn" onclick="openLootboxFromInventory(${index})">
-                  🎰 OPEN
-                </button>
-              </div>
-            `;
+          
+          // Group by type
+          const typeOrder = ['vip', 'class', 'quest', 'shop', 'daily', 'general'];
+          const typeLabels = {
+            vip: '👑 VIP REWARDS',
+            class: '⚔️ CLASS BONUSES', 
+            quest: '📜 QUEST REWARDS',
+            shop: '🛍️ AP SHOP',
+            daily: '🎁 DAILY REWARDS',
+            general: '🎟️ OTHER'
+          };
+          
+          typeOrder.forEach(type => {
+            const typeItems = items.filter(item => item.type === type);
+            if (typeItems.length > 0) {
+              html += '<div style="margin-bottom:15px;">';
+              html += '<div style="color:#888; font-size:11px; margin-bottom:8px; border-bottom:1px solid #333; padding-bottom:5px;">' + (typeLabels[type] || type.toUpperCase()) + '</div>';
+              
+              typeItems.forEach(item => {
+                const date = new Date(item.addedAt).toLocaleDateString('en-US');
+                html += '<div class="inv-item" style="cursor:pointer;" onclick="copyDiscountCode(\'' + item.code + '\')">';
+                html += '<div style="font-size:28px; min-width:40px; text-align:center;">' + item.icon + '</div>';
+                html += '<div class="inv-item-info">';
+                html += '<div class="inv-item-name">' + item.name + '</div>';
+                html += '<div style="color:var(--class-color); font-weight:bold; font-size:13px;">' + item.code + '</div>';
+                html += '<div class="inv-item-date">' + item.discount + ' • Added: ' + date + '</div>';
+                html += '</div>';
+                html += '<button class="inv-item-btn" style="background:#2ecc71;" onclick="event.stopPropagation(); copyDiscountCode(\'' + item.code + '\')">📋 COPY</button>';
+                html += '</div>';
+              });
+              html += '</div>';
+            }
           });
+          
           container.innerHTML = html;
         }
         
         document.getElementById('inventory-modal').style.display = 'flex';
       }
       
-      // Open lootbox from inventory - CONFIRM ONLY, NO RESULT SHOWN
-      function openLootboxFromInventory(index) {
-        const items = getInventory();
-        if (index >= items.length) return;
+      function copyDiscountCode(code) {
+        navigator.clipboard.writeText(code);
+        showCustomAlert('📋', 'CODE COPIED!', 'Code "' + code + '" copied to clipboard. Use at checkout!');
+      }
+      
+      // Initialize default discounts based on VIP and Class
+      function initializeDefaultDiscounts() {
+        const savedClass = localStorage.getItem('rpg_class_name');
         
-        currentOpeningLootbox = items[index];
-        currentOpeningLootbox.inventoryIndex = index;
-        closeModal('inventory-modal');
+        // Add Class discount if class is selected
+        if (savedClass) {
+          const classCode = savedClass.toUpperCase() + '_VIP';
+          addDiscountToInventory({
+            name: savedClass + ' Class Bonus',
+            code: classCode,
+            type: 'class',
+            discount: '5% OFF',
+            icon: savedClass === 'Warrior' ? '⚔️' : savedClass === 'Mage' ? '🔮' : '🏹'
+          });
+        }
         
-        // Show confirmation modal
-        const modal = document.getElementById('lootbox-open-modal');
-        const phaseShake = document.getElementById('lb-phase-shake');
-        const phaseResult = document.getElementById('lb-phase-result');
-        const boxImg = document.getElementById('lb-box-img');
+        // Add VIP discount based on VIP level (calculated from customer.total_spent)
+        {% if customer %}
+          {% assign customer_spent = customer.total_spent | divided_by: 100 %}
+          {% assign vip_level = 0 %}
+          {% if customer_spent >= 5000000 %}
+            {% assign vip_level = 5 %}
+          {% elsif customer_spent >= 3000000 %}
+            {% assign vip_level = 4 %}
+          {% elsif customer_spent >= 1500000 %}
+            {% assign vip_level = 3 %}
+          {% elsif customer_spent >= 700000 %}
+            {% assign vip_level = 2 %}
+          {% elsif customer_spent >= 500000 %}
+            {% assign vip_level = 1 %}
+          {% endif %}
+          
+          {% if vip_level > 0 %}
+            addDiscountToInventory({
+              name: 'VIP {{ vip_level }} Exclusive',
+              code: 'VIP{{ vip_level }}_DISCOUNT',
+              type: 'vip',
+              discount: '{{ vip_level | times: 3 }}% OFF',
+              icon: '👑'
+            });
+          {% endif %}
+        {% endif %}
         
-        // Reset UI - Show confirm, no random
-        modal.style.display = 'flex';
-        phaseShake.style.display = 'flex';
-        phaseResult.style.display = 'none';
-        boxImg.src = currentOpeningLootbox.image;
-        boxImg.classList.remove('shaking');
-        
-        // Update confirm text
-        document.getElementById('lb-confirm-text').innerHTML = `
-          <p style="font-size:18px; margin-bottom:10px;">🎁 <strong>${currentOpeningLootbox.name}</strong></p>
-          <p style="color:#aaa;">Are you sure you want to open this box?</p>
-          <p style="color:#ff9800; font-size:12px; margin-top:10px;">⚠️ Results will be randomly drawn AFTER payment!</p>
-        `;
+        updateInventoryCount();
       }
       
       function getWeightedRandomLoot(items) {

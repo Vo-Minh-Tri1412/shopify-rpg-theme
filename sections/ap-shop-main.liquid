@@ -89,8 +89,20 @@
     loadShopData();
     try { document.getElementById('hud-ap-display').innerText = `⚡ ${userAP} AP`; } catch(e) {}
     
+    // Add to Discount Inventory
+    if (typeof addDiscountToInventory === 'function') {
+      addDiscountToInventory({
+        name: selectedItem.name,
+        code: selectedItem.code,
+        type: 'shop',
+        discount: selectedItem.name.match(/\d+%/) ? selectedItem.name.match(/\d+%/)[0] + ' OFF' : 'Special',
+        icon: selectedItem.icon
+      });
+      updateInventoryCount();
+    }
+    
     document.getElementById('modal-title').innerText = "SUCCESS!";
-    document.getElementById('modal-msg').innerText = "Your Discount Code:";
+    document.getElementById('modal-msg').innerText = "Your Discount Code (also added to your Inventory):";
     const codeBox = document.getElementById('coupon-display');
     codeBox.style.display = 'block'; codeBox.innerText = selectedItem.code;
     document.getElementById('btn-confirm').style.display = 'none';
