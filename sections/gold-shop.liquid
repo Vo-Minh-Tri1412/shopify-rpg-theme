@@ -1,717 +1,172 @@
-{% comment %}
-  GOLD SHOP - Buy Gold Packs to spend on Lootboxes
-  Admin needs to create products with tags: gold_100, gold_500, gold_1000, etc.
-{% endcomment %}
-
-<div class="gold-shop-wrapper">
-  <!-- HEADER -->
+<!-- GLORY SHOP - SPEND LEADERBOARD GOLD -->
+<div class="glory-shop-wrapper">
   <div class="shop-header">
-    <h1 class="rpg-title">💰 GOLD EXCHANGE</h1>
-    <p class="rpg-sub">Purchase Gold to spend on Lootboxes and exclusive items!</p>
+    <h1 class="rpg-title">🏆 CỬA HÀNG DANH VỌNG</h1>
+    <p class="rpg-sub">Dùng GOLD từ Bảng Xếp Hạng để đổi lấy vật phẩm MIỄN PHÍ 100%</p>
     
     <div class="gold-balance-display">
-      <span class="gold-icon">🪙</span>
-      <span class="gold-amount" id="current-gold-balance">0</span>
-      <span class="gold-label">GOLD</span>
+      TÀI SẢN: <span id="user-gold-display" style="color:#ffd700; font-size:1.8em;">0</span> GOLD 🪙
     </div>
+    <p style="font-size:12px; color:#666; margin-top:5px;">(Gold được tổng kết từ Leaderboard hàng tuần)</p>
   </div>
 
-  <!-- GOLD PACKS -->
-  <div class="section-title">
-    <span>⬥</span> GOLD PACKS <span>⬥</span>
-  </div>
-  
-  <div class="gold-packs-grid">
-    {% comment %} 
-      TẠO SẢN PHẨM TRONG SHOPIFY VỚI CÁC TAG:
-      - gold_100 (100 Gold)
-      - gold_500 (500 Gold)  
-      - gold_1000 (1000 Gold)
-      - gold_2500 (2500 Gold)
-    {% endcomment %}
-    
-    <div class="gold-pack" data-gold="100">
-      <div class="pack-glow"></div>
-      <div class="pack-icon">🪙</div>
-      <div class="pack-amount">100 GOLD</div>
-      <div class="pack-bonus"></div>
-      <div class="pack-price">50,000₫</div>
-      <a href="/products/gold-pack-100" class="buy-gold-btn">BUY NOW</a>
-    </div>
-    
-    <div class="gold-pack featured" data-gold="500">
-      <div class="pack-badge">POPULAR</div>
-      <div class="pack-glow"></div>
-      <div class="pack-icon">💰</div>
-      <div class="pack-amount">500 GOLD</div>
-      <div class="pack-bonus">+50 Bonus!</div>
-      <div class="pack-price">200,000₫</div>
-      <a href="/products/gold-pack-500" class="buy-gold-btn">BUY NOW</a>
-    </div>
-    
-    <div class="gold-pack" data-gold="1000">
-      <div class="pack-glow"></div>
-      <div class="pack-icon">👝</div>
-      <div class="pack-amount">1,000 GOLD</div>
-      <div class="pack-bonus">+150 Bonus!</div>
-      <div class="pack-price">350,000₫</div>
-      <a href="/products/gold-pack-1000" class="buy-gold-btn">BUY NOW</a>
-    </div>
-    
-    <div class="gold-pack legendary" data-gold="2500">
-      <div class="pack-badge">BEST VALUE</div>
-      <div class="pack-glow"></div>
-      <div class="pack-icon">🏆</div>
-      <div class="pack-amount">2,500 GOLD</div>
-      <div class="pack-bonus">+500 Bonus!</div>
-      <div class="pack-price">750,000₫</div>
-      <a href="/products/gold-pack-2500" class="buy-gold-btn">BUY NOW</a>
-    </div>
-  </div>
-
-  <!-- LOOTBOX SHOP -->
-  <div class="section-title" style="margin-top: 60px;">
-    <span>⬥</span> LOOTBOX SHOP <span>⬥</span>
-  </div>
-  <p style="color: #888; margin-bottom: 30px;">Spend your Gold on mystery boxes!</p>
-  
-  <div class="lootbox-shop-grid" id="lootbox-grid">
-    <!-- Rendered by JS -->
-  </div>
-
-  <!-- INVENTORY -->
-  <div class="section-title" style="margin-top: 60px;">
-    <span>⬥</span> MY LOOTBOXES <span>⬥</span>
-  </div>
-  
-  <div class="lootbox-inventory" id="lootbox-inventory">
-    <p style="color:#666; font-style:italic;">No lootboxes yet. Buy some above!</p>
-  </div>
+  <!-- LƯỚI SẢN PHẨM -->
+  <div class="glory-grid" id="glory-grid-render"></div>
 </div>
 
-<!-- LOOTBOX OPEN MODAL -->
-<div id="lootbox-modal" class="lb-modal-overlay">
-  <div class="lb-modal-content">
-    <div id="lb-opening-phase">
-      <div class="lb-box-container">
-        <img id="lb-box-image" src="" alt="Lootbox" class="lb-box-shake">
-      </div>
-      <p style="color:#aaa; margin-top:20px;">Click to open!</p>
-      <button class="lb-open-btn" onclick="revealLootboxPrize()">🔓 OPEN BOX</button>
-      <button class="lb-cancel-btn" onclick="closeLootboxModal()">Cancel</button>
-    </div>
+<!-- MODAL XÁC NHẬN MUA -->
+<div id="glory-modal" class="rpg-modal-overlay">
+  <div class="rpg-modal-box">
+    <div style="font-size:50px; margin-bottom:10px;">👑</div>
+    <h3 id="modal-title" style="color:#ffd700">XÁC NHẬN ĐỔI</h3>
+    <p id="modal-msg" style="color:#ccc;">Bạn có muốn dùng Gold để đổi món này?</p>
     
-    <div id="lb-result-phase" style="display:none;">
-      <div class="lb-result-glow"></div>
-      <div class="lb-prize-icon" id="lb-prize-icon">🎁</div>
-      <h2 id="lb-prize-name" style="color:#ffd700; margin:20px 0;">Prize Name</h2>
-      <p id="lb-prize-desc" style="color:#aaa;">Description</p>
-      <div id="lb-prize-code" class="lb-code-box" style="display:none;" onclick="copyLBCode(this)">CODE</div>
-      <button class="lb-close-btn" onclick="closeLootboxModal()">COLLECT</button>
+    <!-- Code Box -->
+    <div id="glory-code-display" class="code-box" style="display:none;" onclick="copyGloryCode()">CODE</div>
+    
+    <div id="modal-actions" style="margin-top:20px;">
+      <button id="btn-confirm-glory" class="rpg-btn">ĐỔI NGAY</button>
+      <button onclick="closeGloryModal()" class="rpg-btn-secondary">ĐÓNG</button>
     </div>
   </div>
 </div>
 
 <style>
-  .gold-shop-wrapper {
-    background: #0a0a0c;
-    min-height: 100vh;
-    padding: 50px 20px;
-    font-family: 'Cinzel', serif;
-    text-align: center;
+  /* GIAO DIỆN SANG TRỌNG (Vàng + Đen) */
+  .glory-shop-wrapper {
+    background-color: #0a0a0c; 
+    background-image: radial-gradient(circle at 50% 0%, #2a1a00 0%, #000 80%);
+    color: #fff; padding: 60px 20px;
+    min-height: 100vh; font-family: 'Cinzel', serif; text-align: center;
   }
-  
-  .rpg-title {
-    color: #ffd700;
-    font-size: 2.5rem;
-    text-shadow: 0 0 20px rgba(255,215,0,0.5);
-    margin-bottom: 10px;
-  }
-  
-  .rpg-sub {
-    color: #888;
-    font-size: 1rem;
-    margin-bottom: 30px;
-  }
+  .rpg-title { color: #ffd700; text-shadow: 0 0 20px #ffd700; margin-bottom: 10px; font-size: 2.5rem; }
+  .rpg-sub { color: #aaa; margin-bottom: 30px; font-family: sans-serif; }
   
   .gold-balance-display {
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+    background: linear-gradient(90deg, #000, #332200, #000);
     border: 2px solid #ffd700;
-    padding: 15px 40px;
-    border-radius: 50px;
-    box-shadow: 0 0 30px rgba(255,215,0,0.2);
+    display: inline-block; padding: 15px 40px; border-radius: 4px;
+    font-weight: bold; font-size: 1.2em;
+    box-shadow: 0 0 30px rgba(255, 215, 0, 0.2);
   }
-  
-  .gold-icon { font-size: 30px; }
-  .gold-amount { font-size: 2rem; color: #ffd700; font-weight: bold; }
-  .gold-label { color: #888; font-size: 0.9rem; }
-  
-  .section-title {
-    color: #ffd700;
-    font-size: 1.3rem;
-    margin: 40px 0 20px 0;
-    letter-spacing: 3px;
+
+  .glory-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 30px; max-width: 1000px; margin: 50px auto;
   }
-  
-  .section-title span { color: #a335ee; }
-  
-  /* GOLD PACKS */
-  .gold-packs-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 20px;
-    max-width: 900px;
-    margin: 0 auto;
+
+  .glory-card {
+    background: #111; border: 1px solid #444; border-radius: 8px;
+    padding: 30px 20px; transition: 0.3s; position: relative;
+    display: flex; flex-direction: column; align-items: center;
   }
+  .glory-card:hover { transform: translateY(-10px); border-color: #ffd700; box-shadow: 0 0 25px rgba(255, 215, 0, 0.3); }
   
-  .gold-pack {
-    position: relative;
-    background: linear-gradient(180deg, #1a1a1a 0%, #111 100%);
-    border: 2px solid #333;
-    border-radius: 15px;
-    padding: 30px 20px;
-    transition: all 0.3s ease;
-    overflow: hidden;
+  .item-icon { font-size: 70px; margin-bottom: 20px; filter: drop-shadow(0 0 10px gold); }
+  .item-name { font-size: 1.4em; font-weight: bold; color: #fff; margin-bottom: 5px; }
+  .item-desc { font-size: 0.9em; color: #888; margin-bottom: 20px; min-height: 40px;}
+  .item-price { color: #ffd700; font-weight: bold; font-size: 1.2em; margin-bottom: 20px; display: block; border: 1px solid #ffd700; padding: 5px 15px; border-radius: 20px; }
+  
+  .buy-btn {
+    width: 100%; padding: 15px; background: linear-gradient(to bottom, #ffd700, #b8860b);
+    border: none; color: #000; font-weight: bold; cursor: pointer; text-transform: uppercase; font-family: 'Cinzel', serif; font-size: 1rem;
   }
-  
-  .gold-pack:hover {
-    transform: translateY(-5px);
-    border-color: #ffd700;
-    box-shadow: 0 10px 40px rgba(255,215,0,0.2);
-  }
-  
-  .gold-pack.featured {
-    border-color: #a335ee;
-    box-shadow: 0 0 20px rgba(163,53,238,0.3);
-  }
-  
-  .gold-pack.legendary {
-    border-color: #ff6b00;
-    background: linear-gradient(180deg, #2a1a0a 0%, #1a0a00 100%);
-    box-shadow: 0 0 20px rgba(255,107,0,0.3);
-  }
-  
-  .pack-badge {
-    position: absolute;
-    top: 10px;
-    right: -30px;
-    background: #a335ee;
-    color: #fff;
-    padding: 5px 40px;
-    font-size: 10px;
-    transform: rotate(45deg);
-    font-weight: bold;
-  }
-  
-  .gold-pack.legendary .pack-badge {
-    background: linear-gradient(90deg, #ff6b00, #ffd700);
-  }
-  
-  .pack-glow {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 100px;
-    height: 100px;
-    background: radial-gradient(circle, rgba(255,215,0,0.2) 0%, transparent 70%);
-    transform: translate(-50%, -50%);
-    pointer-events: none;
-  }
-  
-  .pack-icon { font-size: 50px; margin-bottom: 15px; }
-  .pack-amount { font-size: 1.3rem; color: #fff; font-weight: bold; margin-bottom: 5px; }
-  .pack-bonus { color: #2ecc71; font-size: 0.9rem; margin-bottom: 10px; min-height: 20px; }
-  .pack-price { color: #ffd700; font-size: 1.1rem; margin-bottom: 15px; }
-  
-  .buy-gold-btn {
-    display: inline-block;
-    background: linear-gradient(135deg, #ffd700 0%, #ffaa00 100%);
-    color: #000;
-    padding: 12px 30px;
-    border-radius: 25px;
-    text-decoration: none;
-    font-weight: bold;
-    font-size: 0.9rem;
-    transition: all 0.3s;
-  }
-  
-  .buy-gold-btn:hover {
-    transform: scale(1.05);
-    box-shadow: 0 5px 20px rgba(255,215,0,0.4);
-  }
-  
-  /* LOOTBOX SHOP */
-  .lootbox-shop-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 20px;
-    max-width: 800px;
-    margin: 0 auto;
-  }
-  
-  .lootbox-card {
-    background: #151515;
-    border: 2px solid #333;
-    border-radius: 12px;
-    padding: 25px 15px;
-    transition: all 0.3s;
-    cursor: pointer;
-  }
-  
-  .lootbox-card:hover {
-    border-color: var(--lb-color, #a335ee);
-    box-shadow: 0 0 25px var(--lb-color, rgba(163,53,238,0.3));
-    transform: translateY(-3px);
-  }
-  
-  .lootbox-card.disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-  
-  .lb-card-icon { font-size: 50px; margin-bottom: 10px; }
-  .lb-card-name { color: #fff; font-weight: bold; margin-bottom: 5px; }
-  .lb-card-price { color: #ffd700; font-size: 1.1rem; margin-bottom: 15px; }
-  
-  .lb-buy-btn {
-    background: #a335ee;
-    color: #fff;
-    border: none;
-    padding: 10px 25px;
-    border-radius: 20px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: all 0.3s;
-  }
-  
-  .lb-buy-btn:hover { background: #8e2de2; }
-  .lb-buy-btn.disabled { background: #333; color: #666; cursor: not-allowed; }
-  
-  /* LOOTBOX INVENTORY */
-  .lootbox-inventory {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 15px;
-    justify-content: center;
-    max-width: 800px;
-    margin: 20px auto;
-    padding: 20px;
-    background: rgba(255,255,255,0.02);
-    border: 1px dashed #333;
-    border-radius: 10px;
-    min-height: 100px;
-  }
-  
-  .inv-lootbox {
-    width: 80px;
-    height: 80px;
-    background: #1a1a1a;
-    border: 2px solid #444;
-    border-radius: 10px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.3s;
-  }
-  
-  .inv-lootbox:hover {
-    transform: scale(1.1);
-    border-color: #ffd700;
-    box-shadow: 0 0 15px rgba(255,215,0,0.3);
-  }
-  
-  .inv-lb-icon { font-size: 30px; }
-  .inv-lb-count { font-size: 10px; color: #888; margin-top: 5px; }
-  
-  /* MODAL */
-  .lb-modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.95);
-    z-index: 99999;
-    display: none;
-    justify-content: center;
-    align-items: center;
-  }
-  
-  .lb-modal-content {
-    background: #111;
-    border: 2px solid #ffd700;
-    border-radius: 20px;
-    padding: 40px;
-    text-align: center;
-    max-width: 400px;
-    width: 90%;
-    position: relative;
-  }
-  
-  .lb-box-container { position: relative; }
-  
-  .lb-box-shake {
-    width: 150px;
-    animation: boxShake 0.5s infinite;
-  }
-  
-  @keyframes boxShake {
-    0%, 100% { transform: rotate(-3deg); }
-    50% { transform: rotate(3deg); }
-  }
-  
-  .lb-open-btn {
-    background: linear-gradient(135deg, #ffd700, #ffaa00);
-    color: #000;
-    border: none;
-    padding: 15px 40px;
-    font-size: 1.1rem;
-    font-weight: bold;
-    border-radius: 30px;
-    cursor: pointer;
-    margin-top: 20px;
-    transition: all 0.3s;
-  }
-  
-  .lb-open-btn:hover { transform: scale(1.05); }
-  
-  .lb-cancel-btn {
-    background: transparent;
-    border: 1px solid #555;
-    color: #888;
-    padding: 10px 30px;
-    border-radius: 20px;
-    cursor: pointer;
-    margin-top: 10px;
-    margin-left: 10px;
-  }
-  
-  .lb-result-glow {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 200px;
-    height: 200px;
-    background: radial-gradient(circle, rgba(255,215,0,0.3) 0%, transparent 70%);
-    transform: translate(-50%, -50%);
-    animation: pulseGlow 2s infinite;
-  }
-  
-  @keyframes pulseGlow {
-    0%, 100% { opacity: 0.5; transform: translate(-50%, -50%) scale(1); }
-    50% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
-  }
-  
-  .lb-prize-icon {
-    font-size: 80px;
-    animation: prizeReveal 0.5s ease-out;
-  }
-  
-  @keyframes prizeReveal {
-    0% { transform: scale(0) rotate(-180deg); opacity: 0; }
-    100% { transform: scale(1) rotate(0deg); opacity: 1; }
-  }
-  
-  .lb-code-box {
-    background: #222;
-    border: 2px dashed #2ecc71;
-    padding: 15px 30px;
-    margin: 20px 0;
-    color: #2ecc71;
-    font-size: 1.3rem;
-    font-weight: bold;
-    cursor: pointer;
-    border-radius: 8px;
-  }
-  
-  .lb-code-box:hover { background: #2a2a2a; }
-  
-  .lb-close-btn {
-    background: #2ecc71;
-    color: #fff;
-    border: none;
-    padding: 15px 50px;
-    font-size: 1rem;
-    font-weight: bold;
-    border-radius: 30px;
-    cursor: pointer;
-    margin-top: 10px;
-  }
+  .buy-btn:hover { filter: brightness(1.2); }
+  .buy-btn.disabled { background: #333; color: #666; cursor: not-allowed; }
+
+  /* Modal */
+  .rpg-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 99999; display: none; justify-content: center; align-items: center; }
+  .rpg-modal-box { background: #0f0f0f; border: 2px solid #ffd700; padding: 40px; width: 400px; text-align: center; border-radius: 4px; box-shadow: 0 0 50px rgba(255,215,0,0.2); }
+  .code-box { background: #222; border: 2px dashed #2ecc71; padding: 20px; margin-top: 20px; color: #2ecc71; font-size: 2em; font-weight: bold; cursor: pointer; }
+  .rpg-btn { background: #ffd700; color: #000; border: none; padding: 10px 30px; font-weight: bold; cursor: pointer; }
+  .rpg-btn-secondary { background: transparent; border: 1px solid #777; color: #ccc; padding: 10px 30px; cursor: pointer; margin-left: 10px; }
 </style>
 
 <script>
-  // Simple storage keys
-  const KEY_GOLD = 'rpg_gold';
-  const KEY_LOOTBOXES = 'rpg_lootboxes';
-  
-  // Lootbox types available for purchase
-  const LOOTBOX_TYPES = [
-    { 
-      id: 'common', 
-      name: 'Common Box', 
-      price: 50, 
-      icon: '📦', 
-      color: '#888',
-      image: 'https://cdn-icons-png.flaticon.com/512/4230/4230573.png',
-      prizes: [
-        { name: '5% Discount', code: 'COMMON_5OFF', chance: 40, icon: '🎫' },
-        { name: '10 AP Points', ap: 10, chance: 35, icon: '⚡' },
-        { name: '10% Discount', code: 'COMMON_10OFF', chance: 20, icon: '🎟️' },
-        { name: '50 Gold Back!', gold: 50, chance: 5, icon: '🪙' }
-      ]
-    },
-    { 
-      id: 'rare', 
-      name: 'Rare Box', 
-      price: 150, 
-      icon: '🎁', 
-      color: '#3498db',
-      image: 'https://cdn-icons-png.flaticon.com/512/4230/4230588.png',
-      prizes: [
-        { name: '10% Discount', code: 'RARE_10OFF', chance: 35, icon: '🎫' },
-        { name: '30 AP Points', ap: 30, chance: 30, icon: '⚡' },
-        { name: '15% Discount', code: 'RARE_15OFF', chance: 25, icon: '🎟️' },
-        { name: '200 Gold Back!', gold: 200, chance: 10, icon: '💰' }
-      ]
-    },
-    { 
-      id: 'epic', 
-      name: 'Epic Box', 
-      price: 400, 
-      icon: '👑', 
-      color: '#a335ee',
-      image: 'https://cdn-icons-png.flaticon.com/512/4230/4230550.png',
-      prizes: [
-        { name: '15% Discount', code: 'EPIC_15OFF', chance: 30, icon: '🎫' },
-        { name: '100 AP Points', ap: 100, chance: 25, icon: '⚡' },
-        { name: '25% Discount', code: 'EPIC_25OFF', chance: 25, icon: '🎟️' },
-        { name: '500 Gold Back!', gold: 500, chance: 15, icon: '💰' },
-        { name: 'FREE SHIPPING', code: 'EPIC_FREESHIP', chance: 5, icon: '🚚' }
-      ]
-    },
-    { 
-      id: 'legendary', 
-      name: 'Legendary Box', 
-      price: 1000, 
-      icon: '🏆', 
-      color: '#ff6b00',
-      image: 'https://cdn-icons-png.flaticon.com/512/4230/4230527.png',
-      prizes: [
-        { name: '25% Discount', code: 'LEGEND_25OFF', chance: 25, icon: '🎫' },
-        { name: '300 AP Points', ap: 300, chance: 20, icon: '⚡' },
-        { name: '40% Discount', code: 'LEGEND_40OFF', chance: 20, icon: '🎟️' },
-        { name: '1500 Gold Back!', gold: 1500, chance: 20, icon: '💰' },
-        { name: '50% MEGA DISCOUNT', code: 'LEGEND_50OFF', chance: 10, icon: '💎' },
-        { name: 'FREE ORDER (100% OFF)', code: 'JACKPOT_FREE', chance: 5, icon: '🎰' }
-      ]
-    }
+  // DANH SÁCH VẬT PHẨM ĐỔI BẰNG GOLD (Mã giảm giá 100%)
+  // Bạn cần tạo các mã này trong Admin: FREE_SWORD, FREE_ARMOR...
+  const GLORY_ITEMS = [
+    { id: 1, name: "Kiếm Rồng (Legendary)", desc: "Vũ khí cấp huyền thoại. Miễn phí 100%.", price: 5000, icon: "⚔️", code: "FREE_DRAGON_SWORD" },
+    { id: 2, name: "Giáp Hoàng Kim", desc: "Bộ giáp của Vua. Miễn phí 100%.", price: 8000, icon: "🛡️", code: "FREE_GOLD_ARMOR" },
+    { id: 3, name: "Cánh Thiên Thần", desc: "Skin cánh siêu hiếm. Miễn phí 100%.", price: 15000, icon: "🪽", code: "FREE_ANGEL_WINGS" },
+    { id: 4, name: "Rương Thần Bí", desc: "Set quà bí mật trị giá 5 triệu.", price: 30000, icon: "🎁", code: "FREE_MYSTERY_BOX" }
   ];
+
+  // Key lưu trữ Gold (Phải khớp với key mà Leaderboard cộng vào)
+  const KEY_GOLD = 'rpg_local_gold'; 
   
-  let currentOpeningBox = null;
-  let currentPrize = null;
-  
-  document.addEventListener('DOMContentLoaded', function() {
-    updateGoldDisplay();
-    renderLootboxShop();
-    renderInventory();
+  let userGold = 0;
+  let selectedItem = null;
+
+  document.addEventListener("DOMContentLoaded", function() {
+    loadGloryShop();
   });
-  
-  function getGold() {
-    return parseInt(localStorage.getItem(KEY_GOLD) || 0);
-  }
-  
-  function setGold(amount) {
-    localStorage.setItem(KEY_GOLD, amount);
-    updateGoldDisplay();
-  }
-  
-  function updateGoldDisplay() {
-    const gold = getGold();
-    document.getElementById('current-gold-balance').innerText = gold.toLocaleString();
-    renderLootboxShop(); // Re-render to update button states
-  }
-  
-  function getLootboxInventory() {
-    return JSON.parse(localStorage.getItem(KEY_LOOTBOXES) || '{}');
-  }
-  
-  function saveLootboxInventory(inv) {
-    localStorage.setItem(KEY_LOOTBOXES, JSON.stringify(inv));
-    renderInventory();
-  }
-  
-  function renderLootboxShop() {
-    const gold = getGold();
-    const grid = document.getElementById('lootbox-grid');
+
+  function loadGloryShop() {
+    // 1. Lấy Gold (từ Leaderboard tích lũy)
+    userGold = parseInt(localStorage.getItem(KEY_GOLD) || 0);
+    document.getElementById('user-gold-display').innerText = userGold.toLocaleString();
+
+    // 2. Render
+    const grid = document.getElementById('glory-grid-render');
     grid.innerHTML = '';
-    
-    LOOTBOX_TYPES.forEach(box => {
-      const canBuy = gold >= box.price;
+
+    GLORY_ITEMS.forEach(item => {
+      const canBuy = userGold >= item.price;
+      const btnState = canBuy ? '' : 'disabled';
+      const btnText = canBuy ? 'ĐỔI NGAY' : 'CHƯA ĐỦ GOLD';
+      
       grid.innerHTML += `
-        <div class="lootbox-card ${canBuy ? '' : 'disabled'}" style="--lb-color: ${box.color};" onclick="${canBuy ? `buyLootbox('${box.id}')` : ''}">
-          <div class="lb-card-icon">${box.icon}</div>
-          <div class="lb-card-name">${box.name}</div>
-          <div class="lb-card-price">🪙 ${box.price} Gold</div>
-          <button class="lb-buy-btn ${canBuy ? '' : 'disabled'}">${canBuy ? 'BUY' : 'Need Gold'}</button>
+        <div class="glory-card">
+          <div class="item-icon">${item.icon}</div>
+          <div class="item-name">${item.name}</div>
+          <div class="item-desc">${item.desc}</div>
+          <span class="item-price">🪙 ${item.price.toLocaleString()} GOLD</span>
+          <button class="buy-btn ${btnState}" onclick="confirmGloryBuy(${item.id})">${btnText}</button>
         </div>
       `;
     });
   }
-  
-  function buyLootbox(boxId) {
-    const box = LOOTBOX_TYPES.find(b => b.id === boxId);
-    if (!box) return;
-    
-    const gold = getGold();
-    if (gold < box.price) {
-      alert('Not enough Gold!');
-      return;
-    }
-    
-    // Deduct gold
-    setGold(gold - box.price);
-    
-    // Add to inventory
-    const inv = getLootboxInventory();
-    inv[boxId] = (inv[boxId] || 0) + 1;
-    saveLootboxInventory(inv);
-    
-    // Show notification
-    if (typeof showCustomAlert === 'function') {
-      showCustomAlert('📦', 'PURCHASED!', `${box.name} added to your inventory!`);
-    } else {
-      alert(`${box.name} purchased!`);
-    }
-  }
-  
-  function renderInventory() {
-    const inv = getLootboxInventory();
-    const container = document.getElementById('lootbox-inventory');
-    
-    const totalBoxes = Object.values(inv).reduce((a, b) => a + b, 0);
-    if (totalBoxes === 0) {
-      container.innerHTML = '<p style="color:#666; font-style:italic;">No lootboxes yet. Buy some above!</p>';
-      return;
-    }
-    
-    let html = '';
-    LOOTBOX_TYPES.forEach(box => {
-      const count = inv[box.id] || 0;
-      if (count > 0) {
-        html += `
-          <div class="inv-lootbox" style="border-color: ${box.color};" onclick="openLootbox('${box.id}')" title="Click to open">
-            <div class="inv-lb-icon">${box.icon}</div>
-            <div class="inv-lb-count">x${count}</div>
-          </div>
-        `;
-      }
-    });
-    
-    container.innerHTML = html;
-  }
-  
-  function openLootbox(boxId) {
-    const inv = getLootboxInventory();
-    if (!inv[boxId] || inv[boxId] <= 0) return;
-    
-    const box = LOOTBOX_TYPES.find(b => b.id === boxId);
-    currentOpeningBox = box;
-    
-    // Show modal
-    document.getElementById('lb-box-image').src = box.image;
-    document.getElementById('lb-opening-phase').style.display = 'block';
-    document.getElementById('lb-result-phase').style.display = 'none';
-    document.getElementById('lootbox-modal').style.display = 'flex';
-  }
-  
-  function revealLootboxPrize() {
-    if (!currentOpeningBox) return;
-    
-    // Remove 1 from inventory
-    const inv = getLootboxInventory();
-    inv[currentOpeningBox.id]--;
-    if (inv[currentOpeningBox.id] <= 0) delete inv[currentOpeningBox.id];
-    saveLootboxInventory(inv);
-    
-    // Roll for prize
-    currentPrize = rollPrize(currentOpeningBox.prizes);
-    
-    // Show result
-    document.getElementById('lb-opening-phase').style.display = 'none';
-    document.getElementById('lb-result-phase').style.display = 'block';
-    
-    document.getElementById('lb-prize-icon').innerText = currentPrize.icon;
-    document.getElementById('lb-prize-name').innerText = currentPrize.name;
-    
-    // Handle prize type
-    if (currentPrize.code) {
-      document.getElementById('lb-prize-desc').innerText = 'Use this code at checkout:';
-      document.getElementById('lb-prize-code').innerText = currentPrize.code;
-      document.getElementById('lb-prize-code').style.display = 'block';
+
+  function confirmGloryBuy(id) {
+    selectedItem = GLORY_ITEMS.find(i => i.id === id);
+    if(selectedItem) {
+      document.getElementById('glory-modal').style.display = 'flex';
+      document.getElementById('modal-title').innerText = "XÁC NHẬN";
+      document.getElementById('modal-msg').innerText = `Dùng ${selectedItem.price.toLocaleString()} Gold để đổi ${selectedItem.name}?`;
       
-      // Add to discount inventory
-      if (typeof addDiscountToInventory === 'function') {
-        addDiscountToInventory({
-          name: currentPrize.name,
-          code: currentPrize.code,
-          type: 'lootbox',
-          discount: currentPrize.name,
-          icon: currentPrize.icon
-        });
-      }
-    } else if (currentPrize.ap) {
-      document.getElementById('lb-prize-desc').innerText = `+${currentPrize.ap} Activity Points added!`;
-      document.getElementById('lb-prize-code').style.display = 'none';
-      
-      // Add AP
-      const currentAP = parseInt(localStorage.getItem('rpg_activity_points') || 0);
-      localStorage.setItem('rpg_activity_points', currentAP + currentPrize.ap);
-    } else if (currentPrize.gold) {
-      document.getElementById('lb-prize-desc').innerText = `+${currentPrize.gold} Gold added to your balance!`;
-      document.getElementById('lb-prize-code').style.display = 'none';
-      
-      // Add Gold
-      setGold(getGold() + currentPrize.gold);
+      document.getElementById('btn-confirm-glory').style.display = 'inline-block';
+      document.getElementById('btn-confirm-glory').onclick = processGloryTransaction;
+      document.getElementById('glory-code-display').style.display = 'none';
     }
   }
-  
-  function rollPrize(prizes) {
-    const total = prizes.reduce((sum, p) => sum + p.chance, 0);
-    let random = Math.random() * total;
+
+  function processGloryTransaction() {
+    // 1. Trừ Gold
+    userGold -= selectedItem.price;
+    localStorage.setItem(KEY_GOLD, userGold);
     
-    for (const prize of prizes) {
-      random -= prize.chance;
-      if (random <= 0) return prize;
-    }
-    return prizes[prizes.length - 1];
+    loadGloryShop();
+
+    // 2. Hiện Code
+    document.getElementById('modal-title').innerText = "THÀNH CÔNG!";
+    document.getElementById('modal-msg').innerText = "Vật phẩm đã thuộc về bạn. Hãy dùng mã này:";
+    
+    const codeBox = document.getElementById('glory-code-display');
+    codeBox.style.display = 'block';
+    codeBox.innerText = selectedItem.code;
+    
+    document.getElementById('btn-confirm-glory').style.display = 'none';
   }
-  
-  function closeLootboxModal() {
-    document.getElementById('lootbox-modal').style.display = 'none';
-    currentOpeningBox = null;
-    currentPrize = null;
-    updateGoldDisplay();
-  }
-  
-  function copyLBCode(el) {
-    navigator.clipboard.writeText(el.innerText);
-    if (typeof showCustomAlert === 'function') {
-      showCustomAlert('📋', 'COPIED!', 'Code copied to clipboard!');
-    } else {
-      alert('Code copied!');
-    }
-  }
+
+  function closeGloryModal() { document.getElementById('glory-modal').style.display = 'none'; }
+  function copyGloryCode() { navigator.clipboard.writeText(document.getElementById('glory-code-display').innerText); alert("Đã copy mã!"); }
 </script>
 
 {% schema %}
 {
-  "name": "Gold & Lootbox Shop",
+  "name": "Glory Shop (Gold)",
   "settings": [],
-  "presets": [{ "name": "Gold & Lootbox Shop" }]
+  "presets": [{"name": "Glory Shop (Gold)"}]
 }
 {% endschema %}
