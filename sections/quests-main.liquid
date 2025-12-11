@@ -197,13 +197,22 @@
 </style>
 
 <script>
+  // Customer-specific storage keys
+  const QUEST_CUSTOMER_ID = {{ customer.id | default: 'null' }};
+  const QUEST_KEY_PREFIX = QUEST_CUSTOMER_ID ? `rpg_${QUEST_CUSTOMER_ID}_` : 'rpg_guest_';
+  const QUEST_KEY_AP = QUEST_KEY_PREFIX + 'activity_points';
+  const QUEST_KEY_STREAK = QUEST_KEY_PREFIX + 'streak';
+  const QUEST_KEY_STREAK_CLAIMED = QUEST_KEY_PREFIX + 'streak_claimed';
+  const QUEST_KEY_TREASURE = QUEST_KEY_PREFIX + 'treasure_found';
+  const QUEST_KEY_CODES = QUEST_KEY_PREFIX + 'my_codes';
+  
   document.addEventListener("DOMContentLoaded", function() {
     {% if customer %}
       document.getElementById('rpg-hero-name').innerText = "{{ customer.first_name }}";
     {% endif %}
 
-    const streak = parseInt(localStorage.getItem('rpg_streak') || 0);
-    const streakClaimed = localStorage.getItem('rpg_streak_claimed');
+    const streak = parseInt(localStorage.getItem(QUEST_KEY_STREAK) || 0);
+    const streakClaimed = localStorage.getItem(QUEST_KEY_STREAK_CLAIMED);
     
     const streakPercent = (streak / 3) * 100;
     document.getElementById('daily-progress').style.width = (streakPercent > 100 ? 100 : streakPercent) + '%';
@@ -222,11 +231,11 @@
       btnDaily.classList.add('completed');
       btnDaily.onclick = function() {
          claimAPReward('daily_persistence', 200, btnDaily);
-         localStorage.setItem('rpg_streak_claimed', 'true');
+         localStorage.setItem(QUEST_KEY_STREAK_CLAIMED, 'true');
       };
     }
 
-    const treasureFound = localStorage.getItem('rpg_treasure_found');
+    const treasureFound = localStorage.getItem(QUEST_KEY_TREASURE);
     const btnTreasure = document.getElementById('status-treasure');
     if (treasureFound) {
       btnTreasure.innerText = "FOUND";
@@ -241,15 +250,15 @@
   });
 
   function addToWallet(name, code) {
-    let codes = JSON.parse(localStorage.getItem('rpg_my_codes') || "[]");
+    let codes = JSON.parse(localStorage.getItem(QUEST_KEY_CODES) || "[]");
     if (!codes.some(e => e.code === code)) {
       codes.push({name: name, code: code});
-      localStorage.setItem('rpg_my_codes', JSON.stringify(codes));
+      localStorage.setItem(QUEST_KEY_CODES, JSON.stringify(codes));
     }
   }
 
   function renderWallet() {
-    let codes = JSON.parse(localStorage.getItem('rpg_my_codes') || "[]");
+    let codes = JSON.parse(localStorage.getItem(QUEST_KEY_CODES) || "[]");
     const listDiv = document.getElementById('collected-codes-list');
     if (codes.length > 0) {
       listDiv.innerHTML = "";
@@ -265,15 +274,15 @@
   }
   
   function claimAPReward(questId, apAmount, btnElement) {
-    const claimedKey = 'rpg_quest_claimed_' + questId;
+    const claimedKey = QUEST_KEY_PREFIX + 'quest_claimed_' + questId;
     if (localStorage.getItem(claimedKey)) {
       alert('You have already claimed this reward!');
       return;
     }
     
-    let currentAP = parseInt(localStorage.getItem('rpg_activity_points') || 0);
+    let currentAP = parseInt(localStorage.getItem(QUEST_KEY_AP) || 0);
     let newAP = currentAP + apAmount;
-    localStorage.setItem('rpg_activity_points', newAP);
+    localStorage.setItem(QUEST_KEY_AP, newAP);
     
     localStorage.setItem(claimedKey, 'true');
     

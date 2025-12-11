@@ -460,19 +460,42 @@
 
     <!-- 4. CLASS SELECTION MODAL -->
     <div id="class-selection-modal">
-      <h1 style="color: #fff; font-size: 2.5rem; letter-spacing: 3px;">CHOOSE YOUR CLASS</h1>
-      <p style="color: #888;">Your journey begins here</p>
-      <div class="class-grid">
-        <div class="class-card" style="--hover-color: #ff4d4d;" onclick="selectRPGClass('Warrior', '#ff4d4d')">
-          <span class="class-img">⚔️</span><div class="class-title">WARRIOR</div><p class="class-desc">Strength & Melee</p>
+      {% if customer %}
+        <!-- LOGGED IN: Show class selection -->
+        <h1 style="color: #fff; font-size: 2.5rem; letter-spacing: 3px;">CHOOSE YOUR CLASS</h1>
+        <p style="color: #888;">Your journey begins here, <span style="color: var(--rpg-gold);">{{ customer.first_name | default: 'Adventurer' }}</span></p>
+        <div class="class-grid">
+          <div class="class-card" style="--hover-color: #ff4d4d;" onclick="selectRPGClass('Warrior', '#ff4d4d')">
+            <span class="class-img">⚔️</span><div class="class-title">WARRIOR</div><p class="class-desc">Strength & Melee</p>
+          </div>
+          <div class="class-card" style="--hover-color: #a335ee;" onclick="selectRPGClass('Mage', '#a335ee')">
+            <span class="class-img">🔮</span><div class="class-title">MAGE</div><p class="class-desc">Magic & Intelligence</p>
+          </div>
+          <div class="class-card" style="--hover-color: #2ecc71;" onclick="selectRPGClass('Archer', '#2ecc71')">
+            <span class="class-img">🏹</span><div class="class-title">ARCHER</div><p class="class-desc">Speed & Precision</p>
+          </div>
         </div>
-        <div class="class-card" style="--hover-color: #a335ee;" onclick="selectRPGClass('Mage', '#a335ee')">
-          <span class="class-img">🔮</span><div class="class-title">MAGE</div><p class="class-desc">Magic & Intelligence</p>
+      {% else %}
+        <!-- NOT LOGGED IN: Show login prompt -->
+        <div style="text-align: center; padding: 40px;">
+          <div style="font-size: 80px; margin-bottom: 20px;">🔐</div>
+          <h1 style="color: #fff; font-size: 2rem; letter-spacing: 2px; margin-bottom: 10px;">LOGIN REQUIRED</h1>
+          <p style="color: #888; font-size: 14px; margin-bottom: 30px; max-width: 400px; margin-left: auto; margin-right: auto;">
+            You must login to choose your class and save your RPG progress. Your class, VIP rank, and rewards will be linked to your account.
+          </p>
+          <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+            <a href="/account/login" class="rpg-btn-primary" style="padding: 15px 40px; font-size: 16px; text-decoration: none;">
+              🔑 LOGIN
+            </a>
+            <a href="/account/register" class="rpg-btn-secondary" style="padding: 15px 40px; font-size: 16px; text-decoration: none;">
+              ✨ CREATE ACCOUNT
+            </a>
+          </div>
+          <p style="color: #666; font-size: 12px; margin-top: 30px;">
+            Already have a class? Login to access your saved progress.
+          </p>
         </div>
-        <div class="class-card" style="--hover-color: #2ecc71;" onclick="selectRPGClass('Archer', '#2ecc71')">
-          <span class="class-img">🏹</span><div class="class-title">ARCHER</div><p class="class-desc">Speed & Precision</p>
-        </div>
-      </div>
+      {% endif %}
     </div>
 
     <!-- 5. DAILY REWARD MODAL -->
@@ -597,11 +620,18 @@
         {d:7, val: 'Cheap Product', type:'code', label:'GIFTCODE'}
       ];
       
-      // Storage keys
-      const KEY_DAY = 'rpg_daily_day';
-      const KEY_TIME = 'rpg_daily_time';
-      const KEY_AP = 'rpg_activity_points'; // Store AP points
-      const KEY_INVENTORY = 'rpg_inventory'; // Store inventory (unopened lootbox)
+      // Customer ID for data storage (null if not logged in)
+      const CUSTOMER_ID = {{ customer.id | default: 'null' }};
+      const IS_LOGGED_IN = CUSTOMER_ID !== null;
+      
+      // Storage keys (prefixed with customer ID for multi-account support)
+      const KEY_PREFIX = CUSTOMER_ID ? `rpg_${CUSTOMER_ID}_` : 'rpg_guest_';
+      const KEY_DAY = KEY_PREFIX + 'daily_day';
+      const KEY_TIME = KEY_PREFIX + 'daily_time';
+      const KEY_AP = KEY_PREFIX + 'activity_points'; // Store AP points
+      const KEY_INVENTORY = KEY_PREFIX + 'discount_codes'; // Store discount codes
+      const KEY_CLASS = KEY_PREFIX + 'class_name';
+      const KEY_COLOR = KEY_PREFIX + 'class_color';
 
       // Temp variable for current opening lootbox
       let currentOpeningLootbox = null;
@@ -619,8 +649,11 @@
       });
 
       function initRPGSystem() {
-        const savedClass = localStorage.getItem('rpg_class_name');
-        const savedColor = localStorage.getItem('rpg_class_color');
+        console.log('[RPG Debug] Customer ID:', CUSTOMER_ID, 'Logged in:', IS_LOGGED_IN);
+        
+        // Read class from customer-specific storage
+        const savedClass = localStorage.getItem(KEY_CLASS);
+        const savedColor = localStorage.getItem(KEY_COLOR);
         
         console.log('[RPG Debug] Saved class:', savedClass, 'Color:', savedColor);
 
@@ -633,20 +666,27 @@
           applyTheme(savedClass, savedColor);
         }
         
-        // TÍNH VIP RANK VÀ HIỂN THỊ AP
+        // Calculate VIP rank and display AP
         calculateVipRank();
         updateAPDisplay();
         initializeDefaultDiscounts(); // Initialize discount codes
       }
 
       function selectRPGClass(className, colorHex) {
-        localStorage.setItem('rpg_class_name', className);
-        localStorage.setItem('rpg_class_color', colorHex);
+        // Require login to select class
+        if (!IS_LOGGED_IN) {
+          showCustomAlert('🔐', 'LOGIN REQUIRED', 'Please login to select and save your class.');
+          return;
+        }
+        
+        // Save to customer-specific storage
+        localStorage.setItem(KEY_CLASS, className);
+        localStorage.setItem(KEY_COLOR, colorHex);
         document.getElementById('class-selection-modal').style.display = 'none';
         document.body.style.overflow = 'auto';
         
-        // SHOW WELCOME MODAL INSTEAD OF ALERT
-        showCustomAlert('👋', 'WELCOME!', `You have joined the ${className} class. Theme has been synced.`);
+        // SHOW WELCOME MODAL
+        showCustomAlert('👋', 'WELCOME!', `You have joined the ${className} class. Your progress is saved to your account.`);
         
         setTimeout(() => location.reload(), 2000); // Reload after 2s
       }
@@ -655,7 +695,11 @@
         document.documentElement.style.setProperty('--class-color', color);
         document.getElementById('hud-class-name').innerText = className.toUpperCase();
         
-        const avatarMap = { 'Warrior': 'https://cdn-icons-png.flaticon.com/512/3408/3408593.png', 'Mage': 'https://cdn-icons-png.flaticon.com/512/3408/3408545.png', 'Archer': 'https://cdn-icons-png.flaticon.com/512/3408/3408605.png' };
+        const avatarMap = { 
+          'Warrior': 'https://cdn-icons-png.flaticon.com/512/3408/3408593.png', 
+          'Mage': 'https://cdn-icons-png.flaticon.com/512/3408/3408545.png', 
+          'Archer': 'https://cdn-icons-png.flaticon.com/512/3408/3408605.png' 
+        };
         if(avatarMap[className]) document.getElementById('hud-avatar-img').src = avatarMap[className];
 
         const codeBox = document.getElementById('hud-class-code');
@@ -663,7 +707,7 @@
         if (className === 'Warrior') codeText.innerText = 'WARRIOR_VIP';
         else if (className === 'Mage') codeText.innerText = 'MAGE_VIP';
         else if (className === 'Archer') codeText.innerText = 'ARCHER_VIP';
-        codeBox.style.display = 'inline-block';
+        codeBox.style.display = IS_LOGGED_IN ? 'inline-block' : 'none'; // Only show code for logged-in users
       }
 
       // --- VIP RANK CALCULATION LOGIC (VIP 1 - 5) ---
@@ -799,16 +843,15 @@
 
       // ==========================================
       // DISCOUNT CODES INVENTORY SYSTEM
+      // Uses KEY_INVENTORY from customer-specific keys
       // ==========================================
       
-      const KEY_DISCOUNTS = 'rpg_discount_codes';
-      
       function getDiscountInventory() {
-        return JSON.parse(localStorage.getItem(KEY_DISCOUNTS) || '[]');
+        return JSON.parse(localStorage.getItem(KEY_INVENTORY) || '[]');
       }
       
       function saveDiscountInventory(items) {
-        localStorage.setItem(KEY_DISCOUNTS, JSON.stringify(items));
+        localStorage.setItem(KEY_INVENTORY, JSON.stringify(items));
         updateInventoryCount();
       }
       
@@ -907,7 +950,14 @@
       
       // Initialize default discounts based on VIP and Class
       function initializeDefaultDiscounts() {
-        const savedClass = localStorage.getItem('rpg_class_name');
+        // Only initialize for logged-in users
+        if (!IS_LOGGED_IN) {
+          console.log('[RPG Debug] Not logged in - skipping discount initialization');
+          updateInventoryCount();
+          return;
+        }
+        
+        const savedClass = localStorage.getItem(KEY_CLASS);
         
         // Add Class discount if class is selected
         if (savedClass) {

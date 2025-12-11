@@ -46,12 +46,16 @@
 
 <script>
   const SHOP_ITEMS = [
-    // Đã xóa item Freeship
     { id: 2, name: "Health Potion (5% Off)", price: 300, icon: "🧪", code: "HEAL_POTION_5" },
     { id: 3, name: "Iron Sword (10% Off)", price: 600, icon: "⚔️", code: "SWORD_10" },
     { id: 4, name: "King's Crown (20% Off)", price: 1500, icon: "👑", code: "KING_20" }
   ];
-  const SHOP_KEY_AP = 'rpg_activity_points';
+  
+  // Sync with customer-specific keys from theme.liquid
+  const SHOP_CUSTOMER_ID = {{ customer.id | default: 'null' }};
+  const SHOP_KEY_PREFIX = SHOP_CUSTOMER_ID ? `rpg_${SHOP_CUSTOMER_ID}_` : 'rpg_guest_';
+  const SHOP_KEY_AP = SHOP_KEY_PREFIX + 'activity_points';
+  
   let userAP = 0, selectedItem = null;
 
   document.addEventListener("DOMContentLoaded", function() { loadShopData(); });
