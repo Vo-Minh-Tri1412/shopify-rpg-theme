@@ -16,7 +16,14 @@
     <div id="state-ready" class="lootbox-state" style="display:none;">
       <div class="lootbox-card">
         <div class="card-glow"></div>
-        <img id="lootbox-product-img" src="https://cdn.shopify.com/s/files/1/0000/0000/files/lootbox-default.png?v=1" alt="Lootbox" class="lootbox-img" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 200 200%22><rect fill=%22%231a1a2e%22 width=%22200%22 height=%22200%22/><text x=%2250%%22 y=%2250%%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22gold%22 font-size=%2280%22>🎁</text></svg>'">
+        <!-- ĐÃ FIX: Thêm width="200" height="200" -->
+        <img id="lootbox-product-img" 
+             src="https://cdn.shopify.com/s/files/1/0000/0000/files/lootbox-default.png?v=1" 
+             alt="Lootbox" 
+             class="lootbox-img" 
+             width="200" 
+             height="200"
+             onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 200 200%22><rect fill=%22%231a1a2e%22 width=%22200%22 height=%22200%22/><text x=%2250%%22 y=%2250%%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22gold%22 font-size=%2280%22>🎁</text></svg>'">
         <h1 id="lootbox-product-name" class="lootbox-title">LOOTBOX</h1>
         <p class="lootbox-desc">Click to open the box and receive a random item!</p>
         <button id="btn-open" class="btn-open-lootbox" onclick="openLootbox()">
@@ -28,7 +35,8 @@
     
     <!-- STATE: Opening -->
     <div id="state-opening" class="lootbox-state" style="display:none;">
-      <img id="opening-box-img" src="" alt="Opening..." class="opening-box-img">
+      <!-- ĐÃ FIX: Thêm width="250" height="250" -->
+      <img id="opening-box-img" src="" alt="Opening..." class="opening-box-img" width="250" height="250">
       <h2 class="opening-text">OPENING<span class="dots">...</span></h2>
     </div>
     
@@ -36,7 +44,8 @@
     <div id="state-result" class="lootbox-state" style="display:none;">
       <div class="result-halo"></div>
       <div class="result-rays"></div>
-      <img id="result-item-img" src="" alt="Prize" class="result-item-img">
+      <!-- ĐÃ FIX: Thêm width="280" height="280" -->
+      <img id="result-item-img" src="" alt="Prize" class="result-item-img" width="280" height="280">
       <div class="result-info">
         <p class="result-label">🎊 CONGRATULATIONS! YOU RECEIVED</p>
         <h1 id="result-item-name" class="result-item-name">ITEM</h1>
@@ -400,24 +409,13 @@ document.addEventListener('DOMContentLoaded', function() {
   initLootboxPage();
 });
 
-// FIX LOGIC URL PARAMS: Xử lý dấu #
+// Get params from URL
 function getUrlParams() {
-  // Lấy toàn bộ URL hiện tại
-  let currentUrl = window.location.href;
-  
-  // Thay thế các ký tự làm gãy URL (token=#1046) thành (token=1046)
-  // Việc này giúp URLSearchParams đọc được cả chuỗi phía sau
-  currentUrl = currentUrl.replace('token=#', 'token=');
-  
-  // Parse URL đã sửa
-  const urlObj = new URL(currentUrl);
-  const params = new URLSearchParams(urlObj.search);
-  
+  const params = new URLSearchParams(window.location.search);
   return {
     token: params.get('token'),
     order: params.get('order'),
-    product: params.get('product'),
-    open_result: params.get('open_result')
+    product: params.get('product')  // Product handle
   };
 }
 
@@ -437,6 +435,7 @@ async function initLootboxPage() {
   
   debugLog('URL: ' + window.location.href);
   debugLog('Token: ' + (params.token || 'MISSING'));
+  debugLog('Order: ' + (params.order || 'MISSING'));
   debugLog('Product: ' + (params.product || 'MISSING'));
   
   // Check token - IMPORTANT: Token is required
@@ -448,6 +447,7 @@ async function initLootboxPage() {
   
   // Check if already used
   const usedTokens = JSON.parse(localStorage.getItem('used_lootbox_tokens') || '[]');
+  debugLog('Used tokens count: ' + usedTokens.length);
   
   if (usedTokens.includes(params.token)) {
     debugLog('Token already used!');
@@ -462,7 +462,7 @@ async function initLootboxPage() {
       const response = await fetch('/products/' + params.product + '.js');
       
       if (!response.ok) {
-        throw new Error('Product not found');
+        throw new Error('Product not found: ' + response.status);
       }
       
       const product = await response.json();
@@ -475,21 +475,20 @@ async function initLootboxPage() {
       // Save product handle for metafield fetch later
       window.currentProduct = params.product;
     } catch(e) {
+      debugLog('Error fetching product: ' + e.message);
       console.error('Error fetching product:', e);
+      // Continue anyway - will use default loot table
     }
+  } else {
+    debugLog('No product handle - using defaults');
   }
   
   // Save token
   window.currentToken = params.token;
   
   debugLog('Ready to open!');
-  
-  // Auto open if flagged
-  if (params.open_result === 'true') {
-    openLootbox();
-  } else {
-    showState('ready');
-  }
+  // Show ready state
+  showState('ready');
 }
 
 function showState(state) {
