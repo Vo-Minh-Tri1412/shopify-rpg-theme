@@ -626,8 +626,13 @@
       ];
       
       // Customer ID for data storage (null if not logged in)
-      const CUSTOMER_ID = {{ customer.id | default: 'null' }};
-      const IS_LOGGED_IN = CUSTOMER_ID !== null;
+      {% if customer %}
+        const CUSTOMER_ID = {{ customer.id }};
+        const IS_LOGGED_IN = true;
+      {% else %}
+        const CUSTOMER_ID = null;
+        const IS_LOGGED_IN = false;
+      {% endif %}
       
       // Storage keys (prefixed with customer ID for multi-account support)
       const KEY_PREFIX = CUSTOMER_ID ? `rpg_${CUSTOMER_ID}_` : 'rpg_guest_';

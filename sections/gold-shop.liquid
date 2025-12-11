@@ -446,7 +446,11 @@
 
 <script>
   // Customer-specific keys
-  const GOLD_CUSTOMER_ID = {{ customer.id | default: 'null' }};
+  {% if customer %}
+    const GOLD_CUSTOMER_ID = {{ customer.id }};
+  {% else %}
+    const GOLD_CUSTOMER_ID = null;
+  {% endif %}
   const GOLD_KEY_PREFIX = GOLD_CUSTOMER_ID ? `rpg_${GOLD_CUSTOMER_ID}_` : 'rpg_guest_';
   const KEY_GOLD = GOLD_KEY_PREFIX + 'gold';
   const KEY_LOOTBOXES = GOLD_KEY_PREFIX + 'lootboxes';

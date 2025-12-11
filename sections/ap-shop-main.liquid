@@ -52,7 +52,11 @@
   ];
   
   // Sync with customer-specific keys from theme.liquid
-  const SHOP_CUSTOMER_ID = {{ customer.id | default: 'null' }};
+  {% if customer %}
+    const SHOP_CUSTOMER_ID = {{ customer.id }};
+  {% else %}
+    const SHOP_CUSTOMER_ID = null;
+  {% endif %}
   const SHOP_KEY_PREFIX = SHOP_CUSTOMER_ID ? `rpg_${SHOP_CUSTOMER_ID}_` : 'rpg_guest_';
   const SHOP_KEY_AP = SHOP_KEY_PREFIX + 'activity_points';
   

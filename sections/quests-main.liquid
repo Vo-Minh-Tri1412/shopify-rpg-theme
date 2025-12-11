@@ -198,7 +198,11 @@
 
 <script>
   // Customer-specific storage keys
-  const QUEST_CUSTOMER_ID = {{ customer.id | default: 'null' }};
+  {% if customer %}
+    const QUEST_CUSTOMER_ID = {{ customer.id }};
+  {% else %}
+    const QUEST_CUSTOMER_ID = null;
+  {% endif %}
   const QUEST_KEY_PREFIX = QUEST_CUSTOMER_ID ? `rpg_${QUEST_CUSTOMER_ID}_` : 'rpg_guest_';
   const QUEST_KEY_AP = QUEST_KEY_PREFIX + 'activity_points';
   const QUEST_KEY_STREAK = QUEST_KEY_PREFIX + 'streak';
