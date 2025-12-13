@@ -369,71 +369,55 @@ summary:not(.header__icon) {
         border-radius: 4px !important; font-family: 'Cinzel', serif !important;
       }
 /* =======================================================
-     FIX RIÊNG NÚT KÍNH LÚP (SEARCH)
-     ======================================================= */
+   FIX RIÊNG NÚT KÍNH LÚP (SEARCH)
+   ======================================================= */
 
-  /* 1. Mặc định: Ẩn khung tìm kiếm đi (để không đè lên web) */
-  .search-modal {
-      display: none !important;
-  }
+/* 1. Quan trọng: Cho phép bấm xuyên qua vùng trống của thanh HUD */
+#rpg-hud {
+    pointer-events: none !important;
+}
 
-  /* 2. Khi bấm vào Kính Lúp (Open): Hiện khung search Full màn hình */
-  details[open] > .search-modal {
-      display: flex !important;
-      position: fixed !important;
-      top: 0 !important;
-      left: 0 !important;
-      width: 100% !important;
-      height: 100vh !important; /* Che phủ toàn bộ màn hình */
-      z-index: 2147483647 !important; /* Lớp cao nhất */
-      background-color: rgba(0, 0, 0, 0.85) !important; /* Nền tối mờ */
-      justify-content: center !important;
-      padding-top: 100px !important; /* Cách lề trên để không bị HUD che */
-  }
+/* 2. Kích hoạt lại chuột cho các nút bấm của Game (để không bị liệt HUD) */
+#rpg-hud a, 
+#rpg-hud button, 
+#rpg-hud .hud-inventory-btn, 
+#rpg-hud .hud-gift-btn,
+#rpg-hud .hud-class-code,
+#rpg-hud .hud-ap,
+#rpg-hud .vip-wrapper {
+    pointer-events: auto !important;
+}
 
-  /* 3. Chỉnh lại ô nhập liệu (Input) cho dễ gõ */
-  .search-modal__content {
-      width: 100% !important;
-      max-width: 600px !important;
-      background: transparent !important;
-      border: none !important;
-  }
-  
-  .search-modal input[type="search"] {
-      background-color: #ffffff !important; /* Nền trắng */
-      color: #000000 !important; /* Chữ đen */
-      border: 2px solid #ffd700 !important; /* Viền vàng theo theme */
-      min-height: 50px !important;
-      font-size: 18px !important;
-      padding: 0 20px !important;
-      width: 100% !important;
-      border-radius: 5px !important;
-  }
-  
-  /* Nút đóng (X) */
-  .search-modal__close-button {
-      color: #fff !important; /* Nút X màu trắng cho nổi trên nền tối */
-      top: 20px !important;
-      right: 20px !important;
-  }
+/* 3. Đưa nút Kính Lúp nổi lên trên cùng để nhận được Click */
+.header__icon--search, 
+.header__search details summary {
+    pointer-events: auto !important;
+    position: relative !important;
+    z-index: 200001 !important; /* Cao hơn HUD (10000) */
+}
 
-  /* 4. Sửa lỗi không bấm được nút Kính Lúp do bị HUD che */
-  /* Làm cho các vùng trống của HUD "xuyên thấu" */
-  #rpg-hud {
-      pointer-events: none !important;
-  }
-  /* Kích hoạt lại chuột cho các nút bấm trong HUD */
-  #rpg-hud a, #rpg-hud button, #rpg-hud div[onclick] {
-      pointer-events: auto !important;
-  }
+/* 4. Fix giao diện khung tìm kiếm khi mở ra */
+/* Đảm bảo khung search không bị HUD che khuất */
+details[open] .search-modal {
+    display: flex !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100vh !important;
+    z-index: 2147483647 !important; /* Lớp cao nhất */
+    background-color: rgba(255, 255, 255, 0.98) !important;
+    padding-top: 100px !important; /* Đẩy ô nhập liệu xuống dưới HUD */
+}
 
-  /* 5. Đảm bảo nút Kính Lúp nằm nổi lên để nhận Click */
-  .header__icon--search {
-      position: relative !important;
-      z-index: 200005 !important;
-      pointer-events: auto !important;
-      cursor: pointer !important;
-  }
+/* 5. Ép ô nhập liệu search hiện rõ chữ và nền trắng */
+.search-modal input[type="search"] {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    border: 2px solid #333 !important;
+    opacity: 1 !important;
+    min-height: 44px !important;
+}
     </style>
   </head>
 
