@@ -369,113 +369,70 @@ summary:not(.header__icon) {
         border-radius: 4px !important; font-family: 'Cinzel', serif !important;
       }
 /* =======================================================
-     FIX SEARCH & PROFILE FINAL (DÁN VÀO CUỐI THẺ STYLE)
+     FIX RIÊNG NÚT KÍNH LÚP (SEARCH)
      ======================================================= */
 
-  /* 1. RESET TOÀN BỘ ICON TRÊN HEADER (Search, Cart, Profile) */
-  .header__icon, 
-  .header__icon--search, 
-  .header__icon--account,
-  .header__icon span, 
-  .header__icon svg, 
-  summary.header__icon {
-      border: none !important;
-      background: transparent !important;
-      box-shadow: none !important;
-      color: inherit !important;
-      width: 4.4rem !important;
-      height: 4.4rem !important;
-      display: flex !important;
-      align-items: center !important;
-      justify-content: center !important;
-      pointer-events: auto !important;
-      cursor: pointer !important;
-      text-decoration: none !important;
-      position: relative !important;
-      z-index: 200005 !important;
-  }
-
-  /* 2. HIỆN LẠI ICON KÍNH LÚP & NGƯỜI (Sửa lỗi mất icon hiện chữ S) */
-  .header__icon svg {
-      display: block !important;
-      width: 2.2rem !important;
-      height: 2.2rem !important;
-      fill: currentColor !important;
-      opacity: 1 !important;
-      visibility: visible !important;
-  }
-  /* Ẩn chữ text (S, Log in...) */
-  .header__icon span:not(.icon) {
-      display: none !important; 
-  }
-  
-  /* Xóa mũi tên tam giác mặc định */
-  summary.header__icon { list-style: none !important; }
-  summary.header__icon::-webkit-details-marker { display: none !important; }
-
-  /* 3. LOGIC ĐÓNG/MỞ KHUNG TÌM KIẾM (QUAN TRỌNG NHẤT) */
-  /* Mặc định: Ẩn khung search đi */
+  /* 1. Mặc định: Ẩn khung tìm kiếm đi (để không đè lên web) */
   .search-modal {
       display: none !important;
-      opacity: 0 !important;
-      visibility: hidden !important;
   }
 
-  /* KHI BẤM (Open): Hiện khung search Full màn hình */
-  details[open] > .search-modal,
-  details[open] .search-modal {
+  /* 2. Khi bấm vào Kính Lúp (Open): Hiện khung search Full màn hình */
+  details[open] > .search-modal {
       display: flex !important;
-      opacity: 1 !important;
-      visibility: visible !important;
-      position: fixed !important; /* Thoát khỏi header */
+      position: fixed !important;
       top: 0 !important;
       left: 0 !important;
       width: 100% !important;
-      height: 100vh !important;
+      height: 100vh !important; /* Che phủ toàn bộ màn hình */
       z-index: 2147483647 !important; /* Lớp cao nhất */
-      background-color: rgba(255, 255, 255, 0.98) !important;
-      align-items: flex-start !important;
+      background-color: rgba(0, 0, 0, 0.85) !important; /* Nền tối mờ */
       justify-content: center !important;
-      padding-top: 20px !important;
+      padding-top: 100px !important; /* Cách lề trên để không bị HUD che */
   }
 
-  /* 4. Ô NHẬP LIỆU (Input) - Rõ ràng, gõ được chữ */
-  .search-modal__content { width: 100%; max-width: 800px; border: none !important; }
-  
-  .search-modal__form input,
-  .search-modal input[type="search"],
-  input.search__input {
-      background-color: #ffffff !important;
-      color: #000000 !important;
-      border: 2px solid #333 !important;
-      background-image: none !important;
-      opacity: 1 !important;
-      min-height: 50px !important;
-      font-size: 16px !important;
-      padding: 0 15px !important;
+  /* 3. Chỉnh lại ô nhập liệu (Input) cho dễ gõ */
+  .search-modal__content {
       width: 100% !important;
+      max-width: 600px !important;
+      background: transparent !important;
+      border: none !important;
+  }
+  
+  .search-modal input[type="search"] {
+      background-color: #ffffff !important; /* Nền trắng */
+      color: #000000 !important; /* Chữ đen */
+      border: 2px solid #ffd700 !important; /* Viền vàng theo theme */
+      min-height: 50px !important;
+      font-size: 18px !important;
+      padding: 0 20px !important;
+      width: 100% !important;
+      border-radius: 5px !important;
+  }
+  
+  /* Nút đóng (X) */
+  .search-modal__close-button {
+      color: #fff !important; /* Nút X màu trắng cho nổi trên nền tối */
+      top: 20px !important;
+      right: 20px !important;
   }
 
-  /* 5. FIX LỖI HUD CHẶN CLICK (Click-Through) */
-  /* Làm cho vùng trống của HUD không chặn chuột */
-  #rpg-hud, .hud-left, .hud-right {
+  /* 4. Sửa lỗi không bấm được nút Kính Lúp do bị HUD che */
+  /* Làm cho các vùng trống của HUD "xuyên thấu" */
+  #rpg-hud {
       pointer-events: none !important;
   }
-  
-  /* Chỉ kích hoạt chuột cho các nút bấm bên trong HUD */
-  #rpg-hud a, 
-  #rpg-hud button, 
-  #rpg-hud .hud-inventory-btn, 
-  #rpg-hud .hud-gift-btn,
-  #rpg-hud .vip-wrapper {
+  /* Kích hoạt lại chuột cho các nút bấm trong HUD */
+  #rpg-hud a, #rpg-hud button, #rpg-hud div[onclick] {
       pointer-events: auto !important;
-      cursor: pointer !important;
   }
 
-  /* 6. Đảm bảo Header nằm đè lên nền đen nếu có */
-  .shopify-section-group-header-group {
-      z-index: 200000 !important;
+  /* 5. Đảm bảo nút Kính Lúp nằm nổi lên để nhận Click */
+  .header__icon--search {
       position: relative !important;
+      z-index: 200005 !important;
+      pointer-events: auto !important;
+      cursor: pointer !important;
   }
     </style>
   </head>
