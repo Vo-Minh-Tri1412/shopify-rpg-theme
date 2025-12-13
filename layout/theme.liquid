@@ -368,55 +368,7 @@ summary:not(.header__icon) {
       .button, .shopify-payment-button__button {
         border-radius: 4px !important; font-family: 'Cinzel', serif !important;
       }
-/* ================================================================
-   FIX LỖI KÍNH LÚP KHÔNG BẤM ĐƯỢC (Dựa trên file Header của bạn)
-   ================================================================ */
 
-/* 1. XỬ LÝ THANH HUD (QUAN TRỌNG NHẤT) */
-/* Làm cho toàn bộ thanh đen của game "trong suốt" với chuột */
-/* Để chuột có thể xuyên qua vùng đen bấm vào header bên dưới */
-#rpg-hud, .hud-left, .hud-right {
-    pointer-events: none !important;
-}
-
-/* Kích hoạt lại chuột cho các nút bấm CỦA GAME (Rank, Shop, Gift...) */
-#rpg-hud a, 
-#rpg-hud button, 
-#rpg-hud .hud-inventory-btn, 
-#rpg-hud .hud-gift-btn,
-#rpg-hud .hud-class-code,
-#rpg-hud .vip-wrapper {
-    pointer-events: auto !important;
-    cursor: pointer !important;
-}
-
-/* 2. ĐẨY HEADER CỦA BẠN LÊN LỚP CAO HƠN */
-/* Sử dụng class .header và id #header-component từ file bạn gửi */
-.header, 
-#header-component,
-.header-section {
-    position: relative !important;
-    z-index: 200005 !important; /* Cao hơn HUD (thường HUD là 10000) */
-}
-
-/* 3. FIX RIÊNG CHO NÚT SEARCH (Kính lúp) */
-/* Đảm bảo nút search nhận được click */
-summary.header__icon--search,
-.header__icon--search,
-details[open] > .search-modal {
-    pointer-events: auto !important;
-    cursor: pointer !important;
-}
-
-/* 4. ĐẢM BẢO KHUNG TÌM KIẾM HIỆN RA KHI BẤM */
-/* Khi bấm vào, khung search sẽ đè lên tất cả */
-details[open] > .search-modal {
-    z-index: 2147483647 !important; /* Lớp cao nhất trình duyệt */
-    position: fixed !important;
-    top: 0 !important; 
-    left: 0 !important;
-    width: 100% !important;
-}
     </style>
   </head>
 
