@@ -368,87 +368,54 @@ summary:not(.header__icon) {
       .button, .shopify-payment-button__button {
         border-radius: 4px !important; font-family: 'Cinzel', serif !important;
       }
-/* =======================================================
-   FIX LỖI KÍNH LÚP KHÔNG BẤM ĐƯỢC (FINAL)
-   ======================================================= */
+/* ================================================================
+   FIX LỖI KÍNH LÚP KHÔNG BẤM ĐƯỢC (Dựa trên file Header của bạn)
+   ================================================================ */
 
-/* 1. XỬ LÝ THANH HUD ĐỂ KHÔNG CHẶN NÚT SEARCH */
-/* Làm cho toàn bộ thanh HUD và các hộp chứa con "trong suốt" với chuột */
-#rpg-hud, 
-#rpg-hud .hud-left, 
-#rpg-hud .hud-right {
-    pointer-events: none !important; 
+/* 1. XỬ LÝ THANH HUD (QUAN TRỌNG NHẤT) */
+/* Làm cho toàn bộ thanh đen của game "trong suốt" với chuột */
+/* Để chuột có thể xuyên qua vùng đen bấm vào header bên dưới */
+#rpg-hud, .hud-left, .hud-right {
+    pointer-events: none !important;
 }
 
-/* CHỈ KÍCH HOẠT CHUỘT LẠI CHO CÁC PHẦN TỬ CỤ THỂ CẦN BẤM TRONG HUD */
-/* Đây là bước quan trọng để không chặn nút kính lúp bên dưới */
+/* Kích hoạt lại chuột cho các nút bấm CỦA GAME (Rank, Shop, Gift...) */
 #rpg-hud a, 
 #rpg-hud button, 
-#rpg-hud img,
 #rpg-hud .hud-inventory-btn, 
 #rpg-hud .hud-gift-btn,
-#rpg-hud .vip-wrapper,
-#rpg-hud .hud-class-code {
+#rpg-hud .hud-class-code,
+#rpg-hud .vip-wrapper {
     pointer-events: auto !important;
     cursor: pointer !important;
 }
 
-/* 2. ĐẨY NÚT KÍNH LÚP LÊN TRÊN CÙNG ĐỂ NHẬN CLICK */
-.header__search,
-.header__icon--search,
-details-modal.header__search {
+/* 2. ĐẨY HEADER CỦA BẠN LÊN LỚP CAO HƠN */
+/* Sử dụng class .header và id #header-component từ file bạn gửi */
+.header, 
+#header-component,
+.header-section {
     position: relative !important;
-    z-index: 200005 !important; /* Cao hơn HUD (thường là 10000) */
-    pointer-events: auto !important;
+    z-index: 200005 !important; /* Cao hơn HUD (thường HUD là 10000) */
 }
 
-/* 3. LOGIC HIỂN THỊ KHUNG TÌM KIẾM KHI BẤM VÀO */
-/* Khi thẻ details mở ra (có attribute open), khung search sẽ phủ toàn màn hình */
+/* 3. FIX RIÊNG CHO NÚT SEARCH (Kính lúp) */
+/* Đảm bảo nút search nhận được click */
+summary.header__icon--search,
+.header__icon--search,
 details[open] > .search-modal {
+    pointer-events: auto !important;
+    cursor: pointer !important;
+}
+
+/* 4. ĐẢM BẢO KHUNG TÌM KIẾM HIỆN RA KHI BẤM */
+/* Khi bấm vào, khung search sẽ đè lên tất cả */
+details[open] > .search-modal {
+    z-index: 2147483647 !important; /* Lớp cao nhất trình duyệt */
     position: fixed !important;
-    top: 0 !important;
+    top: 0 !important; 
     left: 0 !important;
     width: 100% !important;
-    height: 100vh !important;
-    z-index: 2147483647 !important; /* Lớp cao nhất trình duyệt */
-    background-color: rgba(255, 255, 255, 0.98) !important;
-    display: flex !important;
-    align-items: flex-start !important;
-    justify-content: center !important;
-    padding-top: 80px !important; /* Cách top để không bị HUD che mất ô nhập */
-    opacity: 1 !important;
-    visibility: visible !important;
-}
-
-/* 4. TÙY CHỈNH Ô NHẬP LIỆU (INPUT) */
-.search-modal__content {
-    width: 100% !important;
-    max-width: 600px !important;
-    border: none !important;
-    background: transparent !important;
-}
-
-.search-modal input[type="search"],
-.search-modal input[type="text"],
-input.search__input {
-    background: #ffffff !important;
-    color: #000000 !important;
-    border: 2px solid #000000 !important;
-    min-height: 50px !important;
-    padding: 0 20px !important;
-    font-size: 16px !important;
-    width: 100% !important;
-    opacity: 1 !important;
-}
-
-/* 5. ẨN CHỮ 'S' HOẶC TEXT THỪA TRONG NÚT SEARCH */
-.header__icon--search span:not(.icon) {
-    display: none !important;
-}
-.header__icon--search svg {
-    display: block !important;
-    width: 2.2rem !important;
-    height: 2.2rem !important;
 }
     </style>
   </head>
