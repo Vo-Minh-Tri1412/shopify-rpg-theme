@@ -85,45 +85,55 @@ details[open] > .search-modal {
 .shopify-section-header-sticky {
     top: 60px !important;
 }
-/* --- FIX LỖI SEARCH & HEADER SHOPIFY --- */
+/* =========================================
+   FIX LỖI SEARCH & HEADER (Dán vào cuối style)
+   ========================================= */
 
-/* 1. Trả lại giao diện gốc cho các icon trên Header (Search, Cart, User) */
-.header__icon, .header__icon--search, .header__icon--cart, .header__icon--account {
-    border: none !important;
-    box-shadow: none !important;
-    background: transparent !important;
-    color: inherit !important;
+/* 1. Xóa bỏ style RPG khỏi các nút trên Header (Search, Cart, User) */
+.header__icons .header__icon, 
+.header__icons details, 
+.header__icons summary, 
+.header__icon span,
+.header__icon svg {
+    border: none !important;       /* Xóa viền vuông */
+    background: transparent !important; /* Xóa nền đen/xám */
+    box-shadow: none !important;   /* Xóa hiệu ứng bóng */
+    color: inherit !important;     /* Lấy lại màu gốc */
+    width: auto !important;        /* Reset chiều rộng */
+    height: auto !important;       /* Reset chiều cao */
 }
 
-/* 2. Ngăn CSS RPG can thiệp vào khung Search (details/summary) */
-.header details, .header summary {
-    border: none !important;
-    background: transparent !important;
+/* 2. Đảm bảo icon kính lúp hiện ra đúng */
+.header__icon--search svg {
+    display: block !important;
+    width: 2.2rem !important; /* Kích thước chuẩn */
+    height: 2.2rem !important;
 }
 
-/* 3. Đẩy khung tìm kiếm (khi mở ra) lên trên cùng, cao hơn cả HUD */
-.search-modal, details[open] > .search-modal {
-    z-index: 200001 !important; /* Cao hơn 10000 của HUD */
-    top: 0 !important; /* Đảm bảo bám sát mép trên */
+/* 3. Đưa khung tìm kiếm (Search Modal) lên trên cùng (QUAN TRỌNG) */
+.search-modal, 
+details[open] > .search-modal,
+.predictive-search {
+    z-index: 2147483647 !important; /* Số cao nhất có thể */
+    background-color: #ffffff !important; /* Đảm bảo nền trắng */
+    top: 0 !important;
 }
 
-/* 4. Sửa lỗi click không ăn (QUAN TRỌNG NHẤT) */
-/* Làm cho thanh HUD "trong suốt" với chuột ở những chỗ trống */
+/* 4. Sửa ô nhập liệu bên trong khung tìm kiếm */
+.search-modal input[type="search"] {
+    background: #ffffff !important; /* Nền trắng */
+    color: #000000 !important;      /* Chữ đen */
+    border: 1px solid #ccc !important;
+}
+
+/* 5. Khắc phục lỗi bấm không ăn (Click-through) */
+/* Làm cho vùng trống của HUD không chặn chuột */
 #rpg-hud {
-    pointer-events: none !important; 
+    pointer-events: none !important;
 }
-/* Kích hoạt lại chuột cho các nút bấm bên trong HUD */
-#rpg-hud > * {
+/* Kích hoạt lại chuột cho các nút bấm TRONG HUD */
+#rpg-hud a, #rpg-hud div[onclick], #rpg-hud button {
     pointer-events: auto !important;
-}
-
-/* 5. Đẩy toàn bộ trang web xuống dưới 60px một cách an toàn */
-body {
-    padding-top: 60px !important;
-}
-/* Riêng Header của Shopify sẽ dính ngay dưới HUD */
-sticky-header.header-wrapper {
-    top: 60px !important;
 }
 /* Hiệu ứng sáng nhẹ */
 @keyframes glowPulse {
