@@ -428,14 +428,14 @@ summary:not(.header__icon) {
     </div>
 
   </div>
+  
+  <!-- SEARCH BOX -->
+  <form action="/search" method="get" class="hud-search-form" style="margin-left: 20px;">
+    <input type="search" name="q" placeholder="Search..." class="hud-search-input" autocomplete="off">
+    <button type="submit" class="hud-search-submit">🔍</button>
+  </form>
 </div>
       <div class="hud-right">
-        <!-- SEARCH BOX -->
-        <form action="/search" method="get" class="hud-search-form">
-          <input type="search" name="q" placeholder="Search..." class="hud-search-input" autocomplete="off">
-          <button type="submit" class="hud-search-submit">🔍</button>
-        </form>
-        
         <!-- NAV LINKS: LEADERBOARD -->
         <a href="/pages/leaderboard" class="hud-nav-link" title="Leaderboard">
           🏆 <span class="mobile-hide">Rank</span>
