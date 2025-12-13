@@ -250,6 +250,7 @@ summary:not(.header__icon) {
         display: flex;
         align-items: center;
         gap: 5px;
+        position: relative;
       }
       .hud-search-input {
         background: rgba(0,0,0,0.5) !important;
@@ -283,6 +284,70 @@ summary:not(.header__icon) {
       .hud-search-submit:hover {
         transform: scale(1.1);
         box-shadow: 0 0 10px var(--class-color);
+      }
+      
+      /* Search Suggestions Dropdown */
+      .search-suggestions {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 400px;
+        max-height: 500px;
+        overflow-y: auto;
+        background: #1a1a1a;
+        border: 2px solid var(--class-color);
+        border-radius: 8px;
+        margin-top: 5px;
+        display: none;
+        z-index: 10002;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+      }
+      .search-suggestions.active {
+        display: block;
+      }
+      .search-suggestion-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px;
+        border-bottom: 1px solid #333;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      .search-suggestion-item:hover {
+        background: rgba(255,215,0,0.1);
+        border-left: 3px solid var(--class-color);
+      }
+      .search-suggestion-img {
+        width: 50px;
+        height: 50px;
+        object-fit: contain;
+        border-radius: 4px;
+        background: #000;
+      }
+      .search-suggestion-info {
+        flex: 1;
+      }
+      .search-suggestion-title {
+        color: #fff;
+        font-weight: bold;
+        font-size: 14px;
+        margin-bottom: 3px;
+      }
+      .search-suggestion-price {
+        color: var(--class-color);
+        font-size: 12px;
+      }
+      .search-no-results {
+        padding: 20px;
+        text-align: center;
+        color: #888;
+        font-style: italic;
+      }
+      .search-loading {
+        padding: 20px;
+        text-align: center;
+        color: var(--class-color);
       }
       
       /* --- INVENTORY ICON --- */
@@ -431,8 +496,9 @@ summary:not(.header__icon) {
   
   <!-- SEARCH BOX -->
   <form action="/search" method="get" class="hud-search-form" style="margin-left: 20px;">
-    <input type="search" name="q" placeholder="Search..." class="hud-search-input" autocomplete="off">
+    <input type="search" name="q" placeholder="Search..." class="hud-search-input" id="hud-search-input" autocomplete="off">
     <button type="submit" class="hud-search-submit">🔍</button>
+    <div class="search-suggestions" id="search-suggestions"></div>
   </form>
 </div>
       <div class="hud-right">
@@ -982,9 +1048,134 @@ summary:not(.header__icon) {
         
         updateInventoryCount();
       }
+      
+      // ==========================================
+      // PREDICTIVE SEARCH FUNCTIONALITY
+      // ==========================================
+      let searchTimeout;
+      const searchInput = document.getElementById('hud-search-input');
+      const searchSuggestions = document.getElementById('search-suggestions');
+      
+      if (searchInput && searchSuggestions) {
+        searchInput.addEventListener('input', function(e) {
+          const query = e.target.value.trim();
+          
+          clearTimeout(searchTimeout);
+          
+          if (query.length < 2) {
+            searchSuggestions.classList.remove('active');
+            return;
+          }
+          
+          searchSuggestions.innerHTML = '<div class="search-loading">⏳ Searching...</div>';
+          searchSuggestions.classList.add('active');
+          
+          searchTimeout = setTimeout(() => {
+            fetchPredictiveSearch(query);
+          }, 300);
+        });
+        
+        // Close suggestions when clicking outside
+        document.addEventListener('click', function(e) {
+          if (!searchInput.contains(e.target) && !searchSuggestions.contains(e.target)) {
+            searchSuggestions.classList.remove('active');
+          }
+        });
+      }
+      
+      function fetchPredictiveSearch(query) {
+        const url = `${window.routes.predictive_search_url}?q=${encodeURIComponent(query)}&resources[type]=product&resources[limit]=8&section_id=predictive-search`;
+        
+        fetch(url)
+          .then(response => response.text())
+          .then(html => {
+            // Parse HTML response
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            
+            // Try to extract products from Shopify's predictive search response
+            const products = doc.querySelectorAll('.predictive-search__item');
+            
+            if (products.length === 0) {
+              // Fallback: use JSON API
+              fetchProductsJSON(query);
+            } else {
+              displaySearchResults(products);
+            }
+          })
+          .catch(error => {
+            console.error('Search error:', error);
+            fetchProductsJSON(query); // Fallback to JSON API
+          });
+      }
+      
+      function fetchProductsJSON(query) {
+        fetch(`/search/suggest.json?q=${encodeURIComponent(query)}&resources[type]=product&resources[limit]=8`)
+          .then(response => response.json())
+          .then(data => {
+            const products = data.resources.results.products || [];
+            displayProductResults(products);
+          })
+          .catch(error => {
+            console.error('JSON search error:', error);
+            searchSuggestions.innerHTML = '<div class="search-no-results">❌ Search failed. Please try again.</div>';
+          });
+      }
+      
+      function displayProductResults(products) {
+        if (products.length === 0) {
+          searchSuggestions.innerHTML = '<div class="search-no-results">🔍 No products found</div>';
+          return;
+        }
+        
+        let html = '';
+        products.forEach(product => {
+          const price = product.price ? (product.price / 100).toLocaleString() + '₫' : 'N/A';
+          const image = product.image || product.featured_image || 'https://via.placeholder.com/50';
+          
+          html += `
+            <a href="${product.url}" class="search-suggestion-item">
+              <img src="${image}" alt="${product.title}" class="search-suggestion-img">
+              <div class="search-suggestion-info">
+                <div class="search-suggestion-title">${product.title}</div>
+                <div class="search-suggestion-price">${price}</div>
+              </div>
+            </a>
+          `;
+        });
+        
+        searchSuggestions.innerHTML = html;
+      }
+      
+      function displaySearchResults(productElements) {
+        if (productElements.length === 0) {
+          searchSuggestions.innerHTML = '<div class="search-no-results">🔍 No products found</div>';
+          return;
+        }
+        
+        let html = '';
+        productElements.forEach(item => {
+          const link = item.querySelector('a');
+          const img = item.querySelector('img');
+          const title = item.querySelector('.predictive-search__item-heading')?.textContent || 'Product';
+          const price = item.querySelector('.price')?.textContent || '';
+          
+          if (link && img) {
+            html += `
+              <a href="${link.href}" class="search-suggestion-item">
+                <img src="${img.src}" alt="${title}" class="search-suggestion-img">
+                <div class="search-suggestion-info">
+                  <div class="search-suggestion-title">${title}</div>
+                  <div class="search-suggestion-price">${price}</div>
+                </div>
+              </a>
+            `;
+          }
+        });
+        
+        searchSuggestions.innerHTML = html || '<div class="search-no-results">🔍 No products found</div>';
+      }
     </script>
   {% render 'rpg-quests' %}
   </body>
 </html>
-  
-{% include 'gameball' %}
