@@ -369,10 +369,10 @@ summary:not(.header__icon) {
         border-radius: 4px !important; font-family: 'Cinzel', serif !important;
       }
 /* =======================================================
-     FIX SEARCH FINAL - (DÁN VÀO CUỐI CÙNG THẺ STYLE)
+     FIX SEARCH & HUD FINAL (DÁN VÀO CUỐI CÙNG THẺ STYLE)
      ======================================================= */
 
-  /* 1. Reset nút Search/Cart/Menu về trong suốt, xóa viền */
+  /* 1. RESET NÚT SEARCH TRÊN HEADER (Xóa viền, xóa nền) */
   .header__icon, 
   .header__icon--search, 
   .header__icon span, 
@@ -387,18 +387,20 @@ summary:not(.header__icon) {
       display: flex !important;
       align-items: center !important;
       justify-content: center !important;
-      pointer-events: auto !important; /* Luôn cho phép bấm */
+      pointer-events: auto !important; /* Đảm bảo nút luôn bấm được */
       cursor: pointer !important;
       text-decoration: none !important;
+      position: relative !important; 
+      z-index: 200005 !important; /* Nổi lên trên */
   }
 
-  /* 2. Sửa lỗi hiện chữ "S" thay vì icon Kính Lúp */
-  /* Ẩn chữ S (hoặc chữ Search) do font game gây ra */
-  .header__icon--search span:not(.icon), 
+  /* 2. SỬA LỖI HIỆN CHỮ "S" (Thay bằng icon kính lúp) */
+  /* Ẩn chữ S hoặc text bên trong */
+  .header__icon--search span,
   .header__icon span.visually-hidden {
       display: none !important; 
   }
-  /* Hiện icon SVG (Kính lúp) */
+  /* Hiện icon SVG kính lúp */
   .header__icon--search svg,
   .header__icon svg {
       display: block !important;
@@ -409,19 +411,19 @@ summary:not(.header__icon) {
       visibility: visible !important;
   }
   
-  /* Xóa mũi tên tam giác mặc định của thẻ summary */
+  /* Xóa mũi tên tam giác mặc định */
   summary.header__icon { list-style: none !important; }
   summary.header__icon::-webkit-details-marker { display: none !important; }
 
-  /* 3. Đưa khung tìm kiếm (Search Modal) lên cao nhất và HIỆN NỀN TRẮNG */
+  /* 3. KHUNG SEARCH FULL MÀN HÌNH (Sửa lỗi bị che khuất) */
   .search-modal, 
   details[open] > .search-modal,
   .predictive-search {
-      position: fixed !important; /* Dùng Fixed để thoát khỏi Header */
+      position: fixed !important; /* Thoát khỏi header */
       top: 0 !important;
       left: 0 !important;
       width: 100% !important;
-      height: 100% !important;
+      height: 100vh !important;
       z-index: 2147483647 !important; /* Lớp cao nhất */
       background-color: rgba(255, 255, 255, 0.98) !important;
       display: flex !important;
@@ -432,46 +434,45 @@ summary:not(.header__icon) {
       visibility: visible !important;
   }
 
-  /* 4. Ép ô nhập liệu tìm kiếm: MÀU TRẮNG - CHỮ ĐEN */
+  /* 4. Ô NHẬP LIỆU (Input) - Rõ ràng, gõ được chữ */
+  .search-modal__content { width: 100%; max-width: 800px; }
+  
   .search-modal__form input,
   .search-modal input[type="search"],
   .search-modal input[type="text"],
   input.search__input {
       background-color: #ffffff !important;
       color: #000000 !important;
-      border: 1px solid #ccc !important;
+      border: 2px solid #333 !important;
       background-image: none !important;
       opacity: 1 !important;
-      min-height: 44px !important;
+      min-height: 50px !important;
+      font-size: 16px !important;
+      padding: 0 15px !important;
       width: 100% !important;
-  }
-  
-  /* Đảm bảo nội dung modal có không gian */
-  .search-modal__content {
-      width: 100% !important;
-      max-width: 60rem !important;
-      padding: 0 1.5rem !important;
   }
 
-  /* 5. QUAN TRỌNG: Cho phép bấm xuyên qua thanh HUD đen */
-  #rpg-hud, .hud-left, .hud-right {
+  /* 5. QUAN TRỌNG: FIX LỖI HUD CHẶN CLICK (Click-Through) */
+  /* Làm cho toàn bộ HUD và các container con "trong suốt" với chuột */
+  #rpg-hud, 
+  .hud-left, 
+  .hud-right {
       pointer-events: none !important;
   }
   
-  /* CHỈ KÍCH HOẠT CHUỘT LẠI CHO CÁC NÚT BẤM CỤ THỂ TRONG HUD */
-  /* Thay vì dùng > * (gây lỗi vùng cấm), ta chỉ định rõ các nút */
+  /* Chỉ kích hoạt lại chuột cho ĐÚNG các nút bấm, link, icon bên trong */
   #rpg-hud a, 
   #rpg-hud button, 
   #rpg-hud .hud-inventory-btn, 
   #rpg-hud .hud-gift-btn,
-  #rpg-hud .hud-class-code,
-  #rpg-hud .hud-ap {
+  #rpg-hud .vip-wrapper,
+  #rpg-hud .hud-class-code {
       pointer-events: auto !important;
       cursor: pointer !important;
   }
 
-  /* 6. Đẩy Header Shopify lên lớp cao hơn để nhận click */
-  .shopify-section-group-header-group {
+  /* 6. Đẩy Header Shopify lên để nhận click */
+  .shopify-section-group-header-group, sticky-header {
       z-index: 200000 !important;
       position: relative !important;
   }
