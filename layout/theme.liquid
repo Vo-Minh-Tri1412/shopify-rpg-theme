@@ -244,6 +244,23 @@ summary:not(.header__icon) {
         background: #ffd700; color: #000 !important;
         box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
       }
+      
+      /* --- SEARCH BUTTON IN HUD --- */
+      .hud-search-btn {
+        font-size: 18px; cursor: pointer; 
+        background: rgba(255,255,255,0.1);
+        border: 1px solid var(--class-color);
+        color: var(--class-color);
+        padding: 8px 12px;
+        border-radius: 4px;
+        transition: all 0.3s;
+      }
+      .hud-search-btn:hover {
+        background: var(--class-color);
+        color: #000;
+        transform: scale(1.1);
+      }
+      
       /* --- INVENTORY ICON --- */
       .hud-inventory-btn {
         font-size: 22px; cursor: pointer; position: relative;
@@ -389,6 +406,11 @@ summary:not(.header__icon) {
   </div>
 </div>
       <div class="hud-right">
+        <!-- SEARCH BUTTON -->
+        <button class="hud-search-btn" onclick="openSearchModal()" title="Search Products">
+          🔍
+        </button>
+        
         <!-- NAV LINKS: LEADERBOARD -->
         <a href="/pages/leaderboard" class="hud-nav-link" title="Leaderboard">
           🏆 <span class="mobile-hide">Rank</span>
@@ -935,7 +957,26 @@ summary:not(.header__icon) {
         
         updateInventoryCount();
       }
+      
+      // Open Shopify search modal
+      function openSearchModal() {
+        // Try multiple selectors for different Shopify themes
+        const searchButton = document.querySelector('.header__icon--search') || 
+                           document.querySelector('[aria-label="Search"]') ||
+                           document.querySelector('.search-modal__toggle') ||
+                           document.querySelector('details-modal[id*="search"]') ||
+                           document.querySelector('button[aria-controls*="search"]');
+        
+        if (searchButton) {
+          searchButton.click();
+        } else {
+          // Fallback: navigate to search page
+          window.location.href = '/search';
+        }
+      }
     </script>
   {% render 'rpg-quests' %}
   </body>
 </html>
+  
+{% include 'gameball' %}
