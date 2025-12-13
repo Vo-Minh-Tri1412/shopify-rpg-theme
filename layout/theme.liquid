@@ -81,9 +81,17 @@ details-modal,
 details[open] > .search-modal {
     z-index: 200001 !important;
 }
-/* Nếu theme là Dawn hoặc theme OS 2.0 */
+/* Đẩy header gốc xuống 60px để không bị HUD che */
+.section-header, 
+.shopify-section-group-header-group,
 sticky-header {
-  top: 60px !important;
+    top: 60px !important;
+    position: relative; /* Đảm bảo nó nhận thuộc tính top */
+}
+
+/* Nếu header dính (sticky) khi cuộn chuột */
+.shopify-section-header-sticky {
+    top: 60px !important;
 }
 /* Hiệu ứng sáng nhẹ */
 @keyframes glowPulse {
