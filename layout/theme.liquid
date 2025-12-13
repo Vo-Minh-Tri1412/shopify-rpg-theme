@@ -68,31 +68,7 @@
   backdrop-filter: blur(2px);
   animation: glowPulse 3s infinite alternate; /* Hiệu ứng nhấp nháy nhẹ */
 }
-/* Đẩy khung tìm kiếm và menu của Shopify lên trên thanh HUD */
-.search-modal, 
-.header__search, 
-.predictive-search, 
-details-modal, 
-.menu-drawer {
-    z-index: 200000 !important; /* Cao hơn 10000 của HUD */
-}
 
-/* Nếu theme dùng 'details' để mở search */
-details[open] > .search-modal {
-    z-index: 200001 !important;
-}
-/* Đẩy header gốc xuống 60px để không bị HUD che */
-.section-header, 
-.shopify-section-group-header-group,
-sticky-header {
-    top: 60px !important;
-    position: relative; /* Đảm bảo nó nhận thuộc tính top */
-}
-
-/* Nếu header dính (sticky) khi cuộn chuột */
-.shopify-section-header-sticky {
-    top: 60px !important;
-}
 /* Hiệu ứng sáng nhẹ */
 @keyframes glowPulse {
   0% { opacity: 0.8; }
