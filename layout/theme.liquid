@@ -1,4 +1,31 @@
 <!doctype html>
+{% comment %} --- LOGIC TÍNH RANK & MÀU SẮC --- {% endcomment %}
+{% assign current_spent = customer.total_spent | default: 0 %}
+{% assign rpg_rank_title = "Tan Thu" %}
+{% assign rpg_rank_color = "#999" %} 
+
+{% if current_spent >= 30000000 %}
+  {% assign rpg_rank_title = "GODSLAYER" %}
+  {% assign rpg_rank_color = "#ffd700" %} <!-- Vàng kim -->
+{% elsif current_spent >= 18000000 %}
+  {% assign rpg_rank_title = "MYTHIC" %}
+  {% assign rpg_rank_color = "#00e5ff" %} <!-- Xanh Cyan -->
+{% elsif current_spent >= 12000000 %}
+  {% assign rpg_rank_title = "DRAGONBANE" %}
+  {% assign rpg_rank_color = "#ff3d00" %} <!-- Đỏ cam -->
+{% elsif current_spent >= 8000000 %}
+  {% assign rpg_rank_title = "VANGUARD" %}
+  {% assign rpg_rank_color = "#d500f9" %} <!-- Tím -->
+{% elsif current_spent >= 5000000 %}
+  {% assign rpg_rank_title = "SHADOW" %}
+  {% assign rpg_rank_color = "#aa00ff" %} <!-- Tím đậm -->
+{% elsif current_spent >= 2000000 %}
+  {% assign rpg_rank_title = "HUNTER" %}
+  {% assign rpg_rank_color = "#2979ff" %} <!-- Xanh dương -->
+{% elsif current_spent >= 500000 %}
+  {% assign rpg_rank_title = "WANDERER" %}
+  {% assign rpg_rank_color = "#00e676" %} <!-- Xanh lá -->
+{% endif %}
 <html class="no-js" lang="{{ request.locale.iso_code }}">
   <head>
     <meta charset="utf-8">
@@ -26,8 +53,26 @@
 
     {{ content_for_header }}
 
-    <!-- 2. CSS RPG CORE + FIX SEARCH -->
+    <!-- 2. CSS RPG - FULL WIDTH & NEW MODALS -->
     <style>
+      /* CSS CHO TAG RANK */
+.rpg-rank-badge {
+  font-size: 9px;            /* Chữ nhỏ hơn tên Class */
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 1px 5px;          /* Khoảng cách trong viền */
+  border: 1px solid;         /* Viền mỏng */
+  border-radius: 2px;        /* Bo góc nhẹ */
+  background: rgba(0, 0, 0, 0.4); /* Nền đen mờ để nổi bật chữ */
+  letter-spacing: 0.5px;
+  backdrop-filter: blur(2px);
+  animation: glowPulse 3s infinite alternate; /* Hiệu ứng nhấp nháy nhẹ */
+}
+/* Hiệu ứng sáng nhẹ */
+@keyframes glowPulse {
+  0% { opacity: 0.8; }
+  100% { opacity: 1; text-shadow: 0 0 5px currentColor; }
+}
       :root {
         --rpg-gold: #ffd700;
         --rpg-dark: #0a0a0c;
@@ -52,21 +97,99 @@
 
       .gradient { background: transparent !important; }
 
+      /* === CLASS COLOR BORDERS FOR UI ELEMENTS === */
+      /* Product Cards */
+      .card, .card-wrapper, .product-card, .product-card-wrapper,
+      .card--standard, .card--card, .card--media {
+        border: 1px solid var(--class-color) !important;
+        box-shadow: 0 0 10px rgba(var(--class-color-rgb, 255,215,0), 0.2);
+        transition: all 0.3s ease;
+      }
+      .card:hover, .card-wrapper:hover, .product-card:hover {
+        border-color: var(--class-color) !important;
+        box-shadow: 0 0 20px rgba(var(--class-color-rgb, 255,215,0), 0.4);
+        transform: translateY(-3px);
+      }
+
+      /* Buttons */
+      .button, .btn, button:not(.plain),
+      .shopify-payment-button__button,
+      .product-form__submit,
+      input[type="submit"],
+      .cart__checkout-button {
+        border: 2px solid var(--class-color) !important;
+        box-shadow: 0 0 8px rgba(var(--class-color-rgb, 255,215,0), 0.3);
+        transition: all 0.3s ease;
+      }
+      .button:hover, .btn:hover, button:not(.plain):hover,
+      .shopify-payment-button__button:hover,
+      .product-form__submit:hover {
+        box-shadow: 0 0 15px var(--class-color);
+        transform: scale(1.02);
+      }
+
+      /* Input Fields */
+      input[type="text"]:not(.search__input), 
+input[type="email"], 
+input[type="password"],
+      input[type="number"], input[type="tel"],
+      textarea, select {
+        border: 1px solid var(--class-color) !important;
+        background: rgba(0,0,0,0.5) !important;
+        color: #fff !important;
+        transition: all 0.3s ease;
+      }
+      input:focus, textarea:focus, select:focus {
+        border-color: var(--class-color) !important;
+        box-shadow: 0 0 10px var(--class-color);
+        outline: none;
+      }
+
+      /* Collection Cards */
+      .collection-card, .collection-list__item {
+        border: 1px solid var(--class-color) !important;
+      }
+
+      /* Cart Items */
+      .cart-item, .cart-item__details {
+        border-bottom: 1px solid var(--class-color) !important;
+      }
+
+      /* Nav Links in HUD - use class color */
+      .hud-nav-link {
+        border-color: var(--class-color) !important;
+        color: var(--class-color) !important;
+      }
+      .hud-nav-link:hover {
+        background: var(--class-color) !important;
+        color: #000 !important;
+      }
+
+      /* Quantity Selector */
+      .quantity, .quantity-selector, quantity-input {
+        border: 1px solid var(--class-color) !important;
+      }
+
+      /* Accordion / Disclosure */
+details:not(.header__search), 
+.accordion, 
+summary:not(.header__icon) {
+  border-color: var(--class-color) !important;
+}
+
+      /* Modal / Popup borders */
+      .modal__content, .drawer__content, .popup-content {
+        border: 2px solid var(--class-color) !important;
+      }
+
       h1, h2, h3, h4, h5, h6, .h1, .h2 {
         font-family: 'Cinzel', serif !important;
         text-transform: uppercase;
         letter-spacing: 1px;
         color: #fff !important;
       }
-      
-      /* --- FIX LỖI NÚT SEARCH KHÔNG BẤM ĐƯỢC --- */
-      /* Đẩy Header Shopify lên cao hơn HUD */
-      .header-wrapper, .section-header, sticky-header {
-        position: relative;
-        z-index: 20000 !important; 
-      }
-      
-      /* HUD cho phép click xuyên qua ở vùng trống */
+
+      /* --- RPG HUD --- */
       #rpg-hud {
         position: fixed; top: 0; left: 0; width: 100%; height: 60px;
         background: rgba(10, 10, 12, 0.95);
@@ -75,15 +198,20 @@
         padding: 0 30px; z-index: 10000;
         box-shadow: 0 5px 20px rgba(0,0,0,0.8);
         backdrop-filter: blur(5px); font-family: 'Cinzel', serif;
-        pointer-events: none; /* QUAN TRỌNG: Cho phép click xuyên qua thanh đen */
+        pointer-events: none; 
       }
-      
-      /* Các nút con trong HUD vẫn bấm được */
-      #rpg-hud > * { pointer-events: auto; }
-
+      #rpg-hud > * {
+  pointer-events: auto;
+}
       .hud-left { display: flex; align-items: center; gap: 15px; }
       .hud-avatar { width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--class-color); object-fit: cover; }
-      .hud-right { display: flex; align-items: center; gap: 20px; padding-right: 50px; }
+      
+      .hud-right { 
+  display: flex; 
+  align-items: center; 
+  gap: 20px; 
+  padding-right: 50px; /* <--- THÊM DÒNG NÀY (Tăng số này lên nếu muốn dời vào sâu hơn) */
+}
       
       /* Thanh Tiến Độ VIP */
       .vip-wrapper { text-align: right; }
@@ -93,161 +221,339 @@
       
       /* Daily Activity Points */
       .hud-ap { font-size: 12px; color: #a335ee; font-weight: bold; border: 1px solid #a335ee; padding: 2px 6px; border-radius: 4px; }
-      .hud-ap:hover { background-color: #a335ee; color: #fff !important; box-shadow: 0 0 10px #a335ee; transition: 0.3s; }
-
-      /* HUD Icons */
-      .hud-nav-link { display: flex; align-items: center; gap: 5px; color: #ffd700; font-size: 12px; font-weight: bold; text-decoration: none; padding: 5px 10px; border: 1px solid #ffd700; border-radius: 4px; transition: all 0.3s; }
-      .hud-nav-link:hover { background: #ffd700; color: #000 !important; box-shadow: 0 0 10px rgba(255, 215, 0, 0.5); }
-      
-      .hud-inventory-btn, .hud-gift-btn { font-size: 22px; cursor: pointer; position: relative; transition: transform 0.2s; padding: 5px; }
-      .hud-inventory-btn:hover, .hud-gift-btn:hover { transform: scale(1.15); }
-      
-      .inventory-count { position: absolute; top: -5px; right: -8px; background: #ff4d4d; color: #fff; font-size: 10px; font-weight: bold; min-width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid #0a0a0c; }
+      .hud-ap:hover {
+  background-color: #a335ee;
+  color: #fff !important;
+  box-shadow: 0 0 10px #a335ee;
+  transition: 0.3s;
+}
+      /* --- HUD NAV LINKS --- */
+      .hud-nav-link {
+        display: flex; align-items: center; gap: 5px;
+        color: #ffd700; font-size: 12px; font-weight: bold;
+        text-decoration: none; padding: 5px 10px;
+        border: 1px solid #ffd700; border-radius: 4px;
+        transition: all 0.3s;
+      }
+      .hud-nav-link:hover {
+        background: #ffd700; color: #000 !important;
+        box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+      }
+      /* --- INVENTORY ICON --- */
+      .hud-inventory-btn {
+        font-size: 22px; cursor: pointer; position: relative;
+        transition: transform 0.2s; padding: 5px;
+      }
+      .hud-inventory-btn:hover { transform: scale(1.15); }
+      .inventory-count {
+        position: absolute; top: -5px; right: -8px;
+        background: #ff4d4d; color: #fff; font-size: 10px; font-weight: bold;
+        min-width: 18px; height: 18px; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        border: 2px solid #0a0a0c;
+      }
       .inventory-count:empty, .inventory-count[data-count="0"] { display: none; }
       
-      .noti-dot { position: absolute; top: -2px; right: -2px; width: 10px; height: 10px; background: #ff4d4d; border-radius: 50%; border: 1px solid #fff; display: none; animation: pulse 1s infinite; }
+      /* --- INVENTORY ITEMS --- */
+      .inv-item {
+        display: flex; align-items: center; gap: 15px;
+        background: rgba(255,255,255,0.05); border: 1px solid #333;
+        padding: 12px; border-radius: 8px; margin-bottom: 10px;
+        transition: all 0.3s;
+      }
+      .inv-item:hover { border-color: #ffd700; background: rgba(255,215,0,0.1); }
+      .inv-item-img { width: 50px; height: 50px; object-fit: contain; border-radius: 5px; }
+      .inv-item-info { flex: 1; text-align: left; }
+      .inv-item-name { font-weight: bold; color: #fff; font-size: 14px; }
+      .inv-item-date { font-size: 11px; color: #888; }
+      .inv-item-btn {
+        background: linear-gradient(135deg, #ff0055, #ff4400);
+        border: none; color: #fff; padding: 8px 15px; border-radius: 5px;
+        cursor: pointer; font-weight: bold; font-size: 12px;
+        transition: transform 0.2s;
+      }
+      .inv-item-btn:hover { transform: scale(1.05); }
+      
+      /* --- LOOTBOX OPEN MODAL --- */
+      .lootbox-open-container {
+        position: relative; z-index: 10; text-align: center;
+        width: 100%; max-width: 500px; padding: 30px;
+      }
+      .lb-phase { display: flex; flex-direction: column; align-items: center; justify-content: center; }
+      .lb-box-shake { width: 250px; height: 250px; object-fit: contain; }
+      .lb-box-shake.shaking { animation: lbShake 0.4s infinite; }
+      @keyframes lbShake { 0%,100%{transform:rotate(0)} 25%{transform:rotate(8deg)} 75%{transform:rotate(-8deg)} }
+      .lb-status { color: #fff; font-size: 24px; margin-top: 20px; letter-spacing: 2px; }
+      
+      .lb-halo {
+        position: absolute; width: 400px; height: 400px;
+        background: radial-gradient(circle, rgba(255,215,0,0.3) 0%, transparent 70%);
+        animation: lbBreathe 2s infinite alternate;
+      }
+      @keyframes lbBreathe { from{transform:scale(1);opacity:0.5} to{transform:scale(1.1);opacity:0.8} }
+      
+      #lb-prize-img {
+        width: 280px; height: 280px; object-fit: contain;
+        filter: drop-shadow(0 0 20px gold);
+        animation: lbZoomIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      }
+      @keyframes lbZoomIn { from{transform:scale(0);opacity:0} to{transform:scale(1);opacity:1} }
+      
+      .lb-prize-info { margin-top: 15px; }
+      .lb-label { color: #aaa; font-size: 12px; letter-spacing: 2px; }
+      #lb-prize-name { color: #ffd700; font-size: 28px; margin: 5px 0; font-weight: bold; }
+      .lb-badge { background: #222; border: 1px solid #444; color: #fff; padding: 4px 12px; border-radius: 15px; font-size: 12px; display: inline-block; }
+      
+      /* --- GIFT ICON --- */
+      .hud-gift-btn {
+        font-size: 24px; cursor: pointer; position: relative;
+        transition: transform 0.2s;
+      }
+      .hud-gift-btn:hover { transform: scale(1.2) rotate(-10deg); }
+      .noti-dot {
+        position: absolute; top: -2px; right: -2px; width: 10px; height: 10px;
+        background: #ff4d4d; border-radius: 50%; border: 1px solid #fff;
+        display: none; animation: pulse 1s infinite;
+      }
       @keyframes pulse { 0% {box-shadow: 0 0 0 0 rgba(255, 77, 77, 0.7);} 70% {box-shadow: 0 0 0 5px rgba(255, 77, 77, 0);} 100% {box-shadow: 0 0 0 0 rgba(255, 77, 77, 0);} }
 
-      /* Modals Overlay */
-      .rpg-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 200000; display: none; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
-      .rpg-modal-box { background: #151515; border: 2px solid var(--class-color); padding: 30px; width: 350px; text-align: center; border-radius: 12px; color: #fff; box-shadow: 0 0 40px rgba(0,0,0,0.5); animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+      /* --- GENERIC POPUP (THAY THẾ ALERT) --- */
+      .rpg-modal-overlay {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.85); z-index: 200000;
+        display: none; justify-content: center; align-items: center;
+        backdrop-filter: blur(5px);
+      }
+      .rpg-modal-box {
+        background: #151515; border: 2px solid var(--class-color);
+        padding: 30px; width: 350px; text-align: center; border-radius: 12px;
+        color: #fff; box-shadow: 0 0 40px rgba(0,0,0,0.5);
+        animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      }
       @keyframes popIn { from {transform: scale(0.5); opacity: 0;} to {transform: scale(1); opacity: 1;} }
 
       .modal-icon-lg { font-size: 50px; margin-bottom: 15px; display: block; }
       .modal-title { color: var(--class-color); font-size: 20px; margin-bottom: 10px; font-weight: bold; }
       .modal-msg { font-size: 14px; color: #ccc; line-height: 1.5; margin-bottom: 20px; }
       
-      .rpg-btn-primary { background: var(--class-color); color: #000; border: none; padding: 10px 25px; font-weight: bold; font-family: 'Cinzel', serif; cursor: pointer; width: 100%; text-transform: uppercase; }
+      .rpg-btn-primary {
+        background: var(--class-color); color: #000; border: none;
+        padding: 10px 25px; font-weight: bold; font-family: 'Cinzel', serif;
+        cursor: pointer; width: 100%; text-transform: uppercase;
+      }
       .rpg-btn-primary:hover { filter: brightness(1.2); }
 
-      .code-display { background: #222; border: 1px dashed #fff; padding: 10px; font-size: 18px; color: #2ecc71; font-weight: bold; letter-spacing: 2px; margin-bottom: 15px; cursor: pointer; user-select: all; }
-      
-      /* Inventory Items */
-      .inv-item { display: flex; align-items: center; gap: 15px; background: rgba(255,255,255,0.05); border: 1px solid #333; padding: 12px; border-radius: 8px; margin-bottom: 10px; transition: all 0.3s; }
-      .inv-item:hover { border-color: #ffd700; background: rgba(255,215,0,0.1); }
-      .inv-item-info { flex: 1; text-align: left; }
-      .inv-item-name { font-weight: bold; color: #fff; font-size: 14px; }
-      .inv-item-btn { background: linear-gradient(135deg, #ff0055, #ff4400); border: none; color: #fff; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 12px; }
-
-      /* Rank Badge */
-      .rpg-rank-badge { font-size: 9px; font-weight: 700; text-transform: uppercase; padding: 1px 5px; border: 1px solid; border-radius: 2px; background: rgba(0, 0, 0, 0.4); letter-spacing: 0.5px; backdrop-filter: blur(2px); animation: glowPulse 3s infinite alternate; }
-      @keyframes glowPulse { 0% { opacity: 0.8; } 100% { opacity: 1; text-shadow: 0 0 5px currentColor; } }
-      
-      /* Class Selection */
-      #class-selection-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 200005; display: none; flex-direction: column; justify-content: center; align-items: center; }
+      .code-display {
+        background: #222; border: 1px dashed #fff; padding: 10px;
+        font-size: 18px; color: #2ecc71; font-weight: bold; letter-spacing: 2px;
+        margin-bottom: 15px; cursor: pointer; user-select: all;
+      }
+      /* --- CLASS SELECTION POPUP --- */
+      #class-selection-modal {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: #000; z-index: 200005; display: none;
+        flex-direction: column; justify-content: center; align-items: center;
+      }
       .class-grid { display: flex; gap: 20px; margin-top: 30px; flex-wrap: wrap; justify-content: center;}
-      .class-card { width: 240px; background: #151515; border: 1px solid #444; padding: 20px; text-align: center; cursor: pointer; transition: 0.3s; border-radius: 8px; }
+      .class-card {
+        width: 240px; background: #151515; border: 1px solid #444; padding: 20px;
+        text-align: center; cursor: pointer; transition: 0.3s; border-radius: 8px;
+      }
       .class-card:hover { transform: scale(1.05); border-color: var(--hover-color); box-shadow: 0 0 20px var(--hover-color); }
       .class-img { font-size: 50px; margin-bottom: 15px; display: block; }
       .class-title { font-size: 20px; font-weight: bold; margin-bottom: 5px; color: var(--hover-color); }
       .class-desc { font-size: 12px; color: #aaa; }
 
-      /* Buttons & Inputs */
-      .button, .btn, .shopify-payment-button__button { border: 2px solid var(--class-color) !important; box-shadow: 0 0 8px rgba(255,215,0, 0.3); transition: 0.3s; }
-      input[type="text"], input[type="email"], input[type="password"] { border: 1px solid var(--class-color) !important; background: rgba(0,0,0,0.5) !important; color: #fff !important; }
+      /* Fix nút bấm Shopify */
+      .button, .shopify-payment-button__button {
+        border-radius: 4px !important; font-family: 'Cinzel', serif !important;
+      }
+
     </style>
-
-    {% comment %} --- LOGIC TÍNH RANK & MÀU SẮC (LIQUID) --- {% endcomment %}
-    {% assign current_spent = customer.total_spent | default: 0 %}
-    {% assign rpg_rank_title = "Tan Thu" %}
-    {% assign rpg_rank_color = "#999" %} 
-
-    {% if current_spent >= 30000000 %}
-      {% assign rpg_rank_title = "GODSLAYER" %}{% assign rpg_rank_color = "#ffd700" %}
-    {% elsif current_spent >= 18000000 %}
-      {% assign rpg_rank_title = "MYTHIC" %}{% assign rpg_rank_color = "#00e5ff" %}
-    {% elsif current_spent >= 12000000 %}
-      {% assign rpg_rank_title = "DRAGONBANE" %}{% assign rpg_rank_color = "#ff3d00" %}
-    {% elsif current_spent >= 8000000 %}
-      {% assign rpg_rank_title = "VANGUARD" %}{% assign rpg_rank_color = "#d500f9" %}
-    {% elsif current_spent >= 5000000 %}
-      {% assign rpg_rank_title = "SHADOW" %}{% assign rpg_rank_color = "#aa00ff" %}
-    {% elsif current_spent >= 2000000 %}
-      {% assign rpg_rank_title = "HUNTER" %}{% assign rpg_rank_color = "#2979ff" %}
-    {% elsif current_spent >= 500000 %}
-      {% assign rpg_rank_title = "WANDERER" %}{% assign rpg_rank_color = "#00e676" %}
-    {% endif %}
   </head>
 
   <body class="gradient">
     
-    <!-- 3. RPG HUD (CLEAN & FIXED) -->
+    <!-- 3. RPG HUD (CẬP NHẬT VIP) -->
     <div id="rpg-hud">
-      <div class="hud-left">
-        <img id="hud-avatar-img" src="https://cdn-icons-png.flaticon.com/512/149/149071.png" width="40" height="40" alt="Avatar" class="hud-avatar">
-        <div style="display: flex; flex-direction: column; justify-content: center; margin-left: 12px;">
-          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
-            <div style="font-weight:bold; color:var(--class-color); font-size: 1.2em; line-height: 1;" id="hud-class-name">Welcome</div>
-            <div class="rpg-rank-badge" style="color: {{ rpg_rank_color }}; border-color: {{ rpg_rank_color }}; box-shadow: 0 0 4px {{ rpg_rank_color }};">
-              {{ rpg_rank_title }}
-            </div>
-          </div>
-          <div id="hud-class-code" style="font-size: 10px; color: #ddd; background: rgba(255,255,255,0.15); padding: 2px 6px; border-radius: 3px; display: none; cursor: pointer; width: fit-content;" onclick="copyToClipboard(this.innerText)">
-            CODE: <span id="class-code-text">NONE</span>
-          </div>
-        </div>
+<div class="hud-left">
+  <!-- Avatar (Giữ nguyên) -->
+  <img id="hud-avatar-img" src="https://cdn-icons-png.flaticon.com/512/149/149071.png" width="40" height="40" alt="Avatar" class="hud-avatar">
+  
+  <div style="display: flex; flex-direction: column; justify-content: center; margin-left: 12px;">
+    
+    <!-- DÒNG 1: TÊN CLASS + TAG RANK -->
+    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+      <!-- Tên Class -->
+      <div style="font-weight:bold; color:var(--class-color); font-size: 1.2em; line-height: 1;" id="hud-class-name">Welcome</div>
+      
+      <!-- Tag Rank (MỚI) -->
+      <div class="rpg-rank-badge" style="
+          color: {{ rpg_rank_color }}; 
+          border-color: {{ rpg_rank_color }};
+          box-shadow: 0 0 4px {{ rpg_rank_color }};
+      ">
+        {{ rpg_rank_title }}
       </div>
+    </div>
 
+    <!-- DÒNG 2: CODE BOX (Giữ nguyên như ảnh của bạn) -->
+    <div id="hud-class-code" style="
+        font-size: 10px; 
+        color: #ddd; 
+        background: rgba(255,255,255,0.15); 
+        padding: 2px 6px; 
+        border-radius: 3px; 
+        display: none; 
+        cursor: pointer;
+        width: fit-content;
+    " onclick="copyToClipboard(this.innerText)">
+      CODE: <span id="class-code-text">NONE</span>
+    </div>
+
+  </div>
+</div>
       <div class="hud-right">
-        <!-- LINKS -->
-        <a href="/pages/leaderboard" class="hud-nav-link" title="Leaderboard">🏆 Rank</a>
-        <a href="/pages/quest-board" class="hud-nav-link" title="Archivement">📜 Achv</a>
-        <a href="/pages/gold-shop" class="hud-nav-link" title="HALL OF GLORY" style="color: #ffd700;">🪙 GLORY</a>
-        <a href="/pages/ap-shop" class="hud-nav-link" title="AP Shop">🛍️ Shop</a>
+        <!-- NAV LINKS: LEADERBOARD -->
+        <a href="/pages/leaderboard" class="hud-nav-link" title="Leaderboard">
+          🏆 <span class="mobile-hide">Rank</span>
+        </a>
         
-        <!-- ICONS -->
-        <div class="hud-inventory-btn" onclick="openInventory()" title="My Codes">🎟️<span class="inventory-count" id="inventory-count">0</span></div>
-        <div class="hud-gift-btn" onclick="openDailyPopup()" title="Daily Reward">🎁<div id="gift-noti" class="noti-dot"></div></div>
+        <!-- NAV LINKS: QUESTS -->
+        <a href="/pages/quest-board" class="hud-nav-link" title="Archivement">
+          📜 <span class="mobile-hide">Archivement</span>
+        </a>
+        
+        <!-- NAV LINKS: GOLD & LOOTBOX SHOP -->
+        <a href="/pages/gold-shop" class="hud-nav-link" title="HALL OF GLORY" style="color: #ffd700;">
+          🪙 <span class="mobile-hide">HALL OF GLORY</span>
+        </a>
+        
+        <!-- NAV LINKS: AP SHOP -->
+        <a href="/pages/ap-shop" class="hud-nav-link" title="AP Shop">
+          🛍️ <span class="mobile-hide">AP Shop</span>
+        </a>
+        
+        <!-- ICON DISCOUNT CODES -->
+        <div class="hud-inventory-btn" onclick="openInventory()" title="My Discount Codes">
+          🎟️
+          <span class="inventory-count" id="inventory-count">0</span>
+        </div>
+        
+        <!-- ICON DAILY REWARD -->
+        <div class="hud-gift-btn" onclick="openDailyPopup()" title="Daily Reward">
+          🎁
+          <div id="gift-noti" class="noti-dot"></div>
+        </div>
 
         <div class="vip-wrapper">
-          <div class="vip-label"><span id="hud-vip-rank">{{ rpg_rank_title }}</span></div>
+          <div class="vip-label"><span id="hud-vip-rank">VIP 0</span></div>
           <div class="xp-container"><div class="xp-fill" id="hud-vip-bar"></div></div>
         </div>
 
         <div style="text-align: right;">
-          <a href="/pages/gold-shop" style="color:#ffd700; font-weight: bold; text-decoration:none; display:block; margin-bottom:3px;">🪙 <span id="hud-gold-display">0</span> Gold</a>
-          <a href="/pages/ap-shop" id="hud-ap-display" class="hud-ap" style="display:none; text-decoration:none; cursor:pointer; font-size:12px;">⚡ 0 AP 🛒</a>
+          <!-- GOLD DISPLAY -->
+          <a href="/pages/gold-shop" style="color:#ffd700; font-weight: bold; text-decoration:none; display:block; margin-bottom:3px;" title="Click to buy more Gold">
+            🪙 <span id="hud-gold-display">0</span> Gold
+          </a>
+          <!-- AP POINTS -->
+          <a href="/pages/ap-shop" id="hud-ap-display" class="hud-ap" style="display:none; text-decoration:none; cursor:pointer; font-size:12px;" title="Click to visit AP Shop">
+            ⚡ 0 AP
+          </a>
         </div>
       </div>
     </div>
 
-    <!-- MAIN SHOPIFY CONTENT -->
+    <!-- MAIN CONTENT SHOPIFY -->
     {% sections 'header-group' %}
     <main id="MainContent" class="content-for-layout" role="main" tabindex="-1">
       {{ content_for_layout }}
     </main>
     {% sections 'footer-group' %}
 
-    <!-- MODALS SECTION -->
+    <!-- 4. CLASS SELECTION MODAL -->
     <div id="class-selection-modal">
       <h1 style="color: #fff; font-size: 2.5rem; letter-spacing: 3px;">CHOOSE YOUR CLASS</h1>
+      <p style="color: #888;">Your journey begins here{% if customer %}, <span style="color: var(--rpg-gold);">{{ customer.first_name | default: 'Adventurer' }}</span>{% endif %}</p>
       <div class="class-grid">
-        <div class="class-card" style="--hover-color: #ff4d4d;" onclick="selectRPGClass('Warrior', '#ff4d4d')"><span class="class-img">⚔️</span><div class="class-title">WARRIOR</div></div>
-        <div class="class-card" style="--hover-color: #a335ee;" onclick="selectRPGClass('Mage', '#a335ee')"><span class="class-img">🔮</span><div class="class-title">MAGE</div></div>
-        <div class="class-card" style="--hover-color: #2ecc71;" onclick="selectRPGClass('Archer', '#2ecc71')"><span class="class-img">🏹</span><div class="class-title">ARCHER</div></div>
+        <div class="class-card" style="--hover-color: #ff4d4d;" onclick="selectRPGClass('Warrior', '#ff4d4d')">
+          <span class="class-img">⚔️</span><div class="class-title">WARRIOR</div><p class="class-desc">Strength & Melee</p>
+        </div>
+        <div class="class-card" style="--hover-color: #a335ee;" onclick="selectRPGClass('Mage', '#a335ee')">
+          <span class="class-img">🔮</span><div class="class-title">MAGE</div><p class="class-desc">Magic & Intelligence</p>
+        </div>
+        <div class="class-card" style="--hover-color: #2ecc71;" onclick="selectRPGClass('Archer', '#2ecc71')">
+          <span class="class-img">🏹</span><div class="class-title">ARCHER</div><p class="class-desc">Speed & Precision</p>
+        </div>
       </div>
     </div>
 
+    <!-- 5. DAILY REWARD MODAL -->
     <div id="daily-reward-modal" class="rpg-modal-overlay">
       <div class="rpg-modal-box">
-        <span onclick="closeModal('daily-reward-modal')" style="position:absolute; top:10px; right:15px; cursor:pointer;">✕</span>
-        <h3 style="color:#ffd700;">DAILY CHECK-IN</h3>
-        <p>Streak: <span id="streak-day" style="color:#fff; font-weight:bold;">1</span></p>
+        <span onclick="closeModal('daily-reward-modal')" style="position:absolute; top:10px; right:15px; cursor:pointer; font-size:20px; color:#888;">✕</span>
+        <h3 style="color:#ffd700; margin-top:0;">DAILY CHECK-IN</h3>
+        <p style="font-size:12px; color:#aaa;">Streak: <span id="streak-day" style="color:#fff; font-weight:bold;">1</span></p>
+        
         <div style="margin: 20px 0; font-size: 60px;">🎁</div>
-        <div id="reward-info" style="margin-bottom:20px; font-weight:bold;">Reward waiting...</div>
+        <div id="reward-info" style="margin-bottom:20px; font-weight:bold; font-size:1.1em;">
+          Reward waiting...
+        </div>
+
         <button id="btn-claim-reward" class="rpg-btn-primary" onclick="claimReward()">CLAIM REWARD</button>
         <p id="reward-timer" style="font-size:10px; color:#666; margin-top:10px;"></p>
       </div>
     </div>
 
+    <!-- 6. INVENTORY MODAL - DISCOUNT CODES -->
     <div id="inventory-modal" class="rpg-modal-overlay">
-      <div class="rpg-modal-box" style="width: 500px;">
-        <span onclick="closeModal('inventory-modal')" style="position:absolute; top:10px; right:15px; cursor:pointer;">✕</span>
-        <h3 style="color:#ffd700;">🎟️ MY CODES</h3>
-        <div id="inventory-items" style="max-height: 350px; overflow-y: auto;"></div>
+      <div class="rpg-modal-box" style="width: 500px; max-width: 95vw;">
+        <span onclick="closeModal('inventory-modal')" style="position:absolute; top:10px; right:15px; cursor:pointer; font-size:20px; color:#888;">✕</span>
+        <h3 style="color:#ffd700; margin-top:0;">🎟️ MY DISCOUNT CODES</h3>
+        <p style="font-size:12px; color:#aaa; margin-bottom:20px;">Your VIP, Class & Earned discount codes</p>
+        
+        <div id="inventory-items" style="max-height: 350px; overflow-y: auto;">
+          <p style="color:#666; font-style:italic;">Inventory empty...</p>
+        </div>
       </div>
     </div>
 
+    <!-- 7. LOOTBOX OPEN MODAL -->
+    <div id="lootbox-open-modal" class="rpg-modal-overlay" style="z-index:200001;">
+      <div class="lootbox-open-container">
+        <!-- Phase 1: Open Confirmation -->
+        <div id="lb-phase-shake" class="lb-phase">
+          <img id="lb-box-img" src="" class="lb-box-shake" alt="Lootbox">
+          <div id="lb-confirm-text" style="text-align:center; margin-top:20px;">
+            <p style="color:#aaa;">Are you sure you want to open this box?</p>
+          </div>
+          <div style="display:flex; gap:10px; margin-top:20px; justify-content:center;">
+            <button class="rpg-btn-secondary" onclick="closeModal('lootbox-open-modal')" style="padding:10px 20px;">
+              ❌ CANCEL
+            </button>
+            <button id="lb-confirm-btn" class="rpg-btn-primary" onclick="confirmLootboxResult()" style="padding:10px 20px;">
+              ✅ OPEN & PAY
+            </button>
+          </div>
+        </div>
+        
+        <!-- Phase 2: Result (shows AFTER payment) -->
+        <div id="lb-phase-result" class="lb-phase" style="display:none;">
+          <div class="lb-halo"></div>
+          <img id="lb-prize-img" src="" alt="Prize">
+          <div class="lb-prize-info">
+            <div class="lb-label">YOU RECEIVED</div>
+            <h2 id="lb-prize-name">ITEM</h2>
+            <div class="lb-badge" id="lb-prize-chance">Drop Rate: 1%</div>
+          </div>
+          <button id="lb-close-btn" class="rpg-btn-primary" onclick="closeModal('lootbox-open-modal')" style="margin-top:20px;">
+            🎉 AWESOME!
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 8. CUSTOM ALERT MODAL (REPLACES ALERT) -->
     <div id="custom-alert-modal" class="rpg-modal-overlay">
       <div class="rpg-modal-box">
         <span class="modal-icon-lg" id="alert-icon">🎉</span>
@@ -257,39 +563,43 @@
       </div>
     </div>
 
+    <!-- 9. GIFTCODE MODAL (REPLACES PROMPT) -->
     <div id="giftcode-modal" class="rpg-modal-overlay">
       <div class="rpg-modal-box">
         <span class="modal-icon-lg">👑</span>
         <div class="modal-title" style="color:#2ecc71">JACKPOT!</div>
-        <div class="modal-msg">You received a Discount Code:</div>
+        <div class="modal-msg">Congratulations! You received a Special Discount Code:</div>
+        
         <div class="code-display" id="giftcode-display" onclick="copyToClipboard(this.innerText)">CODE_HERE</div>
+        <p style="font-size:10px; color:#888; margin-bottom:15px;">(Click to copy)</p>
+        
         <button class="rpg-btn-primary" onclick="closeModal('giftcode-modal')">AWESOME</button>
       </div>
     </div>
 
-    <!-- JS LOGIC -->
+    <!-- 8. JS LOGIC -->
     <script>
-      // FIX LANGUAGE
+      // FIX LANGUAGE ERROR
       window.shopUrl = '{{ request.origin }}';
       window.routes = { cart_add_url: '{{ routes.cart_add_url }}', cart_change_url: '{{ routes.cart_change_url }}', cart_update_url: '{{ routes.cart_update_url }}', cart_url: '{{ routes.cart_url }}', predictive_search_url: '{{ routes.predictive_search_url }}' };
       window.cartStrings = { error: `Cart error`, quantityError: `Invalid quantity` };
       window.variantStrings = { addToCart: `Add to cart`, soldOut: `Sold out`, unavailable: `Unavailable` };
       window.accessibilityStrings = { imageAvailable: `Image available`, shareSuccess: `Link copied`, pauseSlideshow: `Pause`, playSlideshow: `Play` };
 
-      // CONFIG
-      const REAL_MONEY = {{ customer.total_spent | default: 0 }} / 100;
+      // --- RPG SYSTEM CONFIG ---
+      const REAL_MONEY = {{ customer.total_spent | default: 0 }} / 100; // Real money spent
       
+      // VIP TIERS CONFIG
       const VIP_TIERS = [
-        { name: 'WANDERER', min: 0 },
-        { name: 'WANDERER', min: 500000 },
-        { name: 'HUNTER', min: 2000000 },
-        { name: 'SHADOW', min: 5000000 },
-        { name: 'VANGUARD', min: 8000000 },
-        { name: 'DRAGONBANE', min: 12000000 },
-        { name: 'MYTHIC', min: 18000000 },
-        { name: 'GODSLAYER', min: 30000000 }
+        { name: 'VIP 0', min: 0 },
+        { name: 'VIP 1', min: 500000 },
+        { name: 'VIP 2', min: 5000000 },
+        { name: 'VIP 3', min: 12000000 },
+        { name: 'VIP 4', min: 20000000 },
+        { name: 'VIP 5', min: 30000000 }
       ];
 
+      // Daily Rewards Config (AP points)
       const DAILY_REWARDS = [
         {d:1, val: 50, type:'ap', label:'50 AP'},
         {d:2, val: 100, type:'ap', label:'100 AP'},
@@ -300,7 +610,16 @@
         {d:7, val: 'Cheap Product', type:'code', label:'GIFTCODE'}
       ];
       
-      // STORAGE KEYS
+      // Check if customer is logged in
+      {% if customer %}
+        const IS_LOGGED_IN = true;
+        const CUSTOMER_EMAIL = "{{ customer.email }}";
+      {% else %}
+        const IS_LOGGED_IN = false;
+        const CUSTOMER_EMAIL = null;
+      {% endif %}
+      
+      // Simple storage keys (same for all users on this browser)
       const KEY_DAY = 'rpg_daily_day';
       const KEY_TIME = 'rpg_daily_time';
       const KEY_AP = 'rpg_activity_points';
@@ -309,44 +628,77 @@
       const KEY_COLOR = 'rpg_class_color';
       const KEY_GOLD = 'rpg_gold';
 
+      // Temp variable for current opening lootbox
+      let currentOpeningLootbox = null;
+
       document.addEventListener("DOMContentLoaded", function() {
-        initRPGSystem();
-        checkRewardStatus();
-        setInterval(checkRewardStatus, 1000);
-        updateInventoryCount();
+        console.log('[RPG Debug] DOMContentLoaded fired');
+        
+        // Update debug panel
+        const debugEl = document.getElementById('debug-js');
+        if (debugEl) {
+          debugEl.innerHTML = `JS OK! | Logged: ${IS_LOGGED_IN} | Class: ${localStorage.getItem(KEY_CLASS) || 'none'}`;
+        }
+        
+        try {
+          initRPGSystem();
+          checkRewardStatus();
+          setInterval(checkRewardStatus, 1000);
+          updateInventoryCount(); // Update inventory count
+        } catch(e) {
+          console.error('[RPG Debug] Error in init:', e);
+          const debugEl = document.getElementById('debug-js');
+          if (debugEl) debugEl.innerHTML = `ERROR: ${e.message}`;
+        }
       });
 
       function initRPGSystem() {
+        console.log('[RPG Debug] Logged in:', IS_LOGGED_IN);
+        
+        // Read class from storage
         const savedClass = localStorage.getItem(KEY_CLASS);
         const savedColor = localStorage.getItem(KEY_COLOR);
+        
+        console.log('[RPG Debug] Saved class:', savedClass, 'Color:', savedColor);
 
         if (!savedClass) {
+          console.log('[RPG Debug] No class found, showing selection modal');
           document.getElementById('class-selection-modal').style.display = 'flex';
           document.body.style.overflow = 'hidden'; 
         } else {
+          console.log('[RPG Debug] Applying theme for:', savedClass);
           applyTheme(savedClass, savedColor);
         }
         
+        // Calculate VIP rank and display AP + Gold
         calculateVipRank();
         updateAPDisplay();
-        updateGoldDisplay();
-        initializeDefaultDiscounts();
+        updateGoldDisplay(); // Update Gold in HUD
+        initializeDefaultDiscounts(); // Initialize discount codes
       }
 
       function selectRPGClass(className, colorHex) {
+        // Save class to localStorage
         localStorage.setItem(KEY_CLASS, className);
         localStorage.setItem(KEY_COLOR, colorHex);
         document.getElementById('class-selection-modal').style.display = 'none';
         document.body.style.overflow = 'auto';
+        
+        // SHOW WELCOME MODAL
         showCustomAlert('👋', 'WELCOME!', `You have joined the ${className} class!`);
-        setTimeout(() => location.reload(), 2000);
+        
+        setTimeout(() => location.reload(), 2000); // Reload after 2s
       }
 
       function applyTheme(className, color) {
         document.documentElement.style.setProperty('--class-color', color);
         document.getElementById('hud-class-name').innerText = className.toUpperCase();
         
-        const avatarMap = { 'Warrior': 'https://cdn-icons-png.flaticon.com/512/3408/3408593.png', 'Mage': 'https://cdn-icons-png.flaticon.com/512/3408/3408545.png', 'Archer': 'https://cdn-icons-png.flaticon.com/512/3408/3408605.png' };
+        const avatarMap = { 
+          'Warrior': 'https://cdn-icons-png.flaticon.com/512/3408/3408593.png', 
+          'Mage': 'https://cdn-icons-png.flaticon.com/512/3408/3408545.png', 
+          'Archer': 'https://cdn-icons-png.flaticon.com/512/3408/3408605.png' 
+        };
         if(avatarMap[className]) document.getElementById('hud-avatar-img').src = avatarMap[className];
 
         const codeBox = document.getElementById('hud-class-code');
@@ -357,42 +709,63 @@
         codeBox.style.display = 'inline-block';
       }
 
-      // VIP CALCULATOR
+      // --- VIP RANK CALCULATION LOGIC (VIP 1 - 5) ---
       function calculateVipRank() {
         let currentRank = 0;
         let nextRankMin = 500000;
-        
+        let rankName = 'NOVICE';
+
+        // Determine Rank
         for(let i = 0; i < VIP_TIERS.length; i++) {
           if(REAL_MONEY >= VIP_TIERS[i].min) {
             currentRank = i;
-            if (i < VIP_TIERS.length - 1) nextRankMin = VIP_TIERS[i+1].min;
-            else nextRankMin = REAL_MONEY;
+            rankName = VIP_TIERS[i].name;
+            if (i < VIP_TIERS.length - 1) {
+              nextRankMin = VIP_TIERS[i+1].min;
+            } else {
+              nextRankMin = REAL_MONEY; // Max level
+            }
           }
         }
+
+        // Calculate progress bar %
+        // Logic: (Current - Current tier) / (Next tier - Current tier)
         let currentTierMin = VIP_TIERS[currentRank].min;
-        let percent = currentRank < 7 ? ((REAL_MONEY - currentTierMin) / (nextRankMin - currentTierMin)) * 100 : 100;
+        let percent = 0;
+        if (currentRank < 5) {
+           percent = ((REAL_MONEY - currentTierMin) / (nextRankMin - currentTierMin)) * 100;
+        } else {
+           percent = 100; // Max VIP
+        }
+
+        document.getElementById('hud-vip-rank').innerText = rankName;
         document.getElementById('hud-vip-bar').style.width = percent + '%';
       }
 
       function updateAPDisplay() {
         const ap = parseInt(localStorage.getItem(KEY_AP) || 0);
-        document.getElementById('hud-ap-display').innerText = `⚡ ${ap} AP`;
-        document.getElementById('hud-ap-display').style.display = 'inline-block';
+        const apBox = document.getElementById('hud-ap-display');
+        apBox.innerText = `⚡ ${ap} AP`;
+        apBox.style.display = 'inline-block';
       }
       
+      // Update Gold display in HUD
       function updateGoldDisplay() {
         const gold = parseInt(localStorage.getItem(KEY_GOLD) || 0);
         const goldEl = document.getElementById('hud-gold-display');
         if (goldEl) goldEl.innerText = gold.toLocaleString();
       }
 
-      // DAILY REWARD LOGIC
+      // --- LOGIC NHẬN QUÀ ---
       function openDailyPopup() {
         document.getElementById('daily-reward-modal').style.display = 'flex';
         updatePopupUI();
       }
 
-      function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+      function closeModal(id) {
+        document.getElementById(id).style.display = 'none';
+      }
+
       function showCustomAlert(icon, title, msg) {
         document.getElementById('alert-icon').innerText = icon;
         document.getElementById('alert-title').innerText = title;
@@ -403,7 +776,8 @@
       function checkRewardStatus() {
         const last = parseInt(localStorage.getItem(KEY_TIME) || 0);
         const now = new Date().getTime();
-        const COOLDOWN = 10000; // Testing 10s
+        const COOLDOWN = 8640000; // 10s Test (Sửa thành 86400000 chạy thật)
+        
         const dot = document.getElementById('gift-noti');
         if(now - last > COOLDOWN) dot.style.display = 'block';
         else dot.style.display = 'none';
@@ -414,16 +788,21 @@
         const last = parseInt(localStorage.getItem(KEY_TIME) || 0);
         const now = new Date().getTime();
         const COOLDOWN = 10000;
+
         const reward = DAILY_REWARDS[day-1];
         document.getElementById('streak-day').innerText = day;
-        document.getElementById('reward-info').innerText = `Reward: ${reward.label}`;
+        
+        let rewardText = reward.label;
+        document.getElementById('reward-info').innerText = `Phần thưởng hôm nay: ${rewardText}`;
+
         const btn = document.getElementById('btn-claim-reward');
         const timer = document.getElementById('reward-timer');
 
         if(now - last < COOLDOWN) {
           btn.disabled = true;
-          btn.innerText = "WAIT";
-          timer.innerText = `Wait: ${Math.floor((COOLDOWN - (now - last))/1000)}s`;
+          btn.innerText = "COME BACK LATER";
+          const diff = COOLDOWN - (now - last);
+          timer.innerText = `Wait: ${Math.floor(diff/1000)} seconds`;
         } else {
           btn.disabled = false;
           btn.innerText = "CLAIM REWARD";
@@ -434,19 +813,29 @@
       function claimReward() {
         let day = parseInt(localStorage.getItem(KEY_DAY) || 1);
         if(day > 7) day = 1;
+        
         const reward = DAILY_REWARDS[day-1];
         const now = new Date().getTime();
-        closeModal('daily-reward-modal');
+
+        closeModal('daily-reward-modal'); // Close daily popup
 
         if(reward.type === 'ap') {
+          // Add AP points
           let currentAP = parseInt(localStorage.getItem(KEY_AP) || 0);
-          localStorage.setItem(KEY_AP, currentAP + reward.val);
-          showCustomAlert('⚡', 'CLAIMED', `Received ${reward.val} AP`);
+          let newAP = currentAP + reward.val;
+          localStorage.setItem(KEY_AP, newAP);
+          
+          // SHOW CONGRATULATIONS MODAL
+          showCustomAlert('⚡', 'CLAIM SUCCESSFUL', `You received ${reward.val} Activity Points (AP).`);
           updateAPDisplay();
+          
         } else if (reward.type === 'code') {
+          // SHOW GIFTCODE MODAL
           document.getElementById('giftcode-display').innerText = reward.val;
           document.getElementById('giftcode-modal').style.display = 'flex';
         }
+
+        // Save
         localStorage.setItem(KEY_TIME, now);
         if(day < 7) localStorage.setItem(KEY_DAY, day + 1);
         else localStorage.setItem(KEY_DAY, 1);
@@ -454,50 +843,391 @@
 
       function copyToClipboard(text) {
         navigator.clipboard.writeText(text);
-        showCustomAlert('📋', 'COPIED', `Code "${text}" copied!`);
+        // Show toast notification instead of alert
+        showCustomAlert('📋', 'COPIED', `Code "${text}" has been copied to clipboard.`);
       }
 
-      // INVENTORY SYSTEM
-      function getDiscountInventory() { return JSON.parse(localStorage.getItem(KEY_INVENTORY) || '[]'); }
-      function saveDiscountInventory(items) { localStorage.setItem(KEY_INVENTORY, JSON.stringify(items)); updateInventoryCount(); }
+      // ==========================================
+      // DISCOUNT CODES INVENTORY SYSTEM
+      // Uses KEY_INVENTORY from customer-specific keys
+      // ==========================================
+      
+      function getDiscountInventory() {
+        return JSON.parse(localStorage.getItem(KEY_INVENTORY) || '[]');
+      }
+      
+      function saveDiscountInventory(items) {
+        localStorage.setItem(KEY_INVENTORY, JSON.stringify(items));
+        updateInventoryCount();
+      }
+      
       function updateInventoryCount() {
         const items = getDiscountInventory();
         const countEl = document.getElementById('inventory-count');
-        if (countEl) { countEl.innerText = items.length; countEl.setAttribute('data-count', items.length); }
+        if (countEl) {
+          countEl.innerText = items.length;
+          countEl.setAttribute('data-count', items.length);
+        }
       }
-      function addDiscountToInventory(d) {
+      
+      // Add discount code to inventory
+      function addDiscountToInventory(discountData) {
         const items = getDiscountInventory();
-        if (items.some(item => item.code === d.code)) return false;
-        items.push({...d, id: Date.now(), addedAt: new Date().toISOString()});
+        // Check if code already exists
+        if (items.some(item => item.code === discountData.code)) {
+          console.log('Discount code already in inventory:', discountData.code);
+          return false;
+        }
+        const newItem = {
+          id: Date.now(),
+          name: discountData.name || 'Discount Code',
+          code: discountData.code,
+          type: discountData.type || 'general', // vip, class, quest, shop, daily
+          discount: discountData.discount || '???',
+          icon: discountData.icon || '🎟️',
+          addedAt: new Date().toISOString(),
+          expiresAt: discountData.expiresAt || null
+        };
+        items.push(newItem);
         saveDiscountInventory(items);
         return true;
       }
       
+      // Remove discount from inventory (after use)
+      function removeDiscountFromInventory(code) {
+        let items = getDiscountInventory();
+        items = items.filter(item => item.code !== code);
+        saveDiscountInventory(items);
+      }
+      
+      // Open inventory modal
       function openInventory() {
         const items = getDiscountInventory();
         const container = document.getElementById('inventory-items');
+        
         if (items.length === 0) {
-          container.innerHTML = '<p style="color:#666;text-align:center;padding:20px;">No codes yet.</p>';
+          container.innerHTML = '<p style="color:#666; font-style:italic; text-align:center; padding:30px 0;">No discount codes yet...<br><small>Earn codes from VIP, Class bonuses, Quests & AP Shop!</small></p>';
         } else {
           let html = '';
-          items.forEach(item => {
-            html += `<div class="inv-item" onclick="copyToClipboard('${item.code}')">
-              <div style="font-size:24px;">${item.icon}</div>
-              <div class="inv-item-info"><div class="inv-item-name">${item.name}</div><div style="color:var(--class-color);">${item.code}</div></div>
-              <button class="inv-item-btn">COPY</button>
-            </div>`;
+          
+          // Group by type
+          const typeOrder = ['vip', 'class', 'quest', 'shop', 'daily', 'general'];
+          const typeLabels = {
+            vip: '👑 VIP REWARDS',
+            class: '⚔️ CLASS BONUSES', 
+            quest: '📜 QUEST REWARDS',
+            shop: '🛍️ AP SHOP',
+            daily: '🎁 DAILY REWARDS',
+            general: '🎟️ OTHER'
+          };
+          
+          typeOrder.forEach(type => {
+            const typeItems = items.filter(item => item.type === type);
+            if (typeItems.length > 0) {
+              html += '<div style="margin-bottom:15px;">';
+              html += '<div style="color:#888; font-size:11px; margin-bottom:8px; border-bottom:1px solid #333; padding-bottom:5px;">' + (typeLabels[type] || type.toUpperCase()) + '</div>';
+              
+              typeItems.forEach(item => {
+                const date = new Date(item.addedAt).toLocaleDateString('en-US');
+                html += '<div class="inv-item" style="cursor:pointer;" onclick="copyDiscountCode(\'' + item.code + '\')">';
+                html += '<div style="font-size:28px; min-width:40px; text-align:center;">' + item.icon + '</div>';
+                html += '<div class="inv-item-info">';
+                html += '<div class="inv-item-name">' + item.name + '</div>';
+                html += '<div style="color:var(--class-color); font-weight:bold; font-size:13px;">' + item.code + '</div>';
+                html += '<div class="inv-item-date">' + item.discount + ' • Added: ' + date + '</div>';
+                html += '</div>';
+                html += '<button class="inv-item-btn" style="background:#2ecc71;" onclick="event.stopPropagation(); copyDiscountCode(\'' + item.code + '\')">📋 COPY</button>';
+                html += '</div>';
+              });
+              html += '</div>';
+            }
           });
+          
           container.innerHTML = html;
         }
+        
         document.getElementById('inventory-modal').style.display = 'flex';
       }
-
+      
+      function copyDiscountCode(code) {
+        navigator.clipboard.writeText(code);
+        showCustomAlert('📋', 'CODE COPIED!', 'Code "' + code + '" copied to clipboard. Use at checkout!');
+      }
+      
+      // Initialize default discounts based on VIP and Class
       function initializeDefaultDiscounts() {
         const savedClass = localStorage.getItem(KEY_CLASS);
-        if (savedClass) addDiscountToInventory({ name: savedClass + ' Class Bonus', code: savedClass.toUpperCase() + '_VIP', type: 'class', discount: '5%', icon: savedClass === 'Warrior' ? '⚔️' : savedClass === 'Mage' ? '🔮' : '🏹' });
+        
+        // Add Class discount if class is selected
+        if (savedClass) {
+          const classCode = savedClass.toUpperCase() + '_VIP';
+          addDiscountToInventory({
+            name: savedClass + ' Class Bonus',
+            code: classCode,
+            type: 'class',
+            discount: '5% OFF',
+            icon: savedClass === 'Warrior' ? '⚔️' : savedClass === 'Mage' ? '🔮' : '🏹'
+          });
+        }
+        
+        // Add VIP discount based on VIP level (calculated from customer.total_spent)
+        {% if customer %}
+          {% assign customer_spent = customer.total_spent | divided_by: 100 %}
+          {% assign vip_level = 0 %}
+          {% if customer_spent >= 5000000 %}
+            {% assign vip_level = 5 %}
+          {% elsif customer_spent >= 3000000 %}
+            {% assign vip_level = 4 %}
+          {% elsif customer_spent >= 1500000 %}
+            {% assign vip_level = 3 %}
+          {% elsif customer_spent >= 700000 %}
+            {% assign vip_level = 2 %}
+          {% elsif customer_spent >= 500000 %}
+            {% assign vip_level = 1 %}
+          {% endif %}
+          
+          {% if vip_level > 0 %}
+            addDiscountToInventory({
+              name: 'VIP {{ vip_level }} Exclusive',
+              code: 'VIP{{ vip_level }}_DISCOUNT',
+              type: 'vip',
+              discount: '{{ vip_level | times: 3 }}% OFF',
+              icon: '👑'
+            });
+          {% endif %}
+        {% endif %}
+        
+        updateInventoryCount();
       }
+      
+      function getWeightedRandomLoot(items) {
+        let total = items.reduce((sum, item) => sum + (item.chance || 0), 0);
+        let random = Math.random() * total;
+        let sum = 0;
+        for (let i = 0; i < items.length; i++) {
+          sum += items[i].chance || 0;
+          if (random <= sum) return items[i];
+        }
+        return items[0];
+      }
+      
+      // Confirm lootbox opening - PAY FIRST, RANDOM AFTER
+      function confirmLootboxResult() {
+        if (!currentOpeningLootbox) return;
+        
+        // Create unique token for verification
+        const token = Date.now().toString(36) + Math.random().toString(36).substr(2, 9);
+        
+        // Save pending lootbox to random AFTER checkout complete
+        const pendingData = {
+          id: currentOpeningLootbox.id,
+          name: currentOpeningLootbox.name,
+          image: currentOpeningLootbox.image,
+          lootTable: currentOpeningLootbox.lootTable,
+          variantId: currentOpeningLootbox.variantId,
+          token: token,  // Token for verification
+          timestamp: Date.now()
+        };
+        localStorage.setItem('pending_lootbox', JSON.stringify(pendingData));
+        
+        // Remove lootbox from inventory NOW
+        const items = getInventory();
+        const index = items.findIndex(i => i.id === currentOpeningLootbox.id);
+        if (index > -1) {
+          items.splice(index, 1);
+          saveInventory(items);
+        }
+        
+        // Add to cart with token - token will be sent in email
+        fetch(window.Shopify.routes.root + 'cart/add.js', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            'items': [{
+              'id': currentOpeningLootbox.variantId,
+              'quantity': 1,
+              'properties': {
+                '_lootbox': 'true',
+                '_lootbox_token': token,
+                '_lootbox_name': currentOpeningLootbox.name
+              }
+            }]
+          })
+        })
+        .then(response => {
+          if (response.ok) {
+            window.location.href = '/checkout';
+          } else {
+            // Rollback on error
+            localStorage.removeItem('pending_lootbox');
+            const items = getInventory();
+            items.push(currentOpeningLootbox);
+            saveInventory(items);
+            showCustomAlert('❌', 'ERROR', 'Could not add to cart. Please try again.');
+          }
+        })
+        .catch(e => {
+          console.error(e);
+          localStorage.removeItem('pending_lootbox');
+          showCustomAlert('❌', 'CONNECTION ERROR', 'Please check your network and try again.');
+        });
+      }
+      
+      // Check pending lootbox on page load (after checkout)
+      function checkPendingLootbox() {
+        const pending = localStorage.getItem('pending_lootbox');
+        if (!pending) return;
+        
+        try {
+          const data = JSON.parse(pending);
+          // Only process if pending < 10 minutes (avoid old errors)
+          if (Date.now() - data.timestamp > 600000) {
+            localStorage.removeItem('pending_lootbox');
+            return;
+          }
+          
+          // Có pending lootbox -> Hiện popup hỏi mở ngay
+          if (data.lootTable && data.lootTable.length > 0) {
+            showPendingLootboxPopup(data);
+          }
+        } catch(e) {
+          console.error('Pending lootbox error:', e);
+          localStorage.removeItem('pending_lootbox');
+        }
+      }
+      
+      // Show popup notification for pending lootbox
+      function showPendingLootboxPopup(data) {
+        // Create popup if not exists
+        let popup = document.getElementById('pending-lootbox-popup');
+        if (!popup) {
+          popup = document.createElement('div');
+          popup.id = 'pending-lootbox-popup';
+          popup.innerHTML = `
+            <div class="plb-overlay">
+              <div class="plb-box">
+                <div class="plb-icon">🎁</div>
+                <h2>YOU HAVE AN UNOPENED LOOTBOX!</h2>
+                <p>Payment successful. Click to open the box and receive your item!</p>
+                <img id="plb-img" src="" alt="Lootbox" class="plb-img">
+                <h3 id="plb-name"></h3>
+                <div class="plb-buttons">
+                  <button class="plb-btn-later" onclick="closePendingPopup()">Later</button>
+                  <button class="plb-btn-open" onclick="openPendingLootboxNow()">🎰 OPEN NOW!</button>
+                </div>
+              </div>
+            </div>
+          `;
+          document.body.appendChild(popup);
+          
+          // Add styles
+          const style = document.createElement('style');
+          style.textContent = `
+            .plb-overlay {
+              position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+              background: rgba(0,0,0,0.9); z-index: 999998;
+              display: flex; align-items: center; justify-content: center;
+              animation: plbFadeIn 0.3s ease;
+            }
+            @keyframes plbFadeIn { from { opacity: 0; } to { opacity: 1; } }
+            .plb-box {
+              background: linear-gradient(145deg, #1a1a2e, #16213e);
+              padding: 30px; border-radius: 20px; text-align: center;
+              max-width: 400px; width: 90%; border: 2px solid #ffd700;
+              box-shadow: 0 0 30px rgba(255,215,0,0.3);
+            }
+            .plb-icon { font-size: 50px; margin-bottom: 10px; }
+            .plb-box h2 { color: #ffd700; margin: 0 0 10px; font-size: 22px; }
+            .plb-box p { color: #aaa; margin: 0 0 20px; font-size: 14px; }
+            .plb-img { width: 120px; height: 120px; object-fit: contain; margin-bottom: 10px; }
+            .plb-box h3 { color: #fff; margin: 0 0 20px; font-size: 18px; }
+            .plb-buttons { display: flex; gap: 10px; justify-content: center; }
+            .plb-btn-later {
+              padding: 12px 25px; background: #333; border: 1px solid #555;
+              color: #aaa; border-radius: 8px; cursor: pointer; font-weight: bold;
+            }
+            .plb-btn-open {
+              padding: 12px 30px; background: linear-gradient(135deg, #ff0055, #ff4400);
+              border: none; color: #fff; border-radius: 8px; cursor: pointer;
+              font-weight: bold; font-size: 16px;
+              box-shadow: 0 4px 15px rgba(255,0,85,0.4);
+            }
+            .plb-btn-open:hover { transform: scale(1.05); }
+          `;
+          document.head.appendChild(style);
+        }
+        
+        // Set data
+        document.getElementById('plb-img').src = data.image || '';
+        document.getElementById('plb-name').textContent = data.name || 'Lootbox';
+        popup.style.display = 'block';
+        
+        // Lưu data để dùng khi mở
+        window.pendingLootboxData = data;
+      }
+      
+      function closePendingPopup() {
+        const popup = document.getElementById('pending-lootbox-popup');
+        if (popup) popup.style.display = 'none';
+      }
+      
+      function openPendingLootboxNow() {
+        closePendingPopup();
+        
+        const data = window.pendingLootboxData;
+        if (!data || !data.lootTable) {
+          showCustomAlert('❌', 'ERROR', 'Lootbox data not found!');
+          return;
+        }
+        
+        // RANDOM RESULT
+        const reward = getWeightedRandomLoot(data.lootTable);
+        
+        // Remove pending
+        localStorage.removeItem('pending_lootbox');
+        
+        // Show result modal
+        showLootboxResult(data, reward);
+      }
+      
+      // Display lootbox result after payment
+      function showLootboxResult(lootbox, reward) {
+        const modal = document.getElementById('lootbox-open-modal');
+        const phaseShake = document.getElementById('lb-phase-shake');
+        const phaseResult = document.getElementById('lb-phase-result');
+        const boxImg = document.getElementById('lb-box-img');
+        
+        // Show opening animation
+        modal.style.display = 'flex';
+        phaseShake.style.display = 'flex';
+        phaseResult.style.display = 'none';
+        boxImg.src = lootbox.image;
+        boxImg.classList.add('shaking');
+        
+        // After 2.5s show result
+        setTimeout(() => {
+          boxImg.classList.remove('shaking');
+          phaseShake.style.display = 'none';
+          phaseResult.style.display = 'flex';
+          
+          document.getElementById('lb-prize-img').src = reward.image || '';
+          document.getElementById('lb-prize-name').innerText = reward.name;
+          document.getElementById('lb-prize-chance').innerText = 'Drop rate: ' + reward.chance + '%';
+          
+          // Change button to "CLOSE" instead of "CONFIRM"
+          document.getElementById('lb-confirm-btn').innerText = '🎉 AWESOME!';
+          document.getElementById('lb-confirm-btn').onclick = function() {
+            closeModal('lootbox-open-modal');
+            showCustomAlert('🎊', 'CONGRATULATIONS!', `You received: ${reward.name}`);
+          };
+        }, 2500);
+      }
+      
+      // NO longer auto call checkPendingLootbox - user will go to /pages/lootbox-result from email
+      // document.addEventListener('DOMContentLoaded', checkPendingLootbox);
     </script>
-    
-    {% include 'gameball' %}
+  {% render 'rpg-quests' %}
   </body>
 </html>
+  
+{% include 'gameball' %}
