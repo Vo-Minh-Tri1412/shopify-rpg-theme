@@ -139,7 +139,9 @@ sticky-header {
       }
 
       /* Input Fields */
-      input[type="text"], input[type="email"], input[type="password"],
+      input[type="text"]:not(.search__input), 
+input[type="email"], 
+input[type="password"],
       input[type="number"], input[type="tel"],
       textarea, select {
         border: 1px solid var(--class-color) !important;
