@@ -387,15 +387,13 @@ summary:not(.header__icon) {
         border-radius: 4px !important; font-family: 'Cinzel', serif !important;
       }
     /* =======================================================
-     DÁN ĐOẠN NÀY VÀO CUỐI CÙNG CỦA THẺ <style>
-     ĐỂ ĐẢM BẢO NÓ GHI ĐÈ TẤT CẢ CÁC LỖI TRƯỚC ĐÓ
+     FIX SEARCH FINAL - PHIÊN BẢN FIXED POSITION
      ======================================================= */
 
-  /* 1. Reset nút Search/Cart/Menu về mặc định */
+  /* 1. Xử lý nút bấm trên Header (Search, Cart, User) */
   .header__icon, 
   .header__icon--search, 
   .header__icon span, 
-  .header__icon svg, 
   summary.header__icon {
       border: none !important;
       background: transparent !important;
@@ -406,58 +404,92 @@ summary:not(.header__icon) {
       display: flex !important;
       align-items: center !important;
       justify-content: center !important;
-      pointer-events: auto !important; /* Đảm bảo nút luôn bấm được */
-      position: relative !important;
-      z-index: 200005 !important; /* Nổi lên trên nền header */
+      pointer-events: auto !important; /* Đảm bảo luôn bấm được */
+      cursor: pointer !important;
+      text-decoration: none !important;
   }
 
-  /* 2. Loại bỏ mũi tên tam giác của thẻ summary */
-  summary.header__icon {
-      list-style: none !important;
+  /* 2. Sửa lỗi hiện chữ "S" thay vì icon Kính Lúp */
+  /* Ẩn chữ S (hoặc chữ Search) */
+  .header__icon--search span, 
+  .header__icon span.visually-hidden {
+      display: none !important; 
   }
-  summary.header__icon::-webkit-details-marker {
-      display: none !important;
+  /* Hiện icon SVG (Kính lúp) */
+  .header__icon--search svg,
+  .header__icon svg {
+      display: block !important;
+      width: 2.2rem !important;
+      height: 2.2rem !important;
+      fill: currentColor !important;
+      opacity: 1 !important;
+      visibility: visible !important;
   }
+  
+  /* Xóa mũi tên tam giác mặc định của trình duyệt */
+  summary.header__icon { list-style: none !important; }
+  summary.header__icon::-webkit-details-marker { display: none !important; }
 
-  /* 3. Đưa khung tìm kiếm (Search Modal) lên cao nhất và HIỆN NỀN TRẮNG */
+  /* 3. QUAN TRỌNG: Ép khung Search hiện Full màn hình, đè lên tất cả */
   .search-modal, 
   details[open] > .search-modal,
   .predictive-search {
-      z-index: 2147483647 !important;
-      background-color: #ffffff !important;
+      position: fixed !important; /* Thoát khỏi header, bám theo màn hình */
       top: 0 !important;
-      position: absolute !important; 
+      left: 0 !important;
+      width: 100% !important;
+      height: 100% !important; /* Che phủ toàn bộ */
+      z-index: 2147483647 !important; /* Lớp cao nhất thế giới web */
+      background-color: rgba(255, 255, 255, 0.98) !important; /* Nền trắng đục */
+      display: flex !important;
+      align-items: flex-start !important; /* Search hiện ở trên cùng */
+      justify-content: center !important;
+      padding-top: 20px !important;
       opacity: 1 !important;
       visibility: visible !important;
   }
 
-  /* 4. Ép ô nhập liệu tìm kiếm phải là MÀU TRẮNG - CHỮ ĐEN */
-  /* Dùng selector mạnh để đè CSS của RPG */
+  /* 4. Chỉnh lại ô nhập liệu cho đẹp & gõ được chữ */
+  .search-modal__content {
+      width: 100% !important;
+      max-width: 800px !important;
+      background: transparent !important;
+      border: none !important;
+  }
+  
   .search-modal__form input,
   .search-modal input[type="search"],
   .search-modal input[type="text"],
   input.search__input {
       background-color: #ffffff !important;
       color: #000000 !important;
-      border: 1px solid #ccc !important;
-      background-image: none !important; /* Xóa nền trong suốt */
+      border: 2px solid #000 !important; /* Viền đen cho dễ nhìn */
+      background-image: none !important;
       opacity: 1 !important;
+      min-height: 50px !important;
+      font-size: 16px !important;
+      padding: 10px 15px !important;
+      width: 100% !important;
+  }
+  
+  /* Nút đóng (Close) search */
+  .search-modal__close-button, .modal__close-button {
+      position: absolute !important;
+      right: 20px !important;
+      top: 20px !important;
+      z-index: 2147483648 !important;
+      color: #000 !important;
+      border: none !important;
   }
 
   /* 5. Cho phép bấm xuyên qua thanh HUD đen */
-  #rpg-hud {
-      pointer-events: none !important;
-  }
-  /* Nhưng vẫn bấm được các nút trong HUD */
-  #rpg-hud > * {
-      pointer-events: auto !important;
-  }
+  #rpg-hud { pointer-events: none !important; }
+  #rpg-hud > * { pointer-events: auto !important; }
 
-  /* 6. Fix lỗi icon kính lúp bị méo */
-  .header__icon--search svg {
-      width: 2rem !important;
-      height: 2rem !important;
-      fill: currentColor !important;
+  /* 6. Reset border cho chi tiết header để không bị vuông */
+  .header details, .header summary {
+      border: none !important;
+      background: transparent !important;
   }
     </style>
   </head>
