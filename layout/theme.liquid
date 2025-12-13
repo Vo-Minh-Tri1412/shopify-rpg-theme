@@ -55,19 +55,7 @@
 
     <!-- 2. CSS RPG - FULL WIDTH & NEW MODALS -->
     <style>
-      /* CSS CHO TAG RANK */
-.rpg-rank-badge {
-  font-size: 9px;            /* Chữ nhỏ hơn tên Class */
-  font-weight: 700;
-  text-transform: uppercase;
-  padding: 1px 5px;          /* Khoảng cách trong viền */
-  border: 1px solid;         /* Viền mỏng */
-  border-radius: 2px;        /* Bo góc nhẹ */
-  background: rgba(0, 0, 0, 0.4); /* Nền đen mờ để nổi bật chữ */
-  letter-spacing: 0.5px;
-  backdrop-filter: blur(2px);
-  animation: glowPulse 3s infinite alternate; /* Hiệu ứng nhấp nháy nhẹ */
-}
+
 /* Hiệu ứng sáng nhẹ */
 @keyframes glowPulse {
   0% { opacity: 0.8; }
@@ -368,55 +356,80 @@ summary:not(.header__icon) {
       .button, .shopify-payment-button__button {
         border-radius: 4px !important; font-family: 'Cinzel', serif !important;
       }
-/* ================================================================
-   FIX LỖI KÍNH LÚP KHÔNG BẤM ĐƯỢC (Dựa trên file Header của bạn)
-   ================================================================ */
+/* =======================================================
+     FIX LỖI KÍNH LÚP KHÔNG BẤM ĐƯỢC (FINAL VERSION)
+     ======================================================= */
 
-/* 1. XỬ LÝ THANH HUD (QUAN TRỌNG NHẤT) */
-/* Làm cho toàn bộ thanh đen của game "trong suốt" với chuột */
-/* Để chuột có thể xuyên qua vùng đen bấm vào header bên dưới */
-#rpg-hud, .hud-left, .hud-right {
-    pointer-events: none !important;
-}
+  /* 1. ĐƯA TOÀN BỘ HEADER SHOPIFY LÊN LỚP CAO NHẤT */
+  /* Việc này đảm bảo không có bất kỳ thứ gì của Game đè được lên nút Search */
+  .shopify-section-group-header-group,
+  .header-wrapper,
+  .header-section,
+  sticky-header {
+      z-index: 200005 !important; /* Cao hơn 10000 của HUD */
+      position: relative !important;
+  }
 
-/* Kích hoạt lại chuột cho các nút bấm CỦA GAME (Rank, Shop, Gift...) */
-#rpg-hud a, 
-#rpg-hud button, 
-#rpg-hud .hud-inventory-btn, 
-#rpg-hud .hud-gift-btn,
-#rpg-hud .hud-class-code,
-#rpg-hud .vip-wrapper {
-    pointer-events: auto !important;
-    cursor: pointer !important;
-}
+  /* 2. XỬ LÝ HEADER KHI CUỘN CHUỘT (STICKY) */
+  /* Khi cuộn, header dính lại nhưng phải nằm dưới thanh HUD 60px */
+  sticky-header.header-wrapper,
+  .header-wrapper.header-sticky {
+      top: 60px !important; 
+  }
 
-/* 2. ĐẨY HEADER CỦA BẠN LÊN LỚP CAO HƠN */
-/* Sử dụng class .header và id #header-component từ file bạn gửi */
-.header, 
-#header-component,
-.header-section {
-    position: relative !important;
-    z-index: 200005 !important; /* Cao hơn HUD (thường HUD là 10000) */
-}
+  /* 3. RESET NÚT KÍNH LÚP */
+  /* Đảm bảo nút nhận được click chuột */
+  .header__icon--search,
+  details-modal.header__search summary {
+      pointer-events: auto !important;
+      cursor: pointer !important;
+      z-index: 200006 !important;
+  }
 
-/* 3. FIX RIÊNG CHO NÚT SEARCH (Kính lúp) */
-/* Đảm bảo nút search nhận được click */
-summary.header__icon--search,
-.header__icon--search,
-details[open] > .search-modal {
-    pointer-events: auto !important;
-    cursor: pointer !important;
-}
+  /* 4. SỬA LỖI HIỂN THỊ ICON */
+  /* Ẩn chữ text thừa, hiện icon kính lúp */
+  .header__icon--search span:not(.icon) { display: none !important; }
+  .header__icon--search svg { 
+      display: block !important; 
+      width: 2.2rem !important; 
+      height: 2.2rem !important; 
+  }
 
-/* 4. ĐẢM BẢO KHUNG TÌM KIẾM HIỆN RA KHI BẤM */
-/* Khi bấm vào, khung search sẽ đè lên tất cả */
-details[open] > .search-modal {
-    z-index: 2147483647 !important; /* Lớp cao nhất trình duyệt */
-    position: fixed !important;
-    top: 0 !important; 
-    left: 0 !important;
-    width: 100% !important;
-}
+  /* 5. LOGIC MỞ KHUNG TÌM KIẾM */
+  /* Mặc định ẩn */
+  .search-modal { display: none !important; }
+  
+  /* Khi bấm vào (Open): Hiện full màn hình */
+  details[open] > .search-modal {
+      display: flex !important;
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
+      width: 100% !important;
+      height: 100vh !important;
+      background: rgba(255, 255, 255, 0.98) !important;
+      z-index: 2147483647 !important; /* Lớp cao nhất trình duyệt */
+      justify-content: center !important;
+      padding-top: 80px !important;
+  }
+
+  /* 6. Ô NHẬP LIỆU */
+  .search-modal__content { width: 100%; max-width: 600px; }
+  .search-modal input[type="search"] {
+      border: 1px solid #333 !important;
+      background: #fff !important;
+      color: #000 !important;
+      min-height: 50px !important;
+      width: 100% !important;
+  }
+
+  /* 7. XỬ LÝ THANH HUD GAME (DỰ PHÒNG) */
+  /* Cho phép bấm xuyên qua vùng đen của HUD */
+  #rpg-hud { pointer-events: none !important; }
+  /* Chỉ kích hoạt nút bấm trong HUD */
+  #rpg-hud a, #rpg-hud button, #rpg-hud .hud-inventory-btn, #rpg-hud .hud-gift-btn {
+      pointer-events: auto !important;
+  }
     </style>
   </head>
 
