@@ -85,73 +85,7 @@ details[open] > .search-modal {
 .shopify-section-header-sticky {
     top: 60px !important;
 }
-/* =========================================
-   FIX LỖI SEARCH & HEADER (BẢN FINAL)
-   ========================================= */
 
-/* 1. Reset hoàn toàn nút Search/Cart về mặc định của Shopify */
-.header__icon, 
-.header__icon--search, 
-.header__icon span, 
-.header__icon svg,
-summary.header__icon {
-    border: none !important;
-    background: transparent !important;
-    box-shadow: none !important;
-    color: inherit !important;
-    width: 4.4rem !important; /* Kích thước chuẩn nút bấm Shopify */
-    height: 4.4rem !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-}
-
-/* 2. Loại bỏ dấu mũi tên tam giác mặc định của thẻ summary */
-summary.header__icon {
-    list-style: none !important;
-}
-summary.header__icon::-webkit-details-marker {
-    display: none !important;
-}
-
-/* 3. Đảm bảo icon kính lúp hiển thị rõ */
-.header__icon--search svg {
-    width: 2rem !important;
-    height: 2rem !important;
-    fill: currentColor !important;
-}
-
-/* 4. Cấu hình khung tìm kiếm (Modal) khi mở ra */
-.search-modal, 
-details[open] > .search-modal,
-.predictive-search {
-    z-index: 2147483647 !important; /* Đè lên tất cả HUD */
-    background-color: #ffffff !important; /* Nền trắng tuyệt đối */
-    top: 0 !important;
-    position: absolute !important; 
-    opacity: 1 !important;
-    visibility: visible !important;
-}
-
-/* 5. Cấu hình ô nhập liệu tìm kiếm (Input) */
-.search-modal__form input[type="search"],
-.search-modal input[type="search"],
-input.search__input {
-    background-color: #ffffff !important;
-    color: #000000 !important;
-    border: 1px solid #ccc !important;
-    opacity: 1 !important;
-    padding: 1rem !important;
-    min-height: 44px !important;
-}
-
-/* 6. Xử lý click xuyên thấu HUD (Giữ nguyên cái này là đúng) */
-#rpg-hud {
-    pointer-events: none !important;
-}
-#rpg-hud > * {
-    pointer-events: auto !important;
-}
 /* Hiệu ứng sáng nhẹ */
 @keyframes glowPulse {
   0% { opacity: 0.8; }
@@ -452,6 +386,79 @@ summary:not(.header__icon) {
       .button, .shopify-payment-button__button {
         border-radius: 4px !important; font-family: 'Cinzel', serif !important;
       }
+    /* =======================================================
+     DÁN ĐOẠN NÀY VÀO CUỐI CÙNG CỦA THẺ <style>
+     ĐỂ ĐẢM BẢO NÓ GHI ĐÈ TẤT CẢ CÁC LỖI TRƯỚC ĐÓ
+     ======================================================= */
+
+  /* 1. Reset nút Search/Cart/Menu về mặc định */
+  .header__icon, 
+  .header__icon--search, 
+  .header__icon span, 
+  .header__icon svg, 
+  summary.header__icon {
+      border: none !important;
+      background: transparent !important;
+      box-shadow: none !important;
+      color: inherit !important;
+      width: 4.4rem !important;
+      height: 4.4rem !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      pointer-events: auto !important; /* Đảm bảo nút luôn bấm được */
+      position: relative !important;
+      z-index: 200005 !important; /* Nổi lên trên nền header */
+  }
+
+  /* 2. Loại bỏ mũi tên tam giác của thẻ summary */
+  summary.header__icon {
+      list-style: none !important;
+  }
+  summary.header__icon::-webkit-details-marker {
+      display: none !important;
+  }
+
+  /* 3. Đưa khung tìm kiếm (Search Modal) lên cao nhất và HIỆN NỀN TRẮNG */
+  .search-modal, 
+  details[open] > .search-modal,
+  .predictive-search {
+      z-index: 2147483647 !important;
+      background-color: #ffffff !important;
+      top: 0 !important;
+      position: absolute !important; 
+      opacity: 1 !important;
+      visibility: visible !important;
+  }
+
+  /* 4. Ép ô nhập liệu tìm kiếm phải là MÀU TRẮNG - CHỮ ĐEN */
+  /* Dùng selector mạnh để đè CSS của RPG */
+  .search-modal__form input,
+  .search-modal input[type="search"],
+  .search-modal input[type="text"],
+  input.search__input {
+      background-color: #ffffff !important;
+      color: #000000 !important;
+      border: 1px solid #ccc !important;
+      background-image: none !important; /* Xóa nền trong suốt */
+      opacity: 1 !important;
+  }
+
+  /* 5. Cho phép bấm xuyên qua thanh HUD đen */
+  #rpg-hud {
+      pointer-events: none !important;
+  }
+  /* Nhưng vẫn bấm được các nút trong HUD */
+  #rpg-hud > * {
+      pointer-events: auto !important;
+  }
+
+  /* 6. Fix lỗi icon kính lúp bị méo */
+  .header__icon--search svg {
+      width: 2rem !important;
+      height: 2rem !important;
+      fill: currentColor !important;
+  }
     </style>
   </head>
 
